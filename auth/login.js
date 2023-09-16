@@ -6,7 +6,7 @@ class Login {
   }
 
   generateToken() {
-    return jwt.sign({}, this.secretKey, { expiresIn: '1h' });
+    return jwt.sign({}, this.secretKey, { expiresIn: '96h' });
   }
 
   login(req, res) {
