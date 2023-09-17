@@ -15,7 +15,7 @@ class Login {
     if (secretKeyUser != this.secretKey) {return res.status(403).send({ message: 'Token secreto inválido.'}); }
     const token = this.generateToken();
 
-    res.status(200).send({ token, expires_in: '1h', token_type: 'Bearer'});
+    res.status(200).send({ token, expiresIn: '96h', tokenType: 'Bearer'});
 
   }
 }

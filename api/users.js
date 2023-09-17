@@ -3,10 +3,10 @@ class Users {
         this.connection = connection;
       }
 
-
-      verifyLogin(req, res) {
-        const { email, password, isAdminPanel } = req.body;
+      verifyLogin(req, res, keyUseAPI) {
+        const { email, password } = req.body;
         const util = require('./util/util.js');
+        const jwt = require('jsonwebtoken');
         const cryptoPass = util.convertToSHA256(password);
         const query = `SELECT * FROM users WHERE email = ?`;
         this.connection.query(query, [email], (err, results) => {
@@ -20,12 +20,12 @@ class Users {
           if (results[0].password !== cryptoPass) {
           return res.status(409).send({ message: 'Senha incorreta.'});
           }
-
-          if (isAdminPanel == 1) {
-             const actualUserType = results[0].usertype;
-             if (actualUserType != 2) { return res.status(409).send({ message: 'Usuário não é administrador.'}); } }
-     
-          res.status(200).send({ message: 'Login realizado com sucesso.' });
+          
+          //gerar token para utilização do usuário
+          const token = jwt.sign({useremail: email, useruniqueid: results[0].uniqueid}, keyUseAPI, { expiresIn: '24h' });
+          const authHeader = req.headers['authorization'];
+          const secretKey = authHeader && authHeader.split(' ')[1];
+          res.status(200).send({ message: 'Login realizado com sucesso.', token: token, secretKey: secretKey });
           const { v4: uuidv4 } = require('uuid');
           const uniqueid = uuidv4();
           util.logToDatabase({

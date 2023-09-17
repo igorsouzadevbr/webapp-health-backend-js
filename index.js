@@ -7,10 +7,14 @@ app.use(express.json());
 
 //depends
 const secretTokenKey = '0de6d8af5b6d3d908eca1e93cb5c9f384803ee7ee63ae1c5105e7baa475eca99';
+const adminSecretTokenKey = '3E5E085DBA7951B401D811CAE24DF052C6D91065B2ACCE3833EE7CD52A9DA330';
+const attendantSecretTokenKey = '2EC250AC6273C76BC50E7C8E1D7141632A9D35D131EFF249341FAAB2F798EF9F'
+const professionalSecretTokenKey = '08EF27C501561F8A1C7237D1503DC0D7AF1441D2D1C3630421C2820945C38349';
 const dotenv = require('dotenv');
 const Login = require('./auth/login');
 const Users = require('./api/users');
 const System = require('./api/system');
+const AdminFunctions = require('./api/admin/functions');
 
 //limitador de requisições -- importante identificar o uso real do webapp para deixar em um número bacana de requisições x tempo.
 const limiter = rateLimit({
@@ -46,10 +50,18 @@ connection.connect((err) => {
     }
   });
 
-//ROTA DE AUTENTICAÇÃO
-const login = new Login(secretTokenKey);
+//ROTAS DE AUTENTICAÇÃO
+const clientLogin = new Login(secretTokenKey);
 app.post('/api/auth', (req, res) => {
-    login.login(req, res);
+  clientLogin.login(req, res);
+});
+const adminLogin = new Login(adminSecretTokenKey);
+app.post('/api/admin/auth', (req, res) => {
+    adminLogin.login(req, res);
+});
+const attendantLogin = new Login(attendantSecretTokenKey);
+app.post('/api/attendant/auth', (req, res) => {
+    attendantLogin.login(req, res);
 });
 
 const authenticateClient = (req, res, next) => {
@@ -63,19 +75,76 @@ const authenticateClient = (req, res, next) => {
     });
 };
 
+const authenticateAdministrator = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
+  
+  jwt.verify(token, adminSecretTokenKey, (err, decoded) => {
+      if (err) { return res.status(403).send({ message: 'O token de autenticação fornecido está expirado.' }); }
+      next();
+  });
+};
+
+const authenticateAttendant = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
+  
+  jwt.verify(token, attendantSecretTokenKey, (err, decoded) => {
+      if (err) { return res.status(403).send({ message: 'O token de autenticação fornecido está expirado.' }); }
+      next();
+  });
+};
+
+const authenticateProfessional = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
+  
+  jwt.verify(token, professionalSecretTokenKey, (err, decoded) => {
+      if (err) { return res.status(403).send({ message: 'O token de autenticação fornecido está expirado.' }); }
+      next();
+  });
+};
+
+const authenticateUser = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  const secretKey = req.params.secretKey;
+  if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
+  
+  jwt.verify(token, secretKey, (err, decoded) => {
+      if (err) { return res.status(403).send({ message: 'O token de autenticação fornecido está expirado.' }); }
+      next();
+  });
+};
+
 //FIM DA ROTA DE AUTENTICAÇÃO
 const users = new Users(connection);
 const system = new System(connection);
+const adminFunctions = new AdminFunctions(connection);
+
+//ROTA API -- ADMINS
+app.put('/api/admin/users/create', authenticateAdministrator, (req, res) => {
+    adminFunctions.create(req, res);
+}); 
+
 
 //ROTA API -- USUARIOS
-app.post('/api/users/create', authenticateClient, (req, res) => {
+app.put('/api/users/create', authenticateClient, (req, res) => {
     users.create(req, res);
 });
-// app.post('/api/users/createWithUserType', authenticateClient, (req, res) => {
-//     users.createWithUserType(req, res);
-// });
-app.put('/api/users/update/:uniqueid', authenticateClient, (req, res) => {
+app.patch('/api/users/update/:uniqueid', authenticateClient, (req, res) => {
   users.alterUserData(req, res);
+});
+app.get('/api/users/login', authenticateClient, (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  users.verifyLogin(req, res, token);
+});
+app.get('/api/users/info/:email/:secretKey', authenticateUser, (req, res) => {
+    users.getUserData(req, res);
 });
 
 //SISTEMA
@@ -105,13 +174,6 @@ app.get('/api/system/gender/name/:gendername', authenticateClient, (req, res) =>
 });
 
 
-app.get('/api/users/login', authenticateClient, (req, res) => {
-  users.verifyLogin(req, res);
-});
-app.get('/api/users/info/:email', authenticateClient, (req, res) => {
-    users.getUserData(req, res);
-});
-
 
 //ERRO PARA REQUESTS NÃO SUPORTADOS.
 app.use('/api', (req, res) => {
@@ -126,7 +188,7 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor ligado na porta:${PORT}`);
+  console.log(`Servidor ouvindo na porta:${PORT}`);
 });
 
 module.exports = {
