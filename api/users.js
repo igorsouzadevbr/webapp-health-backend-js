@@ -165,7 +165,7 @@ class Users {
          // Inserção do usuário no banco de dados
          const query = 'INSERT INTO users(uniqueid, name, email, password, usertype, phone, birthdate, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
          try {
-         this.connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), 0, phone, birthdate, gender], (err, results) => {
+         this.connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), 1, phone, birthdate, gender], (err, results) => {
            if (err) {
              console.error('Erro ao criar usuário:', err);
              return res.sendStatus(500);
