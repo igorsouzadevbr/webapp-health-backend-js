@@ -25,6 +25,22 @@ function isPhoneNumber(phoneNumber) {
     return phoneNumber;
   }
 
+  const formatToDate = (data) => {
+    if (/^(\d{2})\/(\d{2})\/(\d{4})$/.test(data)) {
+        return data;
+    }
+    else if (/^(\d{2})(\d{2})(\d{4})$/.test(data)) {
+        return data.replace(/^(\d{2})(\d{2})(\d{4})$/, "$1/$2/$3");
+    }
+    else if (/^(\d{2})-(\d{2})-(\d{4})$/.test(data)) {
+        return data.replace(/^(\d{2})-(\d{2})-(\d{4})$/, "$1/$2/$3");
+    }
+    else {
+        return data;
+    }
+}
+
+
   function convertToSHA256(password) {
     return crypto.createHash('sha256').update(password, 'utf8').digest('hex');
   }
@@ -133,5 +149,5 @@ function getWeekDay(weekday) {
   }
 
   module.exports = {
-    isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase
+    isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate
   };

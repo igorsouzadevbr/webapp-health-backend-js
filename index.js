@@ -10,6 +10,7 @@ const secretTokenKey = '0de6d8af5b6d3d908eca1e93cb5c9f384803ee7ee63ae1c5105e7baa
 const dotenv = require('dotenv');
 const Login = require('./auth/login');
 const Users = require('./api/users');
+const System = require('./api/system');
 
 //limitador de requisições -- importante identificar o uso real do webapp para deixar em um número bacana de requisições x tempo.
 const limiter = rateLimit({
@@ -64,18 +65,46 @@ const authenticateClient = (req, res, next) => {
 
 //FIM DA ROTA DE AUTENTICAÇÃO
 const users = new Users(connection);
-
+const system = new System(connection);
 
 //ROTA API -- USUARIOS
 app.post('/api/users/create', authenticateClient, (req, res) => {
     users.create(req, res);
 });
-app.post('/api/users/createWithUserType', authenticateClient, (req, res) => {
-    users.createWithUserType(req, res);
-});
+// app.post('/api/users/createWithUserType', authenticateClient, (req, res) => {
+//     users.createWithUserType(req, res);
+// });
 app.put('/api/users/update/:uniqueid', authenticateClient, (req, res) => {
   users.alterUserData(req, res);
 });
+
+//SISTEMA
+app.get('/api/system/usertypes', authenticateClient, (req, res) => {
+    system.getUserTypes(req, res);
+});
+app.get('/api/system/city/id/:cityid', authenticateClient, (req, res) => {
+  system.getCityByID(req, res);
+});
+app.get('/api/system/city/name/:cityname', authenticateClient, (req, res) => {
+  system.getCityByName(req, res);
+});
+app.get('/api/system/state/id/:stateid', authenticateClient, (req, res) => {
+  system.getStateByID(req, res);
+});
+app.get('/api/system/state/name/:statename', authenticateClient, (req, res) => {
+  system.getStateByName(req, res);
+});
+app.get('/api/system/state/abbreviation/:stateab', authenticateClient, (req, res) => {
+  system.getStateByAb(req, res);  
+});
+app.get('/api/system/gender/id/:genderid', authenticateClient, (req, res) => {
+  system.getGenderByID(req, res);
+});
+app.get('/api/system/gender/name/:gendername', authenticateClient, (req, res) => {
+  system.getGenderByName(req, res);
+});
+
+
 app.get('/api/users/login', authenticateClient, (req, res) => {
   users.verifyLogin(req, res);
 });
