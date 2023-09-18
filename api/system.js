@@ -13,6 +13,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
       getCityByID(req, res) {
@@ -27,6 +28,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
       getCityByName(req, res) {
@@ -42,6 +44,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
       getStateByID(req, res) {
@@ -56,6 +59,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
       getStateByAb(req, res) {
@@ -70,6 +74,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
       getStateByName(req, res) {
@@ -85,6 +90,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
       getGenderByID(req, res) {
@@ -99,6 +105,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
       getGenderByName(req, res) {
@@ -113,6 +120,7 @@ class System {
               return res.status(404).json({ message: 'Sem resultados.'});     
             }
             res.status(200).send({ results });
+            connection.release();
           });
       }
     }

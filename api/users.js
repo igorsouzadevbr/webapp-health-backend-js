@@ -35,6 +35,7 @@ class Users {
               message: 'verifyLogin: ' + JSON.stringify(results),
               status: 200
           });
+          connection.release();
         });
       }
 
@@ -61,6 +62,7 @@ class Users {
               message: 'getUserData: ' + JSON.stringify(results) + ' - 2023',
               status: 200
           });
+          connection.release();
         });
       }
 
@@ -100,6 +102,7 @@ class Users {
             }
 
             res.status(200).send({ message: 'Usuário atualizado com sucesso.' });
+            connection.release();
             //gerar LOG da atualização com data + hora
           });
         });
@@ -135,6 +138,7 @@ class Users {
            }
    
            res.status(200).send({ message: 'Usuário criado com sucesso!'});
+           connection.release();
          });
        }catch(err) {
          return res.sendStatus(500);

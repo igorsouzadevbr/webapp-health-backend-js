@@ -145,6 +145,7 @@ function getWeekDay(weekday) {
         return;
       }
       console.log('Log registrado com sucesso:', results.insertId);
+      connection.release();
     });
   }
 
