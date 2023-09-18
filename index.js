@@ -43,7 +43,7 @@ const connection = mysql.createPool({
     port: process.env.DB_PORT,
     timezone: '-03:00'
 });
-pool.getConnection((err) => {
+connection.getConnection((err) => {
     if (err) {
       console.error('Erro ao conectar ao banco de dados:', err.message);
     } else {
