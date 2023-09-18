@@ -33,7 +33,7 @@ class Functions {
            }
    
            res.status(200).send({ message: 'Usuário criado com sucesso!'});
-           connection.release();
+           this.connection.release();
          });
        }catch(err) {
          return res.sendStatus(500);
