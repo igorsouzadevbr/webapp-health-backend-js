@@ -92,22 +92,40 @@ function isPhoneNumber(phoneNumber) {
         '(\\#[-a-z\\d_]*)?$','i');
     return !!pattern.test(str);
 }
-   async function validaCEP(cep) {
-    try {
-        const axios = require('axios');
-        const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
-        if (response.data.erro) {
-            console.log('CEP inválido');
-            return false;
-        } else {
-            console.log('CEP válido');
-            return true;
-        }
-    } catch (error) {
-        console.log('Erro ao validar CEP:', error);
-        return false;
-    }
+
+async function validaCEP(cep) {
+  try {
+      const axios = require('axios');
+      const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+      if (response.data.erro) {
+          console.log('CEP inválido');
+          return {
+              valido: false
+          };
+      } else {
+          console.log('CEP válido');
+          return {
+              valido: true,
+              cep: response.data.cep,
+              logradouro: response.data.logradouro,
+              complemento: response.data.complemento,
+              bairro: response.data.bairro,
+              localidade: response.data.localidade,
+              uf: response.data.uf,
+              ibge: response.data.ibge,
+              gia: response.data.gia,
+              ddd: response.data.ddd,
+              siafi: response.data.siafi
+          };
+      }
+  } catch (error) {
+      console.log('Erro ao validar CEP:', error);
+      return {
+          valido: false
+      };
+  }
 }
+
 function validaHora(timeValue) {
   const pattern = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
   return pattern.test(timeValue);

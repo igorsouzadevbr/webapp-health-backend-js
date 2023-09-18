@@ -154,5 +154,38 @@ class System {
           });
         });
       }
+      async getPostalCode(req, res) {
+        const postalcode = req.params.postalcode;
+        const util = require('./util/util');
+        const sanitizedPostalCode = postalcode.replace(/\D/g, '');
+        try {
+            const cepDetails = await util.validaCEP(sanitizedPostalCode);
+    
+            if (!cepDetails.valido) {
+                return res.status(409).send({ message: 'O CEP informado é inválido.' });
+            }
+  
+            const { valido, ...cepData } = cepDetails;
+            res.status(200).send(cepData);
+            const { v4: uuidv4 } = require('uuid');
+            const uniqueid = uuidv4();
+            util.logToDatabase({
+                uniqueid: uniqueid,
+                ip: req.ip,
+                method: 'GET',
+                message: 'getPostalCode: ' + JSON.stringify(results),
+                status: 200
+            });
+        } catch (error) {
+            res.status(500).send({ message: 'Erro ao buscar detalhes do CEP.', error });
+            util.logToDatabase({
+              uniqueid: uniqueid,
+              ip: req.ip,
+              method: 'GET',
+              message: 'ERRO: getPostalCode: ' + JSON.stringify(results),
+              status: 500
+          });
+        }
+    }
     }
     module.exports = System;

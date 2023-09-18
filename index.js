@@ -173,6 +173,9 @@ app.get('/api/system/gender/id/:genderid', authenticateClient, (req, res) => {
 app.get('/api/system/gender/name/:gendername', authenticateClient, (req, res) => {
   system.getGenderByName(req, res);
 });
+app.get('/api/system/cep/:postalcode', authenticateClient, (req, res) => {
+  system.getPostalCode(req, res);
+});
 
 
 
