@@ -12,7 +12,11 @@ class Functions {
         if (!util.isInteger(gender)) {return res.status(409).send({ message: 'O gênero informado não é um número.'});}
         if (!util.isEmail(email)) {return res.status(409).send({ message: 'O campo EMAIL informado não é um e-mail válido.'}); }
 
-        this.connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
+        this.connection.getConnection((err, connection) => {
+          if (err) {console.error('Erro ao conectar ao banco de dados:', err.message); return;} 
+       
+
+        connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
            if (err) {
              console.error('Erro ao verificar e-mail do usuário:', err);
              return res.sendStatus(500);
@@ -26,18 +30,19 @@ class Functions {
          // Inserção do usuário no banco de dados
          const query = 'INSERT INTO users(uniqueid, name, email, password, usertype, phone, birthdate, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
          try {
-         this.connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), 4, formattedPhone, formattedBirthDate, gender], (err, results) => {
-           if (err) {
+         connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), 4, formattedPhone, formattedBirthDate, gender], (err, results) => {
+         connection.release(); 
+          if (err) {
              console.error('Erro ao criar usuário:', err);
              return res.sendStatus(500);
            }
    
            res.status(200).send({ message: 'Usuário criado com sucesso!'});
-           this.connection.release();
          });
        }catch(err) {
          return res.sendStatus(500);
        }
+      });
      });
       }
 

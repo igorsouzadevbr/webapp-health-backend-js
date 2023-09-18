@@ -9,7 +9,12 @@ class Users {
         const jwt = require('jsonwebtoken');
         const cryptoPass = util.convertToSHA256(password);
         const query = `SELECT * FROM users WHERE email = ?`;
-        this.connection.query(query, [email], (err, results) => {
+
+        this.connection.getConnection((err, connection) => {
+          if (err) {console.error('Erro ao conectar ao banco de dados:', err.message); return;} 
+
+        connection.query(query, [email], (err, results) => {
+          connection.release();
           if (err) {
             console.error('Erro ao obter usuários:', err);
             return res.sendStatus(500);
@@ -35,8 +40,9 @@ class Users {
               message: 'verifyLogin: ' + JSON.stringify(results),
               status: 200
           });
-          this.connection.release();
+          
         });
+      });
       }
 
       getUserData(req, res) {
@@ -44,7 +50,11 @@ class Users {
         const util = require('./util/util.js');
         if (email == null || !util.isEmail(email)) {return res.status(403).json({ message: 'Informe um endereço de e-mail válido.'});    }
 
-        this.connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
+        this.connection.getConnection((err, connection) => {
+          if (err) {console.error('Erro ao conectar ao banco de dados:', err.message); return;} 
+
+        connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
+          connection.release();
           if (err) {
             console.error('Erro no método getUserData, query n° 1:', err);
             return res.sendStatus(500);
@@ -62,15 +72,19 @@ class Users {
               message: 'getUserData: ' + JSON.stringify(results) + ' - 2023',
               status: 200
           });
-          this.connection.release();
+          
         });
+      });
       }
 
       alterUserData(req, res) {
         const uniqueid = req.params.uniqueid;
         const { name, usertype } = req.body;
 
-        this.connection.query("SELECT * FROM users where uniqueid = ?", [uniqueid], (err, results) =>
+        this.connection.getConnection((err, connection) => {
+          if (err) {console.error('Erro ao conectar ao banco de dados:', err.message); return;} 
+
+        connection.query("SELECT * FROM users where uniqueid = ?", [uniqueid], (err, results) =>
         {
           if (err) {
             console.error('Erro no método alterUserData, query n° 1:', err);
@@ -95,17 +109,19 @@ class Users {
           if (!hasChanges) {
             return res.status(200).send({ message: 'Nenhum campo alterado.'});
           }
-          this.connection.query("update users set ? where uniqueid = ?", [updatedData, uniqueid], (err, results) => {
+          connection.query("update users set ? where uniqueid = ?", [updatedData, uniqueid], (err, results) => {
+            connection.release();
             if (err) {
               console.error('Erro no método alterUserData, query n° 2:', err);
               return res.sendStatus(500);
             }
 
             res.status(200).send({ message: 'Usuário atualizado com sucesso.' });
-            this.connection.release();
+            
             //gerar LOG da atualização com data + hora
           });
         });
+      });
       }
       create (req, res, ) {
         const { name, email, phone, birthdate, gender, password } = req.body;
@@ -117,7 +133,10 @@ class Users {
         if (!util.isInteger(gender)) {return res.status(409).send({ message: 'O gênero informado não é um número.'});}
         if (!util.isEmail(email)) {return res.status(409).send({ message: 'O campo EMAIL informado não é um e-mail válido.'}); }
 
-        this.connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
+        this.connection.getConnection((err, connection) => {
+          if (err) {console.error('Erro ao conectar ao banco de dados:', err.message); return;} 
+
+        connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
            if (err) {
              console.error('Erro ao verificar e-mail do usuário:', err);
              return res.sendStatus(500);
@@ -131,19 +150,22 @@ class Users {
          // Inserção do usuário no banco de dados
          const query = 'INSERT INTO users(uniqueid, name, email, password, usertype, phone, birthdate, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
          try {
-         this.connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), 1, formattedPhone, formattedBirthDate, gender], (err, results) => {
-           if (err) {
+         connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), 1, formattedPhone, formattedBirthDate, gender], (err, results) => {
+          connection.release(); 
+          if (err) {
              console.error('Erro ao criar usuário:', err);
              return res.sendStatus(500);
            }
    
            res.status(200).send({ message: 'Usuário criado com sucesso!'});
-           this.connection.release();
+          
          });
+        
        }catch(err) {
          return res.sendStatus(500);
        }
      });
+    });
      }
       
 }

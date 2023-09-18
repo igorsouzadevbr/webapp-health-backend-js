@@ -138,15 +138,19 @@ function getWeekDay(weekday) {
   function logToDatabase(logData) {
     const query = 'INSERT INTO apilogrequests (uniqueid, ip, method, message, status, datetime) VALUES (?, ?, ?, ?, ?, NOW())';
     const values = [logData.uniqueid, logData.ip, logData.method, logData.message, logData.status];
-
-    main.connection.query(query, values, (error, results) => {
+      
+    main.connection.getConnection((err, connection) => {
+    if (err) {console.error('Erro ao conectar ao banco de dados:', err.message); return;} 
+    
+      connection.query(query, values, (error, results) => {
+      connection.release();
       if (error) {
         console.error('Erro ao registrar log:', error);
         return;
       }
       console.log('Log registrado com sucesso:', results.insertId);
-      this.connection.release();
     });
+  });
   }
 
   module.exports = {
