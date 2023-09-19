@@ -166,14 +166,14 @@ class System {
             }
   
             const { valido, ...cepData } = cepDetails;
-            res.status(200).send(cepData);
+            res.status(200).send({message: cepData});
             const { v4: uuidv4 } = require('uuid');
             const uniqueid = uuidv4();
             util.logToDatabase({
                 uniqueid: uniqueid,
                 ip: req.ip,
                 method: 'GET',
-                message: 'getPostalCode: ' + JSON.stringify(results),
+                message: 'getPostalCode: ' + JSON.stringify(cepData),
                 status: 200
             });
         } catch (error) {
@@ -182,7 +182,7 @@ class System {
               uniqueid: uniqueid,
               ip: req.ip,
               method: 'GET',
-              message: 'ERRO: getPostalCode: ' + JSON.stringify(results),
+              message: 'ERRO: getPostalCode: ' + JSON.stringify(error),
               status: 500
           });
         }

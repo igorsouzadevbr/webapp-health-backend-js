@@ -98,12 +98,10 @@ async function validaCEP(cep) {
       const axios = require('axios');
       const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
       if (response.data.erro) {
-          console.log('CEP inválido');
           return {
               valido: false
           };
       } else {
-          console.log('CEP válido');
           return {
               valido: true,
               cep: response.data.cep,
@@ -119,7 +117,6 @@ async function validaCEP(cep) {
           };
       }
   } catch (error) {
-      console.log('Erro ao validar CEP:', error);
       return {
           valido: false
       };
