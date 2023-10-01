@@ -1,7 +1,7 @@
 const { v4: uuidv4 } = require('uuid');
 const util = require('../util/util.js');
 const systemObjects = require('../system/systemObjects.js');
-const systemMessages = require('../system/systemMessages.js');
+const systemMessages = require('../system/systemMessages.js'); 
 class Functions {
   
     constructor(connection) {
@@ -34,7 +34,7 @@ class Functions {
          // Inserção do usuário no banco de dados
          const query = 'INSERT INTO users(uniqueid, name, email, password, usertype, phone, birthdate, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
          try {
-         connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), systemObjects.UserTypes.ATENDENTE.id, formattedPhone, formattedBirthDate, gender], (err, results) => {
+         connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), systemObjects.UserTypes.PROFISSIONAL.id, formattedPhone, formattedBirthDate, gender], (err, results) => {
          connection.release(); 
           if (err) {
              console.error('Erro ao criar usuário:', err);

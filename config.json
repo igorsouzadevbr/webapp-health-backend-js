@@ -1,0 +1,9 @@
+{
+    "mail": {
+        "user": "send@dvelopers.com.br",
+        "pass": "?d2#Z1kxt~Tk",
+        "host": "mail.dvelopers.com.br",
+        "port": 465,
+        "secure": true
+    }
+}
