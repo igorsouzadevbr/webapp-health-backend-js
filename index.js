@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const app = express();
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
+app.use(cors());
 app.use(express.json());
 
 //depends
@@ -24,7 +26,6 @@ const limiter = rateLimit({
   max: 500,
   message: "Você excedeu o limite de requisições em 15 minutos."
 });
-
 app.use('/api/', limiter);
 app.set('trust proxy', 1);
 
@@ -53,14 +54,6 @@ connection.getConnection((err) => {
   }
 });
 
-app.use(function (req, res, next) {
-
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  next();
-});
 
 //ROTAS DE AUTENTICAÇÃO
 const clientLogin = new Login(secretTokenKey);
