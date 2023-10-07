@@ -114,7 +114,7 @@ class Users {
                   message: 'verifyLogin: ' + JSON.stringify(results),
                   status: 200
                 }, this.connection);
-                return res.status(200).send({ message: 'Login realizado com sucesso.', token: token, secretKey: secretKey, expiresIn: expiresIn });
+                return res.status(200).send({ message: 'Login realizado com sucesso.', token: token, secretKey: secretKey, expiresIn: '96h' });
               }
             });
           });
