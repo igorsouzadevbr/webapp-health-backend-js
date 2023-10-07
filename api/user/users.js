@@ -142,7 +142,7 @@ class Users {
           connection.release();
           return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
         }
-        res.status(200).json(results);
+        res.status(200).json(results[0]);
         const uniqueid = uuidv4();
         util.logToDatabase({
           uniqueid: uniqueid,
