@@ -148,7 +148,7 @@ app.put('/api/users/location/create/:userUniqueId', authenticateClient, (req, re
 app.patch('/api/users/update/:uniqueid', authenticateClient, (req, res) => {
   users.alterUserData(req, res);
 });
-app.get('/api/users/login', authenticateClient, (req, res) => {
+app.post('/api/users/login', authenticateClient, (req, res) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   users.verifyLogin(req, res, token);
