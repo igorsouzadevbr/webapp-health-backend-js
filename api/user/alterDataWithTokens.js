@@ -102,9 +102,9 @@ class AlterDataWithTokens {
 
             const userLogged = await databaseFramework.select("users", 'uniqueid', `id = ${tokenExists[0].userid}`)
             const secretKey = req.params.secretKey;
-            const token = jwt.sign({ useremail: alterMailTo, useruniqueid: userLogged[0].uniqueid }, secretKey, { expiresIn: '96h' });
+            const token = jwt.sign({ useremail: alterMailTo, useruniqueid: userLogged[0].uniqueid }, secretKey, { expiresIn: 3 });
 
-            return res.status(200).json({ message: 'E-mail atualizado com sucesso.', newUserToken: token });
+            return res.status(200).json({ message: 'E-mail atualizado com sucesso.', newUserToken: token, expiresIn: 3 });
         } else {
             return res.status(409).json({ message: 'O token informado não existe ou não é para alteração de e-mail.' });
         }
