@@ -116,7 +116,7 @@ const authenticateProfessional = (req, res, next) => {
 const authenticateUser = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  const secretKey = req.params.secretKey;
+  const { secretKey } = req.body;
   if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
 
   jwt.verify(token, secretKey, (err, decoded) => {
@@ -153,6 +153,7 @@ app.post('/api/users/login', authenticateClient, (req, res) => {
   const token = authHeader && authHeader.split(' ')[1];
   users.verifyLogin(req, res, token);
 });
+//mudar o codigo dos demais metodos
 app.get('/api/users/update/token/password/:email/:secretKey', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
@@ -165,7 +166,7 @@ app.get('/api/users/update/token/email/:email/:secretKey', authenticateUser, (re
 app.patch('/api/users/update/email/:token/:secretKey', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserEmail(req, res);
 });
-app.get('/api/users/info/:email/:secretKey', authenticateUser, (req, res) => {
+app.post('/api/users/info', authenticateUser, (req, res) => {
   users.getUserData(req, res);
 });
 

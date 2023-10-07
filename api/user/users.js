@@ -124,7 +124,7 @@ class Users {
   }
 
   getUserData(req, res) {
-    const email = req.params.email;
+    const { email, secretKey } = req.body;
 
     if (email == null || !util.isEmail(email)) { return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
 
