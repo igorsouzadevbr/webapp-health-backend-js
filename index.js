@@ -154,16 +154,16 @@ app.post('/api/users/login', authenticateClient, (req, res) => {
   users.verifyLogin(req, res, token);
 });
 //mudar o codigo dos demais metodos
-app.get('/api/users/update/token/password/:email/:secretKey', authenticateUser, (req, res) => {
+app.get('/api/users/update/token/password', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
-app.patch('/api/users/update/password/:token/:secretKey', authenticateUser, (req, res) => {
+app.patch('/api/users/update/password', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserPassword(req, res);
 });
-app.get('/api/users/update/token/email/:email/:secretKey', authenticateUser, (req, res) => {
+app.get('/api/users/update/token/email', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserEmail(req, res);
 });
-app.patch('/api/users/update/email/:token/:secretKey', authenticateUser, (req, res) => {
+app.patch('/api/users/update/email', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserEmail(req, res);
 });
 app.post('/api/users/info', authenticateUser, (req, res) => {

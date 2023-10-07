@@ -73,7 +73,7 @@ class AlterDataWithTokens {
 
     async verifyTokenAndAlterUserEmail(req, res) {
         const databaseFramework = new dbUtils(this.connection);
-        const token = req.params.token;
+        const { token, secretKey } = req.body;
 
         if (token.length < 7) { return res.status(409).json({ message: 'O token deve possuir no mínimo 7 dígitos, sendo 3 letras e 4 números.' }); }
 
@@ -112,7 +112,7 @@ class AlterDataWithTokens {
 
     async verifyTokenAndAlterUserPassword(req, res) {
         const databaseFramework = new dbUtils(this.connection);
-        const token = req.params.token;
+        const { token } = req.body;
 
         if (token.length < 7) { return res.status(409).json({ message: 'O token deve possuir no mínimo 7 dígitos, sendo 3 letras e 4 números.' }); }
 
@@ -144,8 +144,7 @@ class AlterDataWithTokens {
 
     async getTokenToAlterUserPassword(req, res) {
         const databaseFramework = new dbUtils(this.connection);
-        const email = req.params.email;
-        const { actualPassword, newpassword } = req.body;
+        const { email, actualPassword, newpassword, secretKey } = req.body;
 
         const actualPasswordEncrypted = util.convertToSHA256(actualPassword);
         const newPasswordEncrypted = util.convertToSHA256(newpassword);
@@ -188,8 +187,7 @@ class AlterDataWithTokens {
 
     async getTokenToAlterUserEmail(req, res) {
         const databaseFramework = new dbUtils(this.connection);
-        const email = req.params.email;
-        const { mailto } = req.body;
+        const { mailto, email, secretKey } = req.body;
 
         if (email == null || !util.isEmail(email)) { return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
         if (mailto == null || !util.isEmail(mailto)) { return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
