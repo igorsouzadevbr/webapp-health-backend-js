@@ -131,7 +131,7 @@ class Users {
     this.connection.getConnection((err, connection) => {
       if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
 
-      connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
+      connection.query("SELECT id,uniqueid,name,email,phone,birthdate,gender FROM users where email = ?", [email], (err, results) => {
         connection.release();
         if (err) {
           connection.release();
@@ -142,7 +142,7 @@ class Users {
           connection.release();
           return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
         }
-        res.status(200).send({ results });
+        res.status(200).json(results);
         const uniqueid = uuidv4();
         util.logToDatabase({
           uniqueid: uniqueid,
