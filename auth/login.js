@@ -12,10 +12,10 @@ class Login {
   login(req, res) {
     const authHeader = req.headers['authorization'];
     const secretKeyUser = authHeader && authHeader.split(' ')[1];
-    if (secretKeyUser != this.secretKey) {return res.status(403).send({ message: 'Token secreto inválido.'}); }
+    if (secretKeyUser != this.secretKey) { return res.status(403).send({ message: 'Token secreto inválido.' }); }
     const token = this.generateToken();
 
-    res.status(200).send({ token, expiresIn: '96h', tokenType: 'Bearer'});
+    res.status(200).send({ token, expiresIn: 3, tokenType: 'Bearer' });
 
   }
 }
