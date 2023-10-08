@@ -5,14 +5,13 @@ const app = express();
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const corsOptions = {
-  origin: '*', // ou '*' para permitir de qualquer origem
+  origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  credentials: true, // Habilita o uso de cookies, tokens de autenticação, etc.
+  credentials: true,
   optionsSuccessStatus: 204,
-  allowedHeaders: 'Authorization',
+  allowedHeaders: 'Authorization,Content-Type',
 };
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.use(express.json());
 
 //depends
@@ -62,7 +61,7 @@ connection.getConnection((err) => {
   }
 });
 
-
+app.options('*', cors(corsOptions));
 //ROTAS DE AUTENTICAÇÃO
 const clientLogin = new Login(secretTokenKey);
 app.post('/api/auth', (req, res) => {
