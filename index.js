@@ -61,17 +61,19 @@ connection.getConnection((err) => {
   }
 });
 
-app.options('*', cors(corsOptions));
 //ROTAS DE AUTENTICAÇÃO
 const clientLogin = new Login(secretTokenKey);
+app.options('*', cors(corsOptions));
 app.post('/api/auth', (req, res) => {
   clientLogin.login(req, res);
 });
 const adminLogin = new Login(adminSecretTokenKey);
+app.options('*', cors(corsOptions));
 app.post('/api/admin/auth', (req, res) => {
   adminLogin.login(req, res);
 });
 const attendantLogin = new Login(attendantSecretTokenKey);
+app.options('*', cors(corsOptions));
 app.post('/api/attendant/auth', (req, res) => {
   attendantLogin.login(req, res);
 });
@@ -140,80 +142,103 @@ const databaseUtils = new DatabaseUtils(connection);
 const alterDataWithTokens = new AlterDataWithTokens(connection);
 
 //ROTA API -- ADMINS
+app.options('*', cors(corsOptions));
 app.put('/api/admin/users/create', authenticateAdministrator, (req, res) => {
   adminFunctions.create(req, res);
 });
 
 
 //ROTA API -- USUARIOS
+app.options('*', cors(corsOptions));
 app.put('/api/users/create', authenticateClient, (req, res) => {
   users.create(req, res);
 });
+app.options('*', cors(corsOptions));
 app.put('/api/users/location/create/:userUniqueId', authenticateClient, (req, res) => {
   users.createLocation(req, res);
 });
+app.options('*', cors(corsOptions));
 app.patch('/api/users/update/:uniqueid', authenticateClient, (req, res) => {
   users.alterUserData(req, res);
 });
+app.options('*', cors(corsOptions));
 app.post('/api/users/login', authenticateClient, (req, res) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   users.verifyLogin(req, res, token);
 });
 //mudar o codigo dos demais metodos
+app.options('*', cors(corsOptions));
 app.get('/api/users/update/token/password', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
+app.options('*', cors(corsOptions));
 app.patch('/api/users/update/password', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserPassword(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/users/update/token/email', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserEmail(req, res);
 });
+app.options('*', cors(corsOptions));
 app.patch('/api/users/update/email', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserEmail(req, res);
 });
+app.options('*', cors(corsOptions));
 app.post('/api/users/info', authenticateUser, (req, res) => {
   users.getUserData(req, res);
 });
+app.options('*', cors(corsOptions));
 app.put('/api/users/create/userphoto', authenticateClient, (req, res) => {
   users.insertUserPhoto(req, res);
 });
+app.options('*', cors(corsOptions));
 app.put('/api/users/update/userphoto', authenticateUser, (req, res) => {
   users.updateUserPhoto(req, res);
 });
 
 //SISTEMA
+app.options('*', cors(corsOptions));
 app.post('/api/system/users/unban', authenticateClient, (req, res) => {
   users.unBanUser(req, res);
 });
+app.options('*', cors(corsOptions));
 app.post('/api/system/users/unblock', authenticateClient, (req, res) => {
   users.unBlockUser(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/usertypes', authenticateClient, (req, res) => {
   system.getUserTypes(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/city/id/:cityid', authenticateClient, (req, res) => {
   system.getCityByID(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/city/name/:cityname', authenticateClient, (req, res) => {
   system.getCityByName(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/state/id/:stateid', authenticateClient, (req, res) => {
   system.getStateByID(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/state/name/:statename', authenticateClient, (req, res) => {
   system.getStateByName(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/state/abbreviation/:stateab', authenticateClient, (req, res) => {
   system.getStateByAb(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/gender/id/:genderid', authenticateClient, (req, res) => {
   system.getGenderByID(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/gender/name/:gendername', authenticateClient, (req, res) => {
   system.getGenderByName(req, res);
 });
+app.options('*', cors(corsOptions));
 app.get('/api/system/cep/:postalcode', authenticateClient, (req, res) => {
   system.getPostalCode(req, res);
 });
