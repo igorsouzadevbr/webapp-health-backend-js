@@ -12,7 +12,7 @@ class Users {
   verifyLogin(req, res, keyUseAPI) {
     const { email, password } = req.body;
     const cryptoPass = util.convertToSHA256(password);
-    const ip = req.ip;
+    const ip = req.headers['x-forwarded-for'] || req.ip;
 
     this.connection.getConnection((err, connection) => {
       if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }

@@ -35,7 +35,7 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 app.set('trust proxy', 1);
-
+app.enable('trust proxy');
 //configuração de ambiente - development - test or production
 process.env.NODE_ENV = 'development';
 
