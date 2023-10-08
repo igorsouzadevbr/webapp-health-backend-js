@@ -135,7 +135,13 @@ class AlterDataWithTokens {
                 status: 200
             }, this.connection);
             await databaseFramework.delete("users_mail_tokens", `id = ${tokenExists[0].id}`);
+            const isUserBlocked = await databaseFramework.select("users_punishments", "*", "userid = ?", [tokenExists[0].id]);
+            if (isUserBlocked.length <= 0) {
+                return res.status(200).json({ message: 'Senha atualizada com sucesso, utilize-a no próximo login.' });
+            }
 
+            await databaseFramework.update("users_punishments", { isblocked: 0, blockeddate: null }, `userid = ${tokenExists[0].id}`);
+            await databaseFramework.delete("login_attempts", `userid = ${tokenExists[0].id}`);
             return res.status(200).json({ message: 'Senha atualizada com sucesso, utilize-a no próximo login.' });
         } else {
             return res.status(409).json({ message: 'O token informado não existe ou não é para alteração de senha.' });
