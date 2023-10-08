@@ -11,7 +11,7 @@ const ErrorMessages = Object.freeze({
     EMAIL_ALREADY_EXISTS: { message: 'E-mail informado já existe.' },
     USER_ALREADY_HAS_ADDRESS: { message: 'Você já possui endereço cadastrado!' },
     INCORRECT_CITY: { message: 'A cidade informada não existe.' },
-    TOO_MUCH_TRIES: { message: 'Muitas tentativas de login, tente novamente mais tarde. Caso você atinja 3 tentativas, seu usuário será bloqueado.' },
+    TOO_MUCH_TRIES: { message: 'Muitas tentativas de login. Caso você atinja 3 tentativas, seu usuário será bloqueado.' },
     BLOCKED_TOO_MUCH_TRIES: { message: 'Usuário bloqueado por muitas tentativas de login incorretas, entre em contato com o suporte.' },
     BANNED_USER_MESSAGE: { message: 'Você está banido da plataforma. Contate o suporte para maiores informações.' },
     ALREADY_HAS_A_TOKEN_IN_PROGRESS: { message: 'Você já possui um token em andamento, por favor aguarde 15 minutos para solicitar um novo.' },

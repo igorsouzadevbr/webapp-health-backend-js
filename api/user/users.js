@@ -60,7 +60,12 @@ class Users {
             if (exists && diffMinutos < 5 && results[0].tries <= 3) {
               connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ? and userid = ?', [ip, userId]);
               connection.release();
-              return res.status(429).send({ message: systemMessages.ErrorMessages.TOO_MUCH_TRIES.message });
+              let tentativa = '';
+              if (results[0].tries == 1) { tentativa = 'segunda' };
+              if (results[0].tries == 2) { tentativa = 'terceira' };
+              if (results[0].tries == 3) { tentativa = 'quarta' };
+              if (results[0].tries == 4) { tentativa = 'quinta' };
+              return res.status(429).send({ message: 'Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você atinja 5 tentativas, seu usuário será bloqueado.' });
             }
             //bloquear usuário
             if (exists && diffMinutos < 5 && results[0].tries > 3) {
@@ -173,7 +178,7 @@ class Users {
     this.connection.getConnection((err, connection) => {
       if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
 
-      connection.query("SELECT id,uniqueid,name,email,phone,birthdate,gender FROM users where email = ?", [email], (err, results) => {
+      connection.query("SELECT id,uniqueid,name,email,phone,birthdate,gender,userphoto FROM users where email = ?", [email], (err, results) => {
         connection.release();
         if (err) {
           connection.release();
