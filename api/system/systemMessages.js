@@ -16,6 +16,7 @@ const ErrorMessages = Object.freeze({
     BANNED_USER_MESSAGE: { message: 'Você está banido da plataforma. Contate o suporte para maiores informações.' },
     ALREADY_HAS_A_TOKEN_IN_PROGRESS: { message: 'Você já possui um token em andamento, por favor aguarde 15 minutos para solicitar um novo.' },
     TOKEN_HAS_EXPIRED: { message: 'Este token expirou, por favor peça um novo atualizando a página.' },
+    INVALID_BLOB: { message: 'A imagem enviada é inválida.' },
 });
 
 module.exports =

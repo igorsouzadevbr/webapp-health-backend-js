@@ -169,8 +169,20 @@ app.patch('/api/users/update/email', authenticateUser, (req, res) => {
 app.post('/api/users/info', authenticateUser, (req, res) => {
   users.getUserData(req, res);
 });
+app.put('/api/users/create/userphoto', authenticateClient, (req, res) => {
+  users.insertUserPhoto(req, res);
+});
+app.put('/api/users/update/userphoto', authenticateUser, (req, res) => {
+  users.updateUserPhoto(req, res);
+});
 
 //SISTEMA
+app.post('/api/system/users/unban', authenticateClient, (req, res) => {
+  users.unBanUser(req, res);
+});
+app.post('/api/system/users/unblock', authenticateClient, (req, res) => {
+  users.unBlockUser(req, res);
+});
 app.get('/api/system/usertypes', authenticateClient, (req, res) => {
   system.getUserTypes(req, res);
 });

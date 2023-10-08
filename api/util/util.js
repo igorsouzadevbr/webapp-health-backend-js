@@ -205,6 +205,10 @@ function generateToken() {
   return token;
 }
 
+function isBlob(data) {
+  return data instanceof Buffer;
+}
+
 function logToDatabase(logData, connection) {
   const query = 'INSERT INTO apilogrequests (uniqueid, ip, method, message, status, datetime) VALUES (?, ?, ?, ?, ?, NOW())';
   const values = [logData.uniqueid, logData.ip, logData.method, logData.message, logData.status];
@@ -228,5 +232,5 @@ function logToDatabase(logData, connection) {
 
 
 module.exports = {
-  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken
+  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob
 };

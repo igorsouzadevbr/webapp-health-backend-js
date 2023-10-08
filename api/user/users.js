@@ -48,7 +48,7 @@ class Users {
 
 
 
-          connection.query('SELECT * FROM login_attempts WHERE ip = ?', [ip], (err, results) => {
+          connection.query('SELECT * FROM login_attempts WHERE ip = ? and userid = ?', [ip, userId], (err, results) => {
             if (err) { connection.release(); return res.sendStatus(500); }
 
             const timestampNow = new Date();
@@ -58,7 +58,7 @@ class Users {
             const diffMinutos = (timestampNow - new Date(timestamp)) / 1000 / 60;
 
             if (exists && diffMinutos < 5 && results[0].tries <= 3) {
-              connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ?', [ip]);
+              connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ? and userid = ?', [ip, userId]);
               connection.release();
               return res.status(429).send({ message: systemMessages.ErrorMessages.TOO_MUCH_TRIES.message });
             }
@@ -89,14 +89,14 @@ class Users {
 
                 if (exists) {
                   if (diffMinutos < 5) {
-                    connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ?', [ip]);
+                    connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ? and userid = ?', [ip, resultsUser[0].id]);
                     connection.release();
                   } else {
-                    connection.query('UPDATE login_attempts SET timestamp = ?, tries = 1 WHERE ip = ?', [timestampNow, ip]);
+                    connection.query('UPDATE login_attempts SET timestamp = ?, tries = 1 WHERE ip = ? and userid = ?', [timestampNow, ip, resultsUser[0].id]);
                     connection.release();
                   }
                 } else {
-                  connection.query('INSERT INTO login_attempts (ip, timestamp, tries) VALUES (?, ?, 1)', [ip, timestampNow]);
+                  connection.query('INSERT INTO login_attempts (ip, timestamp, tries, userid) VALUES (?, ?, 1, ?)', [ip, timestampNow, resultsUser[0].id]);
                   connection.release();
                 }
                 return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
@@ -121,6 +121,39 @@ class Users {
         });
       });
     });
+  }
+
+  async unBlockUser(req, res) {
+    const { email } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+
+    if (!util.isEmail(email)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+
+    const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
+    if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+    const isUserBlocked = await databaseFramework.select("users_punishments", "*", "userid = ?", [userData[0].id]);
+    if (isUserBlocked[0].isblocked == 0 || isUserBlocked.length <= 0) {
+      return res.status(409).json({ message: "Este usuário não está bloqueado." });
+    }
+    await databaseFramework.update("users_punishments", { isblocked: 0, blockeddate: null }, `userid = ${userData[0].id}`);
+    await databaseFramework.delete("login_attempts", `userid = ${userData[0].id}`);
+    return res.status(200).json({ message: 'Usuário desbloqueado com sucesso.' });
+  }
+
+  async unBanUser(req, res) {
+    const { email } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+
+    if (!util.isEmail(email)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+
+    const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
+    if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+    const isUserBanned = await databaseFramework.select("users_punishments", "*", "userid = ?", [userData[0].id]);
+    if (isUserBanned[0].isbanned == 0 || isUserBanned.length <= 0) {
+      return res.status(409).json({ message: "Este usuário não está banido." });
+    }
+    await databaseFramework.update("users_punishments", { isbanned: 0, banneddate: null }, `userid = ${userData[0].id}`);
+    return res.status(200).json({ message: 'Usuário desbanido com sucesso.' });
   }
 
   getUserData(req, res) {
@@ -252,6 +285,30 @@ class Users {
 
 
 
+  async insertUserPhoto(req, res) {
+    const { email, pictureBlob } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+
+    if (!util.isBlob(pictureBlob)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message }); }
+    if (!util.isEmail(email)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+
+    const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
+    if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
+    await databaseFramework.update("users", { userPhoto: pictureBlob }, `id = ${userData[0].id}`);
+    return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
+  }
+  async updateUserPhoto(req, res) {
+    const { email, newBlob, secretKey } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+
+    if (!util.isBlob(newBlob)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message }); }
+    if (!util.isEmail(email)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+
+    const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
+    if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
+    await databaseFramework.update("users", { userPhoto: newBlob }, `id = ${userData[0].id}`);
+    return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
+  }
 
   //LOCATION DATA
   async createLocation(req, res) {
