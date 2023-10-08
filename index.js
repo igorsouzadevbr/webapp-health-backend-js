@@ -4,7 +4,15 @@ const mysql = require('mysql2');
 const app = express();
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
-app.use(cors());
+const corsOptions = {
+  origin: '*', // ou '*' para permitir de qualquer origem
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true, // Habilita o uso de cookies, tokens de autenticação, etc.
+  optionsSuccessStatus: 204,
+  allowedHeaders: 'Authorization',
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 //depends
