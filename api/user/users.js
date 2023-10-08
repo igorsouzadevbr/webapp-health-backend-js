@@ -155,6 +155,16 @@ class Users {
     return res.status(200).json({ message: 'Usuário desbanido com sucesso.' });
   }
 
+  async verifyUserEmail(req, res) {
+    const { email } = req.body;
+    if (!util.isEmail(email)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+
+    const databaseFramework = new dbUtils(this.connection);
+    const userMail = await databaseFramework.select("users", "email", "email = ?", [email]);
+    if (userMail.length >= 1) { return res.status(401).json({ message: systemMessages.ErrorMessages.EMAIL_ALREADY_EXISTS.message }); }
+    return res.status(200).json({ message: 'E-mail inexistente.' });
+  }
+
   getUserData(req, res) {
     const { email, secretKey } = req.body;
 

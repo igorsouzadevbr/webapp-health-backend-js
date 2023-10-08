@@ -198,6 +198,9 @@ app.put('/api/users/update/userphoto', authenticateUser, (req, res) => {
 });
 
 //SISTEMA
+app.post('/api/system/verify/email', authenticateClient, (req, res) => {
+  users.verifyUserEmail(req, res);
+});
 app.options('*', cors(corsOptions));
 app.post('/api/system/users/unban', authenticateClient, (req, res) => {
   users.unBanUser(req, res);
