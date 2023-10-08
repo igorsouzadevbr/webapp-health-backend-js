@@ -84,19 +84,18 @@ class Users {
             }
             connection.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, cryptoPass], (err, resultsUser) => {
               if (err) { connection.release(); return res.sendStatus(500); }
-
               if (resultsUser.length === 0) {
 
                 if (exists) {
                   if (diffMinutos < 5) {
-                    connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ? and userid = ?', [ip, resultsUser[0].id]);
+                    connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ? and userid = ?', [ip, userId]);
                     connection.release();
                   } else {
-                    connection.query('UPDATE login_attempts SET timestamp = ?, tries = 1 WHERE ip = ? and userid = ?', [timestampNow, ip, resultsUser[0].id]);
+                    connection.query('UPDATE login_attempts SET timestamp = ?, tries = 1 WHERE ip = ? and userid = ?', [timestampNow, ip, userId]);
                     connection.release();
                   }
                 } else {
-                  connection.query('INSERT INTO login_attempts (ip, timestamp, tries, userid) VALUES (?, ?, 1, ?)', [ip, timestampNow, resultsUser[0].id]);
+                  connection.query('INSERT INTO login_attempts (ip, timestamp, tries, userid) VALUES (?, ?, 1, ?)', [ip, timestampNow, userId]);
                   connection.release();
                 }
                 return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
