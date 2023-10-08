@@ -65,6 +65,7 @@ class Users {
               if (results[0].tries == 2) { tentativa = 'terceira' };
               if (results[0].tries == 3) { tentativa = 'quarta' };
               if (results[0].tries == 4) { tentativa = 'quinta' };
+              if (tentativa == 'quarta') { return res.status(429).send({ message: 'ATENÇÃO: Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você erre mais uma vez, seu usuário será bloqueado.' }); }
               return res.status(429).send({ message: 'Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você atinja 5 tentativas, seu usuário será bloqueado.' });
             }
             //bloquear usuário
