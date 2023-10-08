@@ -102,7 +102,7 @@ class Users {
                 return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
               } else {
                 connection.release();
-                const token = jwt.sign({ useremail: email, useruniqueid: resultsUser[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
+                const token = jwt.sign({ useremail: email, useruniqueid: resultsUser[0].uniqueid }, keyUseAPI, { expiresIn: 3 });
                 const authHeader = req.headers['authorization'];
                 const secretKey = authHeader && authHeader.split(' ')[1];
 
