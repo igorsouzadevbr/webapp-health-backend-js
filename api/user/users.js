@@ -259,6 +259,7 @@ class Users {
     if (!util.isPhoneNumber(phone)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message }); }
     if (!util.isInteger(gender)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message }); }
     if (!util.isEmail(email)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+    
 
     this.connection.getConnection((err, connection) => {
       if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
