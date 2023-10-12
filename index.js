@@ -151,7 +151,7 @@ app.put('/api/admin/users/create', authenticateAdministrator, (req, res) => {
 
 //ROTA API -- USUARIOS
 app.options('*', cors(corsOptions));
-app.put('/api/create/users', authenticateClient, (req, res) => {
+app.put('/api/users/create', authenticateClient, (req, res) => {
   users.create(req, res);
 });
 app.options('*', cors(corsOptions));
