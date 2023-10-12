@@ -170,7 +170,7 @@ app.post('/api/users/login', authenticateClient, (req, res) => {
 });
 //mudar o codigo dos demais metodos
 app.options('*', cors(corsOptions));
-app.get('/api/update/users/token/password', authenticateUser, (req, res) => {
+app.get('/api/users/update/token/password', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
 app.options('*', cors(corsOptions));
@@ -178,11 +178,11 @@ app.patch('/api/update/users/password', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserPassword(req, res);
 });
 app.options('*', cors(corsOptions));
-app.get('/api/update/users/token/email', authenticateUser, (req, res) => {
+app.get('/api/users/update/token/email', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserEmail(req, res);
 });
 app.options('*', cors(corsOptions));
-app.patch('/api/update/users/email', authenticateUser, (req, res) => {
+app.patch('/api/users/update/email', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserEmail(req, res);
 });
 app.options('*', cors(corsOptions));
@@ -190,7 +190,7 @@ app.post('/api/users/info', authenticateUser, (req, res) => {
   users.getUserData(req, res);
 });
 app.options('*', cors(corsOptions));
-app.put('/api/create/users/userphoto', authenticateClient, (req, res) => {
+app.put('/api/users/create/userphoto', authenticateClient, (req, res) => {
   users.insertUserPhoto(req, res);
 });
 app.options('*', cors(corsOptions));
