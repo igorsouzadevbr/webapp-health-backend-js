@@ -259,7 +259,7 @@ class Users {
     if (!util.isPhoneNumber(phone)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message }); }
     if (!util.isInteger(gender)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message }); }
     if (!util.isEmail(email)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
-    
+
 
     this.connection.getConnection((err, connection) => {
       if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
@@ -302,13 +302,12 @@ class Users {
 
 
   async insertUserPhoto(req, res) {
-    const { email, pictureBlob } = req.body;
+    const { userUniqueId, pictureBlob } = req.body;
     const databaseFramework = new dbUtils(this.connection);
 
     if (!util.isBlob(pictureBlob)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message }); }
-    if (!util.isEmail(email)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
 
-    const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
+    const userData = await databaseFramework.select("users", "*", "uniqueid = ?", [userUniqueId]);
     if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
     await databaseFramework.update("users", { userPhoto: pictureBlob }, `id = ${userData[0].id}`);
     return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
@@ -328,8 +327,7 @@ class Users {
 
   //LOCATION DATA
   async createLocation(req, res) {
-    const userUniqueId = req.params.userUniqueId;
-    const { address, number, complement, neighborhood, cityId, stateId, postalCode } = req.body;
+    const { address, number, complement, neighborhood, cityId, stateId, postalCode, userUniqueId } = req.body;
     const uniqueid = uuidv4();
 
     try {

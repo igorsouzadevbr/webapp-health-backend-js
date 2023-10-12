@@ -35,7 +35,6 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 app.set('trust proxy', 1);
-app.enable('trust proxy');
 //configuração de ambiente - development - test or production
 process.env.NODE_ENV = 'development';
 
@@ -152,15 +151,15 @@ app.put('/api/admin/users/create', authenticateAdministrator, (req, res) => {
 
 //ROTA API -- USUARIOS
 app.options('*', cors(corsOptions));
-app.put('/api/users/create', authenticateClient, (req, res) => {
+app.put('/api/create/users', authenticateClient, (req, res) => {
   users.create(req, res);
 });
 app.options('*', cors(corsOptions));
-app.put('/api/users/location/create/:userUniqueId', authenticateClient, (req, res) => {
+app.put('/api/users/create/location', authenticateClient, (req, res) => {
   users.createLocation(req, res);
 });
 app.options('*', cors(corsOptions));
-app.patch('/api/users/update/:uniqueid', authenticateClient, (req, res) => {
+app.patch('/api/update/users/:uniqueid', authenticateClient, (req, res) => {
   users.alterUserData(req, res);
 });
 app.options('*', cors(corsOptions));
@@ -171,19 +170,19 @@ app.post('/api/users/login', authenticateClient, (req, res) => {
 });
 //mudar o codigo dos demais metodos
 app.options('*', cors(corsOptions));
-app.get('/api/users/update/token/password', authenticateUser, (req, res) => {
+app.get('/api/update/users/token/password', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
 app.options('*', cors(corsOptions));
-app.patch('/api/users/update/password', authenticateUser, (req, res) => {
+app.patch('/api/update/users/password', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserPassword(req, res);
 });
 app.options('*', cors(corsOptions));
-app.get('/api/users/update/token/email', authenticateUser, (req, res) => {
+app.get('/api/update/users/token/email', authenticateUser, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserEmail(req, res);
 });
 app.options('*', cors(corsOptions));
-app.patch('/api/users/update/email', authenticateUser, (req, res) => {
+app.patch('/api/update/users/email', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserEmail(req, res);
 });
 app.options('*', cors(corsOptions));
@@ -191,7 +190,7 @@ app.post('/api/users/info', authenticateUser, (req, res) => {
   users.getUserData(req, res);
 });
 app.options('*', cors(corsOptions));
-app.put('/api/users/create/userphoto', authenticateClient, (req, res) => {
+app.put('/api/create/users/userphoto', authenticateClient, (req, res) => {
   users.insertUserPhoto(req, res);
 });
 app.options('*', cors(corsOptions));
