@@ -304,9 +304,12 @@ class Users {
   async insertUserPhoto(req, res) {
     const { userUniqueId, pictureBlob } = req.body;
     const databaseFramework = new dbUtils(this.connection);
-
-    if (!util.isBlob(pictureBlob)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message }); }
-
+  
+    // Verifique se a pictureBlob é uma string base64 válida
+    const base64Regex = /^data:image\/\w+;base64,/;
+    if (!base64Regex.test(pictureBlob)) {
+      return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message });
+    }
     const userData = await databaseFramework.select("users", "*", "uniqueid = ?", [userUniqueId]);
     if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
     await databaseFramework.update("users", { userPhoto: pictureBlob }, `id = ${userData[0].id}`);
