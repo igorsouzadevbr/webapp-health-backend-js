@@ -312,18 +312,6 @@ class Users {
     await databaseFramework.update("users", { userPhoto: pictureBlob }, `id = ${userData[0].id}`);
     return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
   }
-  async updateUserPhoto(req, res) {
-    const { email, newBlob, secretKey } = req.body;
-    const databaseFramework = new dbUtils(this.connection);
-
-    if (!util.isBlob(newBlob)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message }); }
-    if (!util.isEmail(email)) { return res.status(409).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
-
-    const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
-    if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
-    await databaseFramework.update("users", { userPhoto: newBlob }, `id = ${userData[0].id}`);
-    return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
-  }
 
   //LOCATION DATA
   async createLocation(req, res) {

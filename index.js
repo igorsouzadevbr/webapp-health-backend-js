@@ -190,12 +190,8 @@ app.post('/api/users/info', authenticateUser, (req, res) => {
   users.getUserData(req, res);
 });
 app.options('*', cors(corsOptions));
-app.put('/api/users/create/userphoto', authenticateClient, (req, res) => {
+app.patch('/api/users/update/userphoto', authenticateClient, (req, res) => {
   users.insertUserPhoto(req, res);
-});
-app.options('*', cors(corsOptions));
-app.put('/api/users/update/userphoto', authenticateUser, (req, res) => {
-  users.updateUserPhoto(req, res);
 });
 
 //SISTEMA
