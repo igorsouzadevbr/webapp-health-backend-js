@@ -155,7 +155,7 @@ app.put('/api/create/users', authenticateClient, (req, res) => {
   users.create(req, res);
 });
 app.options('*', cors(corsOptions));
-app.put('/api/users/create/location', authenticateClient, (req, res) => {
+app.put('/api/users/update/location', authenticateClient, (req, res) => {
   users.createLocation(req, res);
 });
 app.options('*', cors(corsOptions));
