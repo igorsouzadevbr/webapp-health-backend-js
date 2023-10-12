@@ -2,7 +2,9 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const app = express();
-app.use(bodyParser.json({ limit: '5mb' }));
+const bodyParser = require('body-parser');
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const corsOptions = {
