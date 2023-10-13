@@ -107,7 +107,7 @@ class Users {
                 return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
               } else {
                 connection.release();
-                const token = jwt.sign({ useremail: email, useruniqueid: resultsUser[0].uniqueid }, keyUseAPI, { expiresIn: 3 });
+                const token = jwt.sign({ useremail: email, useruniqueid: resultsUser[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
                 const authHeader = req.headers['authorization'];
                 const secretKey = authHeader && authHeader.split(' ')[1];
 
@@ -119,7 +119,7 @@ class Users {
                   message: 'verifyLogin: ' + JSON.stringify(results),
                   status: 200
                 }, this.connection);
-                return res.status(200).send({ message: 'Login realizado com sucesso.', token: token, secretKey: secretKey, expiresIn: 3 });
+                return res.status(200).send({ message: 'Login realizado com sucesso.', token: token, expiresIn: 3 });
               }
             });
           });

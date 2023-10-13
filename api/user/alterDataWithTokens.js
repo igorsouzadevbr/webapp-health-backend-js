@@ -102,7 +102,7 @@ class AlterDataWithTokens {
 
             const userLogged = await databaseFramework.select("users", 'uniqueid', `id = ${tokenExists[0].userid}`)
             const secretKey = req.params.secretKey;
-            const token = jwt.sign({ useremail: alterMailTo, useruniqueid: userLogged[0].uniqueid }, secretKey, { expiresIn: 3 });
+            const token = jwt.sign({ useremail: alterMailTo, useruniqueid: userLogged[0].uniqueid }, secretKey, { expiresIn: '96h' });
 
             return res.status(200).json({ message: 'E-mail atualizado com sucesso.', newUserToken: token, expiresIn: 3 });
         } else {

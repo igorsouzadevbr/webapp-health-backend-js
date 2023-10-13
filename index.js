@@ -133,7 +133,7 @@ const authenticateProfessional = (req, res, next) => {
 const authenticateUser = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
-  const { secretKey } = req.body;
+  const secretKey = req.body.secretKey;
   if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
 
   jwt.verify(token, secretKey, (err, decoded) => {
