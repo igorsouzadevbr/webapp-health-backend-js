@@ -174,35 +174,46 @@ class Users {
   getUserData(req, res) {
     const { email, secretKey } = req.body;
 
-    if (email == null || !util.isEmail(email)) { return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+    if (email == null || !util.isEmail(email)) {
+        return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
+    }
 
     this.connection.getConnection((err, connection) => {
-      if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
-
-      connection.query("SELECT id,uniqueid,name,email,phone,birthdate,gender,userphoto FROM users where email = ?", [email], (err, results) => {
-        connection.release();
         if (err) {
-          connection.release();
-          console.error('Erro no método getUserData, query n° 1:', err);
-          return res.sendStatus(500);
+            console.error('Erro ao conectar ao banco de dados:', err.message);
+            return;
         }
-        if (results.length === 0) {
-          connection.release();
-          return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
-        }
-        res.status(200).json(results[0]);
-        const uniqueid = uuidv4();
-        util.logToDatabase({
-          uniqueid: uniqueid,
-          ip: req.ip,
-          method: 'GET',
-          message: 'getUserData: ' + JSON.stringify(results) + ' - 2023',
-          status: 200
-        }, this.connection);
 
-      });
+        connection.query("SELECT id,uniqueid,name,email,phone,birthdate,gender,userphoto FROM users where email = ?", [email], (err, results) => {
+            connection.release();
+            if (err) {
+                connection.release();
+                console.error('Erro no método getUserData, query n° 1:', err);
+                return res.sendStatus(500);
+            }
+            if (results.length === 0) {
+                connection.release();
+                return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
+            }
+            const userphotoBase64 = results[0].userphoto ? results[0].userphoto.toString('base64') : null;
+
+            const responseWithBase64 = {
+                ...results[0],
+                userphoto: userphotoBase64
+            };
+
+            res.status(200).json(responseWithBase64);
+            const uniqueid = uuidv4();
+            util.logToDatabase({
+                uniqueid: uniqueid,
+                ip: req.ip,
+                method: 'GET',
+                message: 'getUserData: ' + JSON.stringify(responseWithBase64) + ' - 2023',
+                status: 200
+            }, this.connection);
+        });
     });
-  }
+}
 
   alterUserData(req, res) {
     const uniqueid = req.params.uniqueid;
