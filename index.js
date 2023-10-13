@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const app = express();
 const bodyParser = require('body-parser');
-app.options('*', cors(corsOptions));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json({ limit: '50mb' }));
@@ -19,6 +18,7 @@ const corsOptions = {
   allowedHeaders: 'Authorization,Content-Type',
 };
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 //depends
