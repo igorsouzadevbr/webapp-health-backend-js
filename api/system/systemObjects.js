@@ -11,10 +11,18 @@ const Genders = Object.freeze({
     PNI: { id: 3, name: 'Prefiro não informar' },
 });
 
+const ChatCategories = Object.freeze({
+    HOMEM: { id: 1, name: 'Homem' },
+    MULHER: { id: 2, name: 'Mulher' },
+    LGBTQIA: { id: 3, name: 'LGBTQIA+' },
+    TODOS: { id: 4, name: 'Todos' },
+});
+
 //novos objetos serão colocados aqui para maior organização do código.
 
 module.exports = 
 { 
     UserTypes, 
-    Genders
+    Genders,
+    ChatCategories
 };
