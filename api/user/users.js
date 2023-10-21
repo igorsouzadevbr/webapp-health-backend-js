@@ -153,7 +153,7 @@ class Users {
     }
 
     const decryptedPassword = decrypt(userDataByEmail[0].password);
-    const userData = { ...userDataByEmail[0], password: senhaDescriptografada };
+    const userData = { ...userDataByEmail[0], password: decryptedPassword };
 
     const uniqueid = uuidv4();
     util.logToDatabase({
