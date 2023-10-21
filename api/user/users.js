@@ -153,7 +153,7 @@ class Users {
     }
 
     const imageBuffer = userDataByEmail[0].userphoto; // Supondo que userphoto contenha a imagem em formato Blob
-    const imageUrl = `data:image/jpeg;base64,${imageBuffer}`;
+    const imageUrl = `${imageBuffer}`;
 
     const decryptedPassword = util.decryptSHA256(userDataByEmail[0].password);
     const userData = { ...userDataByEmail[0], password: decryptedPassword, userphoto: imageUrl };
