@@ -152,8 +152,11 @@ class Users {
       return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }
 
+    const imageBuffer = userDataByEmail[0].userphoto; // Supondo que userphoto contenha a imagem em formato Blob
+    const imageUrl = `data:image/jpeg;base64,${imageBuffer.toString("base64")}`;
+
     const decryptedPassword = util.decryptSHA256(userDataByEmail[0].password);
-    const userData = { ...userDataByEmail[0], password: decryptedPassword };
+    const userData = { ...userDataByEmail[0], password: decryptedPassword, userphoto: imageUrl };
 
     const uniqueid = uuidv4();
     util.logToDatabase({
