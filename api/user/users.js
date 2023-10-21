@@ -178,30 +178,29 @@ class Users {
       name, email, phone, birthdate, gender, password
     }
     for (const field in fieldsToUpdate) {
-
       if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
-        if (fieldsToUpdate[field] === 'password') {
-          const hashedPassword = await util.convertToSHA256(fieldsToUpdate[field]);
-          updatedData[field] = hashedPassword;
+        if (field === 'password') {
+          const hashedPassword = await util.convertToSHA256(field);
+          fieldsToUpdate['password'] = hashedPassword;
         }
         if (fieldsToUpdate[field] === 'email') {
           if (!util.isEmail(fieldsToUpdate[field])) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
           }
         }
-        if (fieldsToUpdate[field] === 'phone') {
+        if (field === 'phone') {
           if (!util.isPhoneNumber(fieldsToUpdate[field])) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
           }
-          updatedData[field] = util.formatPhoneNumber(updatedData[field]);
+          fieldsToUpdate[field] = util.formatPhoneNumber(updatedData[field]);
         }
-        if (fieldsToUpdate[field] === 'gender') {
+        if (field === 'gender') {
           if (!util.isInteger(gender)) {
             return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message });
           }
         }
-        if (fieldsToUpdate[field] === 'birthdate') {
-          updatedData[field] = util.formatToDate(updatedData[field]);
+        if (field === 'birthdate') {
+          fieldsToUpdate[field] = util.formatToDate(updatedData[field]);
         }
         updatedData[field] = fieldsToUpdate[field];
         hasChanges = true;
