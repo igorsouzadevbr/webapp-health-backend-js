@@ -152,7 +152,7 @@ class Users {
       return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }
 
-    const decryptedPassword = decrypt(userDataByEmail[0].password);
+    const decryptedPassword = util.decryptSHA256(userDataByEmail[0].password);
     const userData = { ...userDataByEmail[0], password: decryptedPassword };
 
     const uniqueid = uuidv4();
