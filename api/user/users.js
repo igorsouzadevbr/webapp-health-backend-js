@@ -177,15 +177,18 @@ class Users {
       return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }
     const userAddressData = await databaseFramework.select("location", "address, number, complement, neighborhood, postalcode, cityId, stateId, isDeleted", "personid = ?", [userDataByEmail[0].id]);
+    const getUserCityData = await databaseFramework.select("city", "name", "id = ?", [userAddressData[0].cityId]);
+    const getUserStateData = await databaseFramework.select("state", "name", "id = ?", [userAddressData[0].stateId]);
+    const userLocationData = { ...userAddressData[0], cityName: getUserCityData[0].name, stateName: getUserStateData[0].name };
     const uniqueid = uuidv4();
     util.logToDatabase({
       uniqueid: uniqueid,
       ip: req.ip,
       method: 'GET',
-      message: 'getUserData: ' + JSON.stringify(userAddressData[0]) + ' - 2023',
+      message: 'getUserData: ' + JSON.stringify(userLocationData) + ' - 2023',
       status: 200
     }, this.connection);
-    return res.status(200).json(userAddressData[0]);
+    return res.status(200).json(userLocationData);
   }
 
   async alterUserData(req, res) {
@@ -276,55 +279,6 @@ class Users {
     return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
   }
 
-  async updateLocation(req, res) {
-    const { address, number, complement, neighborhood, cityId, stateId, postalCode, userUniqueId } = req.body;
-    const databaseFramework = new dbUtils(this.connection);
-
-    try {
-      if (!await util.validateStateById(stateId, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_CITY.message }); }
-    } catch (error) {
-      console.error('Erro ao validar o estado:', error);
-      return res.status(500).send({ message: 'Erro ao validar o estado' });
-    }
-    try {
-      if (!await util.validateCityById(cityId, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_CITY.message }); }
-    } catch (error) {
-      console.error('Erro ao validar a cidade:', error);
-      return res.status(500).send({ message: 'Erro ao validar a cidade' });
-    }
-    try {
-      if (!await util.validaCEP(postalCode, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_POSTAL_CODE.message }); }
-    } catch (error) {
-      console.error('Erro ao validar o CEP:', error);
-      return res.status(500).send({ message: 'Erro ao validar o CEP.' });
-    }
-
-    const getUserId = await databaseFramework.select("users", "id", "uniqueid = ? and isDeleted = 0", [userUniqueId]);
-    if (getUserId.length === 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
-    const userId = getUserId[0].id;
-
-    const getUserLocation = await databaseFramework.select("location", "address, number, complement, neighborhood, cityId, stateId, postalCode", "personid = ? and isDeleted = 0", [userId]);
-
-    const currentUserData = getUserLocation[0];
-    const updatedData = {};
-    let hasChanges = false;
-
-    const fieldsToUpdate = {
-      address, number, complement, neighborhood, cityId, stateId, postalCode
-    }
-    for (const field in fieldsToUpdate) {
-      if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
-        updatedData[field] = fieldsToUpdate[field];
-        hasChanges = true;
-      }
-    }
-    if (!hasChanges) {
-      return res.status(200).send({ message: 'Nenhum campo alterado.' });
-    }
-    await databaseFramework.update("location", updatedData, `userid = ${userId}`);
-    return res.status(200).send({ message: 'Dados alterados com sucesso.' });
-  }
-
   //LOCATION DATA
   async createLocation(req, res) {
     const { address, number, complement, neighborhood, cityId, stateId, postalCode, userUniqueId } = req.body;
@@ -357,8 +311,11 @@ class Users {
     if (getUserIdFromUniqueId.length === 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
 
     const userId = getUserIdFromUniqueId[0].id;
-    const getUserLocation = await databaseFramework.select("location", "id", "personid = ? and isDeleted = 0", [userId]);
-    if (getUserLocation.length > 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.USER_ALREADY_HAS_ADDRESS.message }); }
+    const getUserLocation = await databaseFramework.select("location", "*", "personid = ? and isDeleted = 0", [userId]);
+    if (getUserLocation.length > 0) {
+
+
+    }
 
     const insertUserLocation = await databaseFramework.insert("location", { uniqueid: uniqueid, personid: userId, address: address, number: number, complement: complement, neighborhood: neighborhood, postalcode: postalCode, cityId: cityId, stateId: stateId });
 
