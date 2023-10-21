@@ -201,6 +201,10 @@ app.post('/api/users/info', authenticateUser, (req, res) => {
   users.getUserData(req, res);
 });
 
+app.post('/api/users/location/info', authenticateUser, (req, res) => {
+  users.getUserAddressData(req, res);
+});
+
 app.patch('/api/users/update/userphoto', authenticateClient, (req, res) => {
   users.insertUserPhoto(req, res);
 });

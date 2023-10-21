@@ -156,10 +156,32 @@ class Users {
       uniqueid: uniqueid,
       ip: req.ip,
       method: 'GET',
-      message: 'getUserData: ' + JSON.stringify(responseWithBase64) + ' - 2023',
+      message: 'getUserData: ' + JSON.stringify(userDataByEmail[0]) + ' - 2023',
       status: 200
     }, this.connection);
     return res.status(200).json(userDataByEmail[0]);
+  }
+
+  async getUserAddressData(req, res) {
+    const { email, secretKey } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+    if (email == null || !util.isEmail(email)) {
+      return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
+    }
+    const userDataByEmail = await databaseFramework.select("users", "id", "email = ?", [email]);
+    if (userDataByEmail.length === 0) {
+      return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
+    }
+    const userAddressData = await databaseFramework.select("location", "address, number, complement, neighborhood, postalcode, cityId, stateId, isDeleted", "personid = ?", [userDataByEmail[0].id]);
+    const uniqueid = uuidv4();
+    util.logToDatabase({
+      uniqueid: uniqueid,
+      ip: req.ip,
+      method: 'GET',
+      message: 'getUserData: ' + JSON.stringify(userAddressData[0]) + ' - 2023',
+      status: 200
+    }, this.connection);
+    return res.status(200).json(userAddressData[0]);
   }
 
   async alterUserData(req, res) {
@@ -214,50 +236,25 @@ class Users {
     return res.status(200).send({ message: 'Dados alterados com sucesso.' });
   }
 
-  create(req, res) {
+  async create(req, res) {
     const { name, email, phone, birthdate, gender, password } = req.body;
     const uniqueid = uuidv4();
+    const databaseFramework = new dbUtils(this.connection);
 
     if (!util.isPhoneNumber(phone)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message }); }
     if (!util.isInteger(gender)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message }); }
     if (!util.isEmail(email)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
 
+    const getUserByMail = await databaseFramework.select("users", "*", "email = ?", [email]);
 
-    this.connection.getConnection((err, connection) => {
-      if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
+    if (getUserByMail.length > 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.EMAIL_ALREADY_EXISTS.message }); }
 
-      connection.query("SELECT * FROM users where email = ?", [email], (err, results) => {
-        connection.release();
-        if (err) {
-          connection.release();
-          console.error('Erro ao verificar e-mail do usuário:', err);
-          return res.sendStatus(500);
-        }
-        if (results.length > 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.EMAIL_ALREADY_EXISTS.message }); }
+    const formattedPhone = util.formatPhoneNumber(phone);
+    const formattedBirthDate = util.formatToDate(birthdate);
 
-        //FIM VERIFICAÇÕES
-
-        const formattedPhone = util.formatPhoneNumber(phone);
-        const formattedBirthDate = util.formatToDate(birthdate);
-        // Inserção do usuário no banco de dados
-        const query = 'INSERT INTO users(uniqueid, name, email, password, usertype, phone, birthdate, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
-        try {
-          connection.query(query, [uniqueid, name, email, util.convertToSHA256(password), systemObjects.UserTypes.PACIENTE.id, formattedPhone, formattedBirthDate, gender], (err, results) => {
-            connection.release();
-            if (err) {
-              console.error('Erro ao criar usuário:', err);
-              return res.sendStatus(500);
-            }
-
-            res.status(200).send({ message: 'Usuário criado com sucesso!', userUniqueId: uniqueid });
-
-          });
-
-        } catch (err) {
-          return res.sendStatus(500);
-        }
-      });
-    });
+    // Inserção do usuário no banco de dados
+    await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.PACIENTE.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender });
+    return res.status(200).send({ message: 'Usuário criado com sucesso!', userUniqueId: uniqueid });
   }
 
   async insertUserPhoto(req, res) {
@@ -302,7 +299,7 @@ class Users {
     if (getUserId.length === 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
     const userId = getUserId[0].id;
 
-    const getUserLocation = await databaseFramework.select("location", "id", "userid = ? and isDeleted = 0", [userId]);
+    const getUserLocation = await databaseFramework.select("location", "id", "personid = ? and isDeleted = 0", [userId]);
     if (getUserLocation.length <= 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.USER_DOESNT_HAVE_LOCATION.message }); }
 
     const currentUserData = getUserLocation[0];
@@ -329,6 +326,7 @@ class Users {
   async createLocation(req, res) {
     const { address, number, complement, neighborhood, cityId, stateId, postalCode, userUniqueId } = req.body;
     const uniqueid = uuidv4();
+    const databaseFramework = new dbUtils(this.connection);
 
     try {
       if (!await util.validateStateById(stateId, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_CITY.message }); }
@@ -351,48 +349,21 @@ class Users {
       return res.status(500).send({ message: 'Erro ao validar o CEP.' });
     }
 
-    this.connection.getConnection((err, connection) => {
-      if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
+    const getUserIdFromUniqueId = await databaseFramework.select("user", "id", "uniqueid = ? and isDeleted = 0", [userUniqueId]);
 
-      connection.query('SELECT id FROM users where uniqueid = ? and isDeleted = 0', [userUniqueId], (err, results) => {
-        connection.release();
-        if (err) {
-          connection.release();
-          console.error('Erro no método createLocation, query n° 1:', err);
-          return res.sendStatus(500);
-        }
-        if (results.length === 0) { connection.release(); return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
-        const userId = results[0].id;
+    if (getUserIdFromUniqueId.length === 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
 
-        connection.query('SELECT id FROM location where personid = ? and isDeleted = 0', [results[0].id], (err, results) => {
-          if (err) {
-            connection.release();
-            console.error('Erro no método createLocation, query n° 2:', err);
-            return res.sendStatus(500);
-          }
-          if (results.length > 0) { connection.release(); return res.status(409).send({ message: systemMessages.ErrorMessages.USER_ALREADY_HAS_ADDRESS.message }); }
+    const userId = getUserIdFromUniqueId[0].id;
+    const getUserLocation = await databaseFramework.select("location", "id", "personid = ? and isDeleted = 0", [userId]);
+    if (getUserLocation.length > 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.USER_ALREADY_HAS_ADDRESS.message }); }
 
-          connection.query('INSERT INTO location(uniqueid, personid, address, number, complement, neighborhood, postalcode, cityId, stateId) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [uniqueid, userId, address, number, complement, neighborhood, postalCode, cityId, stateId], (err, results) => {
-            if (err) {
-              console.error('Erro no método createLocation, query INSERT n° 1:', err);
-              return res.sendStatus(500);
-            }
-            //atualizar endereço no cadastro do usuário
-            const generatedLocationId = results.insertId;
+    const insertUserLocation = await databaseFramework.insert("location", { uniqueid: uniqueid, personid: userId, address: address, number: number, complement: complement, neighborhood: neighborhood, postalcode: postalCode, cityId: cityId, stateId: stateId });
 
-            connection.query('UPDATE users SET locationid = ? where id = ?', [generatedLocationId, userId], (err, results) => {
-              connection.release();
-              if (err) {
-                console.error('Erro no método createLocation, query UPDATE n° 1:', err);
-                return res.sendStatus(500);
-              }
-              return res.status(200).send({ message: 'Endereço cadastrado com sucesso.', addressUniqueId: uniqueid });
+    //atualizar endereço no cadastro do usuário
+    const generatedLocationId = insertUserLocation.insertId;
+    await databaseFramework.update("users", { locationid: generatedLocationId }, `id = ${userId}`);
+    return res.status(200).send({ message: 'Endereço cadastrado com sucesso.', addressUniqueId: uniqueid });
 
-            });
-          });
-        });
-      });
-    });
   }
 
 }
