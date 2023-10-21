@@ -166,17 +166,6 @@ class Users {
     const { name, email, phone, birthdate, gender, password, userUniqueId } = req.body;
     const databaseFramework = new dbUtils(this.connection);
 
-    if (email == null || !util.isEmail(email)) {
-      return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
-    }
-    if (phone == null || !util.isPhoneNumber(phone)) {
-      return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
-    }
-    if (!util.isInteger(gender)) {
-      return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message });
-    }
-
-
     const getUserData = await databaseFramework.select("users", "*", "uniqueid = ?", [userUniqueId]);
     if (getUserData.length === 0) {
       return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
@@ -189,7 +178,31 @@ class Users {
       name, email, phone, birthdate, gender, password
     }
     for (const field in fieldsToUpdate) {
+
       if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
+        if (field === 'password') {
+          const hashedPassword = await util.convertToSHA256(fieldsToUpdate[field]);
+          updatedData[field] = hashedPassword;
+        }
+        if (field === 'email') {
+          if (!util.isEmail(fieldsToUpdate[field])) {
+            return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
+          }
+        }
+        if (field === 'phone') {
+          if (!util.isPhoneNumber(fieldsToUpdate[field])) {
+            return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
+          }
+          updatedData[field] = util.formatPhoneNumber(updatedData[field]);
+        }
+        if (field === 'gender') {
+          if (!util.isInteger(gender)) {
+            return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message });
+          }
+        }
+        if (field === 'birthdate') {
+          updatedData[field] = util.formatToDate(updatedData[field]);
+        }
         updatedData[field] = fieldsToUpdate[field];
         hasChanges = true;
       }
