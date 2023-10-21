@@ -198,7 +198,7 @@ class Users {
     if (!hasChanges) {
       return res.status(200).send({ message: 'Nenhum campo alterado.' });
     }
-    await databaseFramework.update("users", updatedData, `uniqueid = ${userUniqueId}`);
+    await databaseFramework.update("users", updatedData, `userid = '${currentUserData.id}'`);
     return res.status(200).send({ message: 'Dados alterados com sucesso.' });
   }
 
