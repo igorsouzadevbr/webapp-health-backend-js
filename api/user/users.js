@@ -304,7 +304,6 @@ class Users {
     const userId = getUserId[0].id;
 
     const getUserLocation = await databaseFramework.select("location", "id", "personid = ? and isDeleted = 0", [userId]);
-    if (getUserLocation.length <= 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.USER_DOESNT_HAVE_LOCATION.message }); }
 
     const currentUserData = getUserLocation[0];
     const updatedData = {};
