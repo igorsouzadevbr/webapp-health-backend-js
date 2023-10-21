@@ -163,7 +163,7 @@ class Users {
       message: 'getUserData: ' + JSON.stringify(userData[0]) + ' - 2023',
       status: 200
     }, this.connection);
-    return res.status(200).json(userData[0]);
+    return res.status(200).json(userData);
   }
 
   async getUserAddressData(req, res) {
