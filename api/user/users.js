@@ -176,12 +176,6 @@ class Users {
       return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message });
     }
 
-    const formattedPhone = util.formatPhoneNumber(phone);
-    const formattedBirthDate = util.formatToDate(birthdate);
-    const newPasswordCrypto = util.convertToSHA256(password);
-    phone = formattedPhone;
-    birthdate = formattedBirthDate;
-    password = newPasswordCrypto;
 
     const getUserData = await databaseFramework.select("users", "*", "uniqueid = ?", [userUniqueId]);
     if (getUserData.length === 0) {
