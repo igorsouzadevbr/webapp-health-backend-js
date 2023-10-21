@@ -178,7 +178,7 @@ class Users {
     }
     const userAddressData = await databaseFramework.select("location", "address, number, complement, neighborhood, postalcode, cityId, stateId, isDeleted", "personid = ?", [userDataByEmail[0].id]);
     const getUserCityData = await databaseFramework.select("city", "name", "id = ?", [userAddressData[0].cityId]);
-    const getUserStateData = await databaseFramework.select("state", "name", "id = ?", [userAddressData[0].stateId]);
+    const getUserStateData = await databaseFramework.select("states", "name", "id = ?", [userAddressData[0].stateId]);
     const userLocationData = { ...userAddressData[0], cityName: getUserCityData[0].name, stateName: getUserStateData[0].name };
     const uniqueid = uuidv4();
     util.logToDatabase({
