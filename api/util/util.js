@@ -147,40 +147,18 @@ function getWeekDay(weekday) {
   }
 }
 
-function validateCityById(cityId, connection) {
+async function validateCityById(cityId, connection) {
+  const databaseFramework = new dbUtils(connection);
+  const getCities = await databaseFramework.select("city", "id", "id = ? and isDeleted = 0", [cityId]);
   return new Promise((resolve, reject) => {
-    connection.getConnection((err, connection) => {
-      if (err) {
-        console.error('Erro ao conectar ao banco de dados:', err.message);
-        return reject(err);
-      }
-      connection.query('SELECT id FROM city WHERE id = ? and isDeleted = 0', [cityId], (err, results) => {
-        connection.release();
-        if (err) {
-          console.error('Erro no método validateCity, query n° 1:', err);
-          return reject(err);
-        }
-        resolve(results.length > 0);
-      });
-    });
+    resolve(getCities.length > 0);
   });
 }
-function validateStateById(stateId, connection) {
+async function validateStateById(stateId, connection) {
+  const databaseFramework = new dbUtils(connection);
+  const getStates = await databaseFramework.select("states", "id", "id = ? and isDeleted = 0", [stateId]);
   return new Promise((resolve, reject) => {
-    connection.getConnection((err, connection) => {
-      if (err) {
-        console.error('Erro ao conectar ao banco de dados:', err.message);
-        return reject(err);
-      }
-      connection.query('SELECT id FROM states WHERE id = ? and isDeleted = 0', [stateId], (err, results) => {
-        connection.release();
-        if (err) {
-          console.error('Erro no método validateStateById, query n° 1:', err);
-          return reject(err);
-        }
-        resolve(results.length > 0);
-      });
-    });
+    resolve(getStates.length > 0);
   });
 }
 
@@ -208,23 +186,13 @@ function generateToken() {
 function isBlob(data) {
   return data instanceof Buffer;
 }
-
-function logToDatabase(logData, connection) {
-  const query = 'INSERT INTO apilogrequests (uniqueid, ip, method, message, status, datetime) VALUES (?, ?, ?, ?, ?, NOW())';
-  const values = [logData.uniqueid, logData.ip, logData.method, logData.message, logData.status];
-
-  connection.getConnection((err, connection) => {
-    if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
-
-    connection.query(query, values, (error, results) => {
-      connection.release();
-      if (error) {
-        console.error('Erro ao registrar log:', error);
-        return;
-      }
-      console.log('Log registrado com sucesso:', results.insertId);
-    });
-  });
+const dbUtils = require('../util/databaseUtils.js');
+const { stat } = require('fs');
+async function logToDatabase(logData, connection) {
+  const databaseFramework = new dbUtils(connection);
+  const dataAtual = new Date();
+  await databaseFramework.insert("apilogrequests", { uniqueid: logData.uniqueid, ip: logData.ip, method: logData.method, message: logData.message, status: logData.status, datetime: dataAtual });
+  console.log('Log registrado');
 
 
 }

@@ -9,8 +9,10 @@ class DatabaseUtils {
         const connection = await this.pool.getConnection();
         try {
             const [rows] = await connection.query(`SELECT ${columns} FROM ${tableName} WHERE ${conditions}`, values);
+            connection.release();
             return rows;
         } catch (err) {
+            connection.release();
             throw err;
         } finally {
             connection.release();
@@ -24,8 +26,10 @@ class DatabaseUtils {
             const values = Object.values(data).map(value => mysql.escape(value)).join(', ');
             const sql = `INSERT INTO ${tableName} (${columns}) VALUES (${values})`;
             const [result] = await connection.query(sql);
+            connection.release();
             return result.insertId;
         } catch (err) {
+            connection.release();
             throw err;
         } finally {
             connection.release();
@@ -38,8 +42,10 @@ class DatabaseUtils {
             const setClause = Object.entries(data).map(([key, value]) => `${key}=${mysql.escape(value)}`).join(', ');
             const sql = `UPDATE ${tableName} SET ${setClause} WHERE ${conditions}`;
             const [result] = await connection.query(sql);
+            connection.release();
             return result.affectedRows;
         } catch (err) {
+            connection.release();
             throw err;
         } finally {
             connection.release();
@@ -50,8 +56,10 @@ class DatabaseUtils {
         try {
             const sql = `DELETE FROM ${tableName} WHERE ${conditions}`
             const [result] = await connection.query(sql);
+            connection.release();
             return result.affectedRows;
         } catch (err) {
+            connection.release();
             throw err;
         } finally {
             connection.release();

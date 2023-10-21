@@ -51,7 +51,7 @@ dotenv.config({ path: `.env.${ENV}` });
 
 //Banco de Dados
 const connection = mysql.createPool({
-  connectionLimit: 800,
+  connectionLimit: 1200,
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
@@ -162,11 +162,15 @@ app.put('/api/users/create', authenticateClient, (req, res) => {
   users.create(req, res);
 });
 
-app.patch('/api/users/update/location', authenticateClient, (req, res) => {
+app.post('/api/users/create/location', authenticateClient, (req, res) => {
   users.createLocation(req, res);
 });
 
-app.patch('/api/update/users/:uniqueid', authenticateClient, (req, res) => {
+app.post('/api/users/update/location', authenticateClient, (req, res) => {
+  users.updateLocation(req, res);
+});
+
+app.patch('/api/update/users', authenticateClient, (req, res) => {
   users.alterUserData(req, res);
 });
 

@@ -4,128 +4,97 @@ const systemMessages = require('../system/systemMessages.js');
 const jwt = require('jsonwebtoken');
 const systemObjects = require('../system/systemObjects.js');
 const dbUtils = require('../util/databaseUtils.js');
+//TAREFAS AQUI: Alterar métodos atuais de conexão para utilizar o fw de database correto.
 class Users {
   constructor(connection) {
     this.connection = connection;
   }
 
-  verifyLogin(req, res, keyUseAPI) {
+  async verifyLogin(req, res, keyUseAPI) {
     const { email, password } = req.body;
     const cryptoPass = util.convertToSHA256(password);
     const ip = req.headers['x-forwarded-for'] || req.ip;
+    const databaseFramework = new dbUtils(this.connection);
 
-    this.connection.getConnection((err, connection) => {
-      if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
+    const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
+    if (userData.length === 0) { return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
 
-      connection.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+    const userId = userData[0].id;
+    const userPunishments = await databaseFramework.select("users_punishments", "*", "userid = ?"[userId]);
 
-        if (err) { connection.release(); return res.sendStatus(500); }
-        if (results.length === 0) { console.log('Vai enviar resposta 500'); return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
-
-        const userId = results[0].id;
-        connection.query('SELECT * FROM users_punishments WHERE userid = ?', userId, (err, results) => {
-
-          if (err) { connection.release(); return res.sendStatus(500); }
-          if (results.length > 0) {
-            if (results[0].isblocked == 1) { connection.release(); return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message, blockreason: results[0].blockedreason }); }
-
-            if (results[0].isbanned == 1) {
-              const bannedDate = results[0].banneddate;
-              const data = new Date(bannedDate);
-
-              const dia = String(data.getDate()).padStart(2, '0');
-              const mes = String(data.getMonth() + 1).padStart(2, '0');
-              const ano = data.getFullYear();
-              const horas = String(data.getHours()).padStart(2, '0');
-              const minutos = String(data.getMinutes()).padStart(2, '0');
-
-              const dataFormatada = `${dia}/${mes}/${ano} ás ${horas}:${minutos}`;
-
-              connection.release();
-              return res.status(429).send({ message: systemMessages.ErrorMessages.BANNED_USER_MESSAGE.message, bannedreason: results[0].bannedreason, banneddate: dataFormatada });
-            }
-          }
+    if (userPunishments.length > 0) {
+      if (userPunishments[0].isblocked == 1) { return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message, blockreason: userPunishments[0].blockedreason }); }
 
 
+      if (userPunishments[0].isbanned == 1) {
+        const bannedDate = userPunishments[0].banneddate;
+        const data = new Date(bannedDate);
 
-          connection.query('SELECT * FROM login_attempts WHERE ip = ? and userid = ?', [ip, userId], (err, results) => {
-            if (err) { connection.release(); return res.sendStatus(500); }
+        const dia = String(data.getDate()).padStart(2, '0');
+        const mes = String(data.getMonth() + 1).padStart(2, '0');
+        const ano = data.getFullYear();
+        const horas = String(data.getHours()).padStart(2, '0');
+        const minutos = String(data.getMinutes()).padStart(2, '0');
 
-            const timestampNow = new Date();
-            let exists = results.length > 0;
-            let timestamp = exists ? results[0].timestamp : timestampNow;
+        const dataFormatada = `${dia}/${mes}/${ano} ás ${horas}:${minutos}`;
+        return res.status(429).send({ message: systemMessages.ErrorMessages.BANNED_USER_MESSAGE.message, bannedreason: userPunishments[0].bannedreason, banneddate: dataFormatada });
+      }
+    }
+    const userLoginAttempts = await databaseFramework.select("login_attempts", "*", "ip = ? and userid = ?", [ip, userId]);
+    const timestampNow = new Date();
 
-            const diffMinutos = (timestampNow - new Date(timestamp)) / 1000 / 60;
+    let exists = userLoginAttempts.length > 0;
+    let timestamp = exists ? userLoginAttempts[0].timestamp : timestampNow;
 
-            if (exists && diffMinutos < 5 && results[0].tries <= 3) {
-              connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ? and userid = ?', [ip, userId]);
-              connection.release();
-              let tentativa = '';
-              if (results[0].tries == 1) { tentativa = 'segunda' };
-              if (results[0].tries == 2) { tentativa = 'terceira' };
-              if (results[0].tries == 3) { tentativa = 'quarta' };
-              if (results[0].tries == 4) { tentativa = 'quinta' };
-              if (tentativa == 'quarta') { return res.status(429).send({ message: 'ATENÇÃO: Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você erre mais uma vez, seu usuário será bloqueado.' }); }
-              return res.status(429).send({ message: 'Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você atinja 5 tentativas, seu usuário será bloqueado.' });
-            }
-            //bloquear usuário
-            if (exists && diffMinutos < 5 && results[0].tries > 3) {
-              connection.query('SELECT * FROM users WHERE email = ?', [email], (err, resultsUser) => {
-                if (err) { connection.release(); return res.sendStatus(500); }
-                const userId = resultsUser[0].id;
+    const diffMinutos = (timestampNow - new Date(timestamp)) / 1000 / 60;
 
-                connection.query('SELECT * FROM users_punishments WHERE userid = ?', [userId], (err, results) => {
-                  if (err) { connection.release(); return res.sendStatus(500); }
+    if (exists && diffMinutos < 5 && userLoginAttempts[0].tries <= 3) {
+      await databaseFramework.update("login_attempts", { tries: tries + 1 }, `ip = ${ip}, userid = ${userId}`);
+      let tentativa = '';
+      if (userLoginAttempts[0].tries == 1) { tentativa = 'segunda' };
+      if (userLoginAttempts[0].tries == 2) { tentativa = 'terceira' };
+      if (userLoginAttempts[0].tries == 3) { tentativa = 'quarta' };
+      if (userLoginAttempts[0].tries == 4) { tentativa = 'quinta' };
+      if (tentativa == 'quarta') { return res.status(429).send({ message: 'ATENÇÃO: Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você erre mais uma vez, seu usuário será bloqueado.' }); }
+      return res.status(429).send({ message: 'Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você atinja 5 tentativas, seu usuário será bloqueado.' });
+    }
 
-                  if (results.length === 0) {
-                    connection.query('INSERT INTO users_punishments(userid, isblocked, blockedreason, blockeddate) VALUES (?,?,?,?)', [userId, 1, 'Excesso de tentativas de login.', timestampNow]);
-                    connection.release();
-                  } else { connection.query('UPDATE users_punishments SET isblocked=1, blockedreason = ?, blockeddate = ? where userid = ?', ['Excesso de tentativas de login.', timestampNow, userId]); }
+    //bloquear usuário
+    if (exists && diffMinutos < 5 && userLoginAttempts[0].tries > 3) {
 
-                  connection.release();
-                });
+      if (userPunishments.length === 0) {
+        await databaseFramework.insert("users_punishments", { userid: userId, isblocked: 1, blockedreason: 'Excesso de tentativas de login.', blockeddate: timestampNow });
+      }
+      else { await databaseFramework.update("users_punishments", { isblocked: 1, blockedreason: 'Excesso de tentativas de login.', blockeddate: timestampNow }, `userid = ${userId}`); }
+      return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message });
+    }
 
-              });
-              return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message });
-            }
-            connection.query('SELECT * FROM users WHERE email = ? AND password = ?', [email, cryptoPass], (err, resultsUser) => {
-              if (err) { connection.release(); return res.sendStatus(500); }
-              if (resultsUser.length === 0) {
+    const verifyUserLoginData = await databaseFramework.select("users", "*", "email = ? and password = ?", [email, cryptoPass]);
+    if (verifyUserLoginData.length === 0) {
+      if (exists) {
+        if (diffMinutos < 5) {
+          await databaseFramework.update("login_attempts", { tries: tries + 1 }, `ip = ${ip} and userid = ${userId}`);
+        } else {
+          await databaseFramework.update("login_attempts", { timestamp: timestampNow, tries: 1 }, `ip = ${ip} and userid = ${userId}`);
+        }
+      } else {
+        await databaseFramework.insert("login_attempts", { userid: userId, ip: ip, timestamp: timestampNow, tries: 1 });
+      }
+      return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
+    } else {
+      const token = jwt.sign({ useremail: email, useruniqueid: userData[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
 
-                if (exists) {
-                  if (diffMinutos < 5) {
-                    connection.query('UPDATE login_attempts SET tries = tries + 1 WHERE ip = ? and userid = ?', [ip, userId]);
-                    connection.release();
-                  } else {
-                    connection.query('UPDATE login_attempts SET timestamp = ?, tries = 1 WHERE ip = ? and userid = ?', [timestampNow, ip, userId]);
-                    connection.release();
-                  }
-                } else {
-                  connection.query('INSERT INTO login_attempts (ip, timestamp, tries, userid) VALUES (?, ?, 1, ?)', [ip, timestampNow, userId]);
-                  connection.release();
-                }
-                return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
-              } else {
-                connection.release();
-                const token = jwt.sign({ useremail: email, useruniqueid: resultsUser[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
-                const authHeader = req.headers['authorization'];
-                const secretKey = authHeader && authHeader.split(' ')[1];
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'verifyLogin: ' + JSON.stringify(verifyUserLoginData),
+        status: 200
+      }, this.connection);
+      return res.status(200).send({ message: 'Login realizado com sucesso.', token: token, expiresIn: 3 });
+    }
 
-                const uniqueid = uuidv4();
-                util.logToDatabase({
-                  uniqueid: uniqueid,
-                  ip: req.ip,
-                  method: 'GET',
-                  message: 'verifyLogin: ' + JSON.stringify(results),
-                  status: 200
-                }, this.connection);
-                return res.status(200).send({ message: 'Login realizado com sucesso.', token: token, expiresIn: 3 });
-              }
-            });
-          });
-        });
-      });
-    });
   }
 
   async unBlockUser(req, res) {
@@ -171,96 +140,72 @@ class Users {
     return res.status(200).json({ message: 'E-mail inexistente.' });
   }
 
-  getUserData(req, res) {
+  async getUserData(req, res) {
     const { email, secretKey } = req.body;
-
+    const databaseFramework = new dbUtils(this.connection);
     if (email == null || !util.isEmail(email)) {
-        return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
+      return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
     }
 
-    this.connection.getConnection((err, connection) => {
-        if (err) {
-            console.error('Erro ao conectar ao banco de dados:', err.message);
-            return;
-        }
+    const userDataByEmail = await databaseFramework.select("users", "id, uniqueid, name, email, phone, birthdate, gender, userphoto", "email = ?", [email]);
+    if (userDataByEmail.length === 0) {
+      return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
+    }
+    const uniqueid = uuidv4();
+    util.logToDatabase({
+      uniqueid: uniqueid,
+      ip: req.ip,
+      method: 'GET',
+      message: 'getUserData: ' + JSON.stringify(responseWithBase64) + ' - 2023',
+      status: 200
+    }, this.connection);
+    return res.status(200).json(userDataByEmail[0]);
+  }
 
-        connection.query("SELECT id,uniqueid,name,email,phone,birthdate,gender,userphoto FROM users where email = ?", [email], (err, results) => {
-            connection.release();
-            if (err) {
-                connection.release();
-                console.error('Erro no método getUserData, query n° 1:', err);
-                return res.sendStatus(500);
-            }
-            if (results.length === 0) {
-                connection.release();
-                return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
-            }
-            const userphotoBase64 = results[0].userphoto ? results[0].userphoto.toString('base64') : null;
+  async alterUserData(req, res) {
+    const { name, email, phone, birthdate, gender, password, userUniqueId } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
 
-            const responseWithBase64 = {
-                ...results[0],
-                userphoto: userphotoBase64
-            };
+    if (email == null || !util.isEmail(email)) {
+      return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
+    }
+    if (phone == null || !util.isPhoneNumber(phone)) {
+      return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
+    }
+    if (!util.isInteger(gender)) {
+      return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message });
+    }
 
-            res.status(200).json(responseWithBase64);
-            const uniqueid = uuidv4();
-            util.logToDatabase({
-                uniqueid: uniqueid,
-                ip: req.ip,
-                method: 'GET',
-                message: 'getUserData: ' + JSON.stringify(responseWithBase64) + ' - 2023',
-                status: 200
-            }, this.connection);
-        });
-    });
-}
+    const formattedPhone = util.formatPhoneNumber(phone);
+    const formattedBirthDate = util.formatToDate(birthdate);
+    const newPasswordCrypto = util.convertToSHA256(password);
+    phone = formattedPhone;
+    birthdate = formattedBirthDate;
+    password = newPasswordCrypto;
 
-  alterUserData(req, res) {
-    const uniqueid = req.params.uniqueid;
-    const { name, usertype } = req.body;
+    const getUserData = await databaseFramework.select("users", "*", "uniqueid = ?", [userUniqueId]);
+    if (getUserData.length === 0) {
+      return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
+    }
+    const currentUserData = getUserData[0];
+    const updatedData = {};
+    let hasChanges = false;
 
-    this.connection.getConnection((err, connection) => {
-      if (err) { console.error('Erro ao conectar ao banco de dados:', err.message); return; }
+    const fieldsToUpdate = {
+      name, email, phone, birthdate, gender, password
+    }
+    for (const field in fieldsToUpdate) {
+      if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
+        updatedData[field] = fieldsToUpdate[field];
+        hasChanges = true;
+      }
+    }
 
-      connection.query("SELECT * FROM users where uniqueid = ?", [uniqueid], (err, results) => {
-        connection.release();
-        if (err) {
-          connection.release();
-          console.error('Erro no método alterUserData, query n° 1:', err);
-          return res.sendStatus(500);
-        }
-        if (results.length === 0) {
-          return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
-        }
-        const currentUserData = results[0];
-        const updatedData = {};
-        let hasChanges = false;
-
-        const fieldsToUpdate = {
-          name, usertype
-        }
-        for (const field in fieldsToUpdate) {
-          if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
-            updatedData[field] = fieldsToUpdate[field];
-            hasChanges = true;
-          }
-        }
-        if (!hasChanges) {
-          return res.status(200).send({ message: 'Nenhum campo alterado.' });
-        }
-        connection.query("update users set ? where uniqueid = ?", [updatedData, uniqueid], (err, results) => {
-          connection.release();
-          if (err) {
-            console.error('Erro no método alterUserData, query n° 2:', err);
-            return res.sendStatus(500);
-          }
-
-          res.status(200).send({ message: 'Usuário atualizado com sucesso.' });
-
-          //gerar LOG da atualização com data + hora
-        });
-      });
-    });
+    if (!hasChanges) {
+      return res.status(200).send({ message: 'Nenhum campo alterado.' });
+    }
+    await databaseFramework.update("users", updatedData, `uniqueid = ${userUniqueId}`);
+    return res.status(200).send({ message: 'Dados alterados com sucesso.' });
   }
 
   create(req, res) {
@@ -309,13 +254,10 @@ class Users {
     });
   }
 
-
-
-
   async insertUserPhoto(req, res) {
     const { userUniqueId, pictureBlob } = req.body;
     const databaseFramework = new dbUtils(this.connection);
-  
+
     // Verifique se a pictureBlob é uma string base64 válida
     const base64Regex = /^data:image\/\w+;base64,/;
     if (!base64Regex.test(pictureBlob)) {
@@ -325,6 +267,56 @@ class Users {
     if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
     await databaseFramework.update("users", { userPhoto: pictureBlob }, `id = ${userData[0].id}`);
     return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
+  }
+
+  async updateLocation(req, res) {
+    const { address, number, complement, neighborhood, cityId, stateId, postalCode, userUniqueId } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+
+    try {
+      if (!await util.validateStateById(stateId, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_CITY.message }); }
+    } catch (error) {
+      console.error('Erro ao validar o estado:', error);
+      return res.status(500).send({ message: 'Erro ao validar o estado' });
+    }
+    try {
+      if (!await util.validateCityById(cityId, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_CITY.message }); }
+    } catch (error) {
+      console.error('Erro ao validar a cidade:', error);
+      return res.status(500).send({ message: 'Erro ao validar a cidade' });
+    }
+    try {
+      if (!await util.validaCEP(postalCode, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_POSTAL_CODE.message }); }
+    } catch (error) {
+      console.error('Erro ao validar o CEP:', error);
+      return res.status(500).send({ message: 'Erro ao validar o CEP.' });
+    }
+
+    const getUserId = await databaseFramework.select("users", "id", "uniqueid = ? and isDeleted = 0", [userUniqueId]);
+    if (getUserId.length === 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
+    const userId = getUserId[0].id;
+
+    const getUserLocation = await databaseFramework.select("location", "id", "userid = ? and isDeleted = 0", [userId]);
+    if (getUserLocation.length <= 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.USER_DOESNT_HAVE_LOCATION.message }); }
+
+    const currentUserData = getUserLocation[0];
+    const updatedData = {};
+    let hasChanges = false;
+
+    const fieldsToUpdate = {
+      address, number, complement, neighborhood, cityId, stateId, postalCode
+    }
+    for (const field in fieldsToUpdate) {
+      if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
+        updatedData[field] = fieldsToUpdate[field];
+        hasChanges = true;
+      }
+    }
+    if (!hasChanges) {
+      return res.status(200).send({ message: 'Nenhum campo alterado.' });
+    }
+    await databaseFramework.update("location", updatedData, `userid = ${userId}`);
+    return res.status(200).send({ message: 'Dados alterados com sucesso.' });
   }
 
   //LOCATION DATA

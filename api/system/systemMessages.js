@@ -17,6 +17,7 @@ const ErrorMessages = Object.freeze({
     ALREADY_HAS_A_TOKEN_IN_PROGRESS: { message: 'Você já possui um token em andamento, por favor aguarde 15 minutos para solicitar um novo.' },
     TOKEN_HAS_EXPIRED: { message: 'Este token expirou, por favor peça um novo atualizando a página.' },
     INVALID_BLOB: { message: 'A imagem enviada é inválida.' },
+    USER_DOESNT_HAVE_LOCATION: { message: 'Este usuário não possui endereço cadastrado.' },
 });
 
 module.exports =
