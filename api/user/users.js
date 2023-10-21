@@ -147,19 +147,23 @@ class Users {
       return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
     }
 
-    const userDataByEmail = await databaseFramework.select("users", "id, uniqueid, name, email, phone, birthdate, gender, userphoto", "email = ?", [email]);
+    const userDataByEmail = await databaseFramework.select("users", "id, uniqueid, name, email, phone, birthdate, gender, userphoto, password", "email = ?", [email]);
     if (userDataByEmail.length === 0) {
       return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }
+
+    const decryptedPassword = decrypt(userDataByEmail[0].password);
+    const userData = { ...userDataByEmail[0], password: senhaDescriptografada };
+
     const uniqueid = uuidv4();
     util.logToDatabase({
       uniqueid: uniqueid,
       ip: req.ip,
       method: 'GET',
-      message: 'getUserData: ' + JSON.stringify(userDataByEmail[0]) + ' - 2023',
+      message: 'getUserData: ' + JSON.stringify(userData[0]) + ' - 2023',
       status: 200
     }, this.connection);
-    return res.status(200).json(userDataByEmail[0]);
+    return res.status(200).json(userData[0]);
   }
 
   async getUserAddressData(req, res) {

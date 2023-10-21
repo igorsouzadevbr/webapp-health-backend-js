@@ -39,10 +39,18 @@ const formatToDate = (data) => {
     return data;
   }
 }
-
-
-function convertToSHA256(password) {
-  return crypto.createHash('sha256').update(password, 'utf8').digest('hex');
+const secretKey = 'S7cNs7cwhBZ0VCJcwfCQ69bAuaBmyeS9';
+function convertToSHA256(text) {
+  const cipher = crypto.createCipher('aes-256-cbc', secretKey);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return encrypted;
+}
+function decryptSHA256(encryptedText) {
+  const decipher = crypto.createDecipher('aes-256-cbc', secretKey);
+  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
 }
 
 function isInteger(value) {
@@ -200,5 +208,5 @@ async function logToDatabase(logData, connection) {
 
 
 module.exports = {
-  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob
+  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256
 };
