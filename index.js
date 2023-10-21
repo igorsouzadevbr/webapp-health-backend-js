@@ -167,7 +167,7 @@ app.post('/api/users/create/location', authenticateClient, (req, res) => {
 });
 
 app.patch('/api/users/update/location', authenticateClient, (req, res) => {
-  users.updateLocation(req, res);
+  users.createLocation(req, res);
 });
 
 app.patch('/api/update/users', authenticateClient, (req, res) => {

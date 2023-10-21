@@ -303,7 +303,7 @@ class Users {
     if (getUserId.length === 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
     const userId = getUserId[0].id;
 
-    const getUserLocation = await databaseFramework.select("location", "id", "personid = ? and isDeleted = 0", [userId]);
+    const getUserLocation = await databaseFramework.select("location", "address, number, complement, neighborhood, cityId, stateId, postalCode", "personid = ? and isDeleted = 0", [userId]);
 
     const currentUserData = getUserLocation[0];
     const updatedData = {};
@@ -352,7 +352,7 @@ class Users {
       return res.status(500).send({ message: 'Erro ao validar o CEP.' });
     }
 
-    const getUserIdFromUniqueId = await databaseFramework.select("user", "id", "uniqueid = ? and isDeleted = 0", [userUniqueId]);
+    const getUserIdFromUniqueId = await databaseFramework.select("users", "id", "uniqueid = ? and isDeleted = 0", [userUniqueId]);
 
     if (getUserIdFromUniqueId.length === 0) { return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
 
