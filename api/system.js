@@ -1,32 +1,23 @@
 const util = require('./util/util');
 const systemMessages = require('./system/systemMessages.js');
+const dbUtils = require('./util/databaseUtils.js');
 class System {
   constructor(connection) {
     this.connection = connection;
   }
 
-  getUserTypes(req, res) {
-    this.connection.getConnection((err, connection) => {
-      if (err) {
-        connection.release(); console.error('Erro ao conectar ao banco de dados:', err.message); return;
-      }
-
-      connection.query("SELECT * FROM usertype", (err, results) => {
-        connection.release();
-        if (err) {
-          connection.release();
-          console.error('Erro no método getUserTypes, query n° 1:', err);
-          return res.sendStatus(500);
-        }
-        if (results.length === 0) {
-          return res.status(404).json({ message: 'Sem resultados.' });
-        }
-        res.status(200).send({ results });
-      });
-    });
+  async getUserTypes(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const userTypeData = await databaseFramework.select("usertype", "*");
+    if (userTypeData.length === 0) {
+      return res.status(404).json({ message: 'Sem resultados.' });
+    }
+    return res.status(200).send({ userTypeData });
   }
   getCityByID(req, res) {
     const cityid = req.params.cityid;
+    const databaseFramework = new dbUtils(this.connection);
+
     this.connection.getConnection((err, connection) => {
       if (err) {
         connection.release(); console.error('Erro ao conectar ao banco de dados:', err.message); return;
