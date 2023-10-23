@@ -202,6 +202,7 @@ class Users {
     if (getUserData.length === 0) {
       return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }
+    password = util.convertToSHA256(password);
     const currentUserData = getUserData[0];
     const updatedData = {};
     let hasChanges = false;
