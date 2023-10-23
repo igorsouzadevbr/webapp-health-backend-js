@@ -170,7 +170,7 @@ app.patch('/api/users/update/location', authenticateClient, (req, res) => {
   users.createLocation(req, res);
 });
 
-app.patch('/api/update/users', authenticateClient, (req, res) => {
+app.patch('/api/users/update', authenticateClient, (req, res) => {
   users.alterUserData(req, res);
 });
 
