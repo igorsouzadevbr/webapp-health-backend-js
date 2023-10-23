@@ -51,7 +51,7 @@ dotenv.config({ path: `.env.${ENV}` });
 
 //Banco de Dados
 const connection = mysql.createPool({
-  connectionLimit: 1200,
+  connectionLimit: 10000,
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
