@@ -202,7 +202,6 @@ class Users {
     if (getUserData.length === 0) {
       return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }
-    password = util.convertToSHA256(password);
     const currentUserData = getUserData[0];
     const updatedData = {};
     let hasChanges = false;
@@ -212,7 +211,7 @@ class Users {
     }
     for (const field in fieldsToUpdate) {
       if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
-        if (field === 'password') {
+        if (field === 'password' && currentUserData[field] != util.convertToSHA256(field)) {
           const hashedPassword = await util.convertToSHA256(fieldsToUpdate[field]);
           fieldsToUpdate['password'] = hashedPassword;
         }
