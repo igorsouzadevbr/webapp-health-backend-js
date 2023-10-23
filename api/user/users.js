@@ -215,16 +215,16 @@ class Users {
           const hashedPassword = await util.convertToSHA256(field);
           fieldsToUpdate['password'] = hashedPassword;
         }
-        if (fieldsToUpdate[field] === 'email') {
-          if (!util.isEmail(fieldsToUpdate[field])) {
+        if (field === 'email') {
+          if (!util.isEmail(field)) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
           }
         }
         if (field === 'phone') {
-          if (!util.isPhoneNumber(fieldsToUpdate[field])) {
+          if (!util.isPhoneNumber(field)) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
           }
-          fieldsToUpdate[field] = updatedData[field];
+          fieldsToUpdate[field] = util.formatPhoneNumber(field);
         }
         if (field === 'gender') {
           if (!util.isInteger(gender)) {
@@ -232,7 +232,7 @@ class Users {
           }
         }
         if (field === 'birthdate') {
-          fieldsToUpdate[field] = util.formatToDate(updatedData[field]);
+          fieldsToUpdate[field] = util.formatToDate(field);
         }
         updatedData[field] = fieldsToUpdate[field];
         hasChanges = true;
