@@ -216,12 +216,12 @@ class Users {
           fieldsToUpdate['password'] = hashedPassword;
         }
         if (field === 'email') {
-          if (!util.isEmail(field)) {
+          if (!util.isEmail(email)) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
           }
         }
         if (field === 'phone') {
-          if (!util.isPhoneNumber(field)) {
+          if (!util.isPhoneNumber(phone)) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
           }
           fieldsToUpdate[field] = util.formatPhoneNumber(field);
