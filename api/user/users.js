@@ -224,7 +224,7 @@ class Users {
           if (!util.isPhoneNumber(phone)) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
           }
-          fieldsToUpdate[field] = util.formatPhoneNumber(updatedData[field]);
+          fieldsToUpdate[field] = util.formatPhoneNumber(fieldsToUpdate[field]);
         }
         if (field === 'gender') {
           if (!util.isInteger(gender)) {
@@ -232,7 +232,7 @@ class Users {
           }
         }
         if (field === 'birthdate') {
-          fieldsToUpdate[field] = util.formatToDate(field);
+          fieldsToUpdate[field] = util.formatToDate(fieldsToUpdate[field]);
         }
         updatedData[field] = fieldsToUpdate[field];
         hasChanges = true;
