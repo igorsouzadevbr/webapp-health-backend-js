@@ -212,7 +212,7 @@ class Users {
     for (const field in fieldsToUpdate) {
       if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
         if (field === 'password') {
-          const hashedPassword = await util.convertToSHA256(field);
+          const hashedPassword = await util.convertToSHA256(fieldsToUpdate[field]);
           fieldsToUpdate['password'] = hashedPassword;
         }
         if (field === 'email') {
