@@ -4,7 +4,6 @@ const systemMessages = require('../system/systemMessages.js');
 const jwt = require('jsonwebtoken');
 const systemObjects = require('../system/systemObjects.js');
 const dbUtils = require('../util/databaseUtils.js');
-//TAREFAS AQUI: Alterar métodos atuais de conexão para utilizar o fw de database correto.
 class Users {
   constructor(connection) {
     this.connection = connection;
@@ -63,7 +62,7 @@ class Users {
     if (exists && diffMinutos < 5 && userLoginAttempts[0].tries > 3) {
 
       if (userPunishments.length === 0) {
-        await databaseFramework.insert("users_punishments", { userid: userId, isblocked: 1, blockedreason: 'Excesso de tentativas de login.', blockeddate: timestampNow });
+        await databaseFramework.insert("users_punishments", { userid: userId, isBlocked: 1, blockedReason: 'Excesso de tentativas de login.', blockedDate: timestampNow });
       }
       else { await databaseFramework.update("users_punishments", { isblocked: 1, blockedreason: 'Excesso de tentativas de login.', blockeddate: timestampNow }, `userid = ${userId}`); }
       return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message });
@@ -82,7 +81,7 @@ class Users {
       }
       return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
     } else {
-      const token = jwt.sign({ useremail: email, useruniqueid: userData[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
+      const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
 
       const uniqueid = uuidv4();
       util.logToDatabase({
@@ -211,7 +210,7 @@ class Users {
     }
     for (const field in fieldsToUpdate) {
       if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
-        if (field === 'password' && currentUserData[field] != util.convertToSHA256(field)) {
+        if (field === 'password' && currentUserData['password'] != await util.convertToSHA256(password)) {
           const hashedPassword = await util.convertToSHA256(fieldsToUpdate[field]);
           fieldsToUpdate['password'] = hashedPassword;
         }
@@ -220,27 +219,28 @@ class Users {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
           }
         }
-        if (field === 'phone') {
+        if (field === 'phone' && currentUserData[field] != await util.formatPhoneNumber(phone)) {
           if (!util.isPhoneNumber(phone)) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_PHONE_NUMBER.message });
           }
           fieldsToUpdate[field] = util.formatPhoneNumber(fieldsToUpdate[field]);
         }
-        if (field === 'gender') {
+        if (field === 'gender' && currentUserData[field] != gender) {
           if (!util.isInteger(gender)) {
             return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message });
           }
         }
-        if (field === 'birthdate') {
+        if (field === 'birthdate' && currentUserData[field] != await util.formatToDate(birthdate)) {
           fieldsToUpdate[field] = util.formatToDate(fieldsToUpdate[field]);
         }
         updatedData[field] = fieldsToUpdate[field];
+        console.log(updatedData[field]);
         hasChanges = true;
       }
     }
 
     if (!hasChanges) {
-      return res.status(200).send({ message: 'Nenhum campo alterado.' });
+      return res.status(400).send({ message: 'Nenhum campo alterado.' });
     }
     await databaseFramework.update("users", updatedData, `id = ${currentUserData.id}`);
     return res.status(200).send({ message: 'Dados alterados com sucesso.' });
