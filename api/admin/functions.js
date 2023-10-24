@@ -2,6 +2,7 @@ const { v4: uuidv4 } = require('uuid');
 const util = require('../util/util.js');
 const systemObjects = require('../system/systemObjects.js');
 const systemMessages = require('../system/systemMessages.js');
+const dbUtils = require('../util/databaseUtils.js');
 class Functions {
 
   constructor(connection) {
