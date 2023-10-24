@@ -81,7 +81,7 @@ class Users {
       }
       return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
     } else {
-      const token = jwt.sign({ useremail: email, useruniqueid: userData[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
+      const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid }, keyUseAPI, { expiresIn: '96h' });
 
       const uniqueid = uuidv4();
       util.logToDatabase({
@@ -140,13 +140,13 @@ class Users {
   }
 
   async getUserData(req, res) {
-    const { email, secretKey } = req.body;
+    const { email, userUniqueId } = req.body;
     const databaseFramework = new dbUtils(this.connection);
     if (email == null || !util.isEmail(email)) {
       return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
     }
 
-    const userDataByEmail = await databaseFramework.select("users", "id, uniqueid, name, email, phone, birthdate, gender, userphoto, password", "email = ?", [email]);
+    const userDataByEmail = await databaseFramework.select("users", "id, uniqueid, name, email, phone, birthdate, gender, userphoto, password", "email = ? and uniqueid = ?", [email, userUniqueId]);
     if (userDataByEmail.length === 0) {
       return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }

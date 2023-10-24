@@ -197,7 +197,7 @@ app.patch('/api/users/update/email', authenticateUser, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserEmail(req, res);
 });
 
-app.post('/api/users/info', authenticateUser, (req, res) => {
+app.post('/api/users/info', authenticateClient, (req, res) => {
   users.getUserData(req, res);
 });
 
