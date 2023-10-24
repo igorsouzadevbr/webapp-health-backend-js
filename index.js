@@ -31,6 +31,8 @@ const Login = require('./auth/login');
 const Users = require('./api/user/users');
 const System = require('./api/system');
 const AdminFunctions = require('./api/admin/functions');
+const AttendantFunctions = require('./api/attendant/functions');
+const ProfessionalFunctions = require('./api/professional/functions');
 const DatabaseUtils = require('./api/util/databaseUtils');
 const AlterDataWithTokens = require('./api/user/alterDataWithTokens');
 
@@ -145,16 +147,25 @@ const authenticateUser = (req, res, next) => {
 //FIM DA ROTA DE AUTENTICAÇÃO
 const users = new Users(connection);
 const system = new System(connection);
+const attendantFunctions = new AttendantFunctions(connection);
+const professionalFunctions = new ProfessionalFunctions(connection);
 const adminFunctions = new AdminFunctions(connection);
 const databaseUtils = new DatabaseUtils(connection);
 const alterDataWithTokens = new AlterDataWithTokens(connection);
 
-//ROTA API -- ADMINS
+//ROTA API -- ADMINS & DEMAIS
 
 app.put('/api/admin/users/create', authenticateAdministrator, (req, res) => {
   adminFunctions.create(req, res);
 });
 
+app.put('/api/attendant/users/create', authenticateAdministrator, (req, res) => {
+  adminFunctions.create(req, res);
+});
+
+app.put('/api/professional/users/create', authenticateAdministrator, (req, res) => {
+  adminFunctions.create(req, res);
+});
 
 //ROTA API -- USUARIOS
 
