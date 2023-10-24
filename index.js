@@ -155,16 +155,16 @@ const alterDataWithTokens = new AlterDataWithTokens(connection);
 
 //ROTA API -- ADMINS & DEMAIS
 
-app.put('/api/admin/users/create', authenticateAdministrator, (req, res) => {
+app.put('/api/admin/users/create', authenticateClient, (req, res) => {
   adminFunctions.create(req, res);
 });
 
-app.put('/api/attendant/users/create', authenticateAdministrator, (req, res) => {
-  adminFunctions.create(req, res);
+app.put('/api/attendant/users/create', authenticateClient, (req, res) => {
+  attendantFunctions.create(req, res);
 });
 
-app.put('/api/professional/users/create', authenticateAdministrator, (req, res) => {
-  adminFunctions.create(req, res);
+app.put('/api/professional/users/create', authenticateClient, (req, res) => {
+  professionalFunctions.create(req, res);
 });
 
 //ROTA API -- USUARIOS
