@@ -1,8 +1,12 @@
 const express = require('express');
+const http = require('http');
+const server = http.createServer(http);
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const app = express();
+const socketServer = http.createServer(app);
 const bodyParser = require('body-parser');
+
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.json({ limit: '50mb' }));
@@ -25,11 +29,17 @@ app.use(express.json());
 const secretTokenKey = '0de6d8af5b6d3d908eca1e93cb5c9f384803ee7ee63ae1c5105e7baa475eca99';
 const adminSecretTokenKey = '3E5E085DBA7951B401D811CAE24DF052C6D91065B2ACCE3833EE7CD52A9DA330';
 const attendantSecretTokenKey = '2EC250AC6273C76BC50E7C8E1D7141632A9D35D131EFF249341FAAB2F798EF9F'
-const professionalSecretTokenKey = '08EF27C501561F8A1C7237D1503DC0D7AF1441D2D1C3630421C2820945C38349';
+
 const dotenv = require('dotenv');
 const Login = require('./auth/login');
 const Users = require('./api/user/users');
 const System = require('./api/system');
+
+const AttendantFlow = require('./api/chatFlow/attendantFlow');
+const PatientFlow = require('./api/chatFlow/patientFlow');
+
+const SocketConnection = require('./api/chatFlow/socketConnection.js');
+
 const AdminFunctions = require('./api/admin/functions');
 const AttendantFunctions = require('./api/attendant/functions');
 const ProfessionalFunctions = require('./api/professional/functions');
@@ -40,7 +50,7 @@ const AlterDataWithTokens = require('./api/user/alterDataWithTokens');
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 500,
-  message: "Você excedeu o limite de requisições em 15 minutos."
+  message: "Você excedeu olimite de requisições em 15 minutos."
 });
 app.use('/api/', limiter);
 app.set('trust proxy', 1);
@@ -71,6 +81,9 @@ connection.getConnection((err) => {
   }
 });
 
+const socketConnection = new SocketConnection(socketServer, connection);
+
+
 //ROTAS DE AUTENTICAÇÃO
 const clientLogin = new Login(secretTokenKey);
 
@@ -99,39 +112,6 @@ const authenticateClient = (req, res, next) => {
   });
 };
 
-const authenticateAdministrator = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
-
-  jwt.verify(token, adminSecretTokenKey, (err, decoded) => {
-    if (err) { return res.status(403).send({ message: 'O token de autenticação fornecido está expirado.' }); }
-    next();
-  });
-};
-
-const authenticateAttendant = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
-
-  jwt.verify(token, attendantSecretTokenKey, (err, decoded) => {
-    if (err) { return res.status(403).send({ message: 'O token de autenticação fornecido está expirado.' }); }
-    next();
-  });
-};
-
-const authenticateProfessional = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-  if (!token) { return res.status(401).send({ message: 'O token de autenticação fornecido é inválido.' }); }
-
-  jwt.verify(token, professionalSecretTokenKey, (err, decoded) => {
-    if (err) { return res.status(403).send({ message: 'O token de autenticação fornecido está expirado.' }); }
-    next();
-  });
-};
-
 const authenticateUser = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -146,6 +126,8 @@ const authenticateUser = (req, res, next) => {
 
 //FIM DA ROTA DE AUTENTICAÇÃO
 const users = new Users(connection);
+const attendantFlow = new AttendantFlow(connection);
+const patientFlow = new PatientFlow(connection);
 const system = new System(connection);
 const attendantFunctions = new AttendantFunctions(connection);
 const professionalFunctions = new ProfessionalFunctions(connection);
@@ -154,6 +136,14 @@ const databaseUtils = new DatabaseUtils(connection);
 const alterDataWithTokens = new AlterDataWithTokens(connection);
 
 //ROTA API -- ADMINS & DEMAIS
+
+app.post('/api/chat/queue/attendant/enter', authenticateClient, (req, res) => {
+  attendantFlow.turnAttendantOnline(req, res);
+});
+
+app.post('/api/chat/queue/attendant/leave', authenticateClient, (req, res) => {
+  attendantFlow.turnAttendantOffline(req, res);
+});
 
 app.put('/api/admin/users/create', authenticateClient, (req, res) => {
   adminFunctions.create(req, res);
@@ -283,8 +273,14 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log(`Servidor ouvindo na porta:${PORT}`);
+});
+
+const portSocket = process.env.PORT_SOCKET || 3001;
+socketServer.listen(portSocket, () => {
+  console.log(`Servidor Socket.IO ouvindo na porta: ${portSocket}`);
 });
 
 module.exports = {

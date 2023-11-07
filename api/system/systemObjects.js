@@ -18,11 +18,17 @@ const ChatCategories = Object.freeze({
     TODOS: { id: 4, name: 'Todos' },
 });
 
+function getCategoryNameById(categoryId) {
+    const category = Object.values(ChatCategories).find(category => category.id === categoryId);
+    return category ? category.name : null;
+}
+
 //novos objetos serão colocados aqui para maior organização do código.
 
-module.exports = 
-{ 
-    UserTypes, 
+module.exports =
+{
+    UserTypes,
     Genders,
-    ChatCategories
+    ChatCategories,
+    getCategoryNameById
 };
