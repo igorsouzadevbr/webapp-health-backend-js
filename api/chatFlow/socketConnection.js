@@ -30,10 +30,11 @@ class SocketConnection {
       socket.on('disconnect', () => {
         console.log(`Socket desconectado: ${socket.id}`);
       });
+
     });
 
     setInterval(() => {
-      this.checkQueue();
+
     }, 5000);
   }
 
@@ -44,6 +45,16 @@ class SocketConnection {
       callback(null, getChatAttendants);
     } catch (error) {
       callback(error, null);
+    }
+  }
+
+  async checkQueue() {
+    const databaseFramework = new dbUtils(this.connection);
+    try {
+      const getAllChatQueues = await databaseFramework.select("chat_queue", "*",);
+
+    } catch (error) {
+
     }
   }
 

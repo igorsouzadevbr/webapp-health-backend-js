@@ -24,9 +24,9 @@ class chatPatientFlow {
         if (getAttendantData.length <= 0) { return res.status(400).send({ message: 'Este atendente não existe.' }); }
 
         const verifyIfAttendantIsAvailable = await databaseFramework.select("chat_attendants", "*", "attendant_id = ?", [attendantId]);
-        if (verifyIfAttendantIsAvailable.length <= 0) { return res.status(400).send({ message: 'Este atendente não está na fila de atendimento.' }); }
-
         const attendantData = verifyIfAttendantIsAvailable[0];
+
+        if (verifyIfAttendantIsAvailable.length <= 0) { return res.status(400).send({ message: 'Este atendente não está na fila de atendimento.' }); }
         if (attendantData.isAvailable === 0) { return res.status(400).send({ message: 'Este atendente não está disponível no momento.' }); }
 
         const verifyIfDataAreFromAUser = await databaseFramework.select("users", "*", "id = ?", [userData]);
