@@ -135,6 +135,17 @@ const adminFunctions = new AdminFunctions(connection);
 const databaseUtils = new DatabaseUtils(connection);
 const alterDataWithTokens = new AlterDataWithTokens(connection);
 
+
+//ROTA DE CHAT -- FLUXOS & DEMAIS
+
+app.get('/api/chat/attendant/get', authenticateClient, (req, res) => {
+  attendantFlow.getAllAttendantsFromDB(req, res);
+});
+
+app.post('/api/chat/attendant/get/category', authenticateClient, (req, res) => {
+  attendantFlow.getAttendantsByCategoryFromDB(req, res);
+});
+
 //ROTA API -- ADMINS & DEMAIS
 
 app.post('/api/chat/queue/attendant/enter', authenticateClient, (req, res) => {

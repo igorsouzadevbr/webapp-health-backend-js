@@ -77,5 +77,77 @@ class chatAttendantFlow {
 
     }
 
+    async getAllAttendantsFromDB(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        try {
+            const getChatAttendants = await databaseFramework.select("chat_attendants", "*");
+            if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
+
+            const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
+            // Busque os nomes dos atendentes na tabela 'users'
+            const getAttendantData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id IN (?)", [attendantIds]);
+
+            const attendantNameData = {};
+            getAttendantData.forEach(attendant => {
+                attendantNameData[attendant.id] = attendant.name;
+            });
+
+            const attendantRoleData = {};
+            getAttendantData.forEach(attendant => {
+                attendantRoleData[attendant.id] = attendant.role;
+            });
+
+            const attendantPhotoData = {};
+            getAttendantData.forEach(attendant => {
+                attendantPhotoData[attendant.id] = `${attendant.userphoto}`;
+            });
+
+            const attendantFinalData = getChatAttendants.map(attendant => ({
+                ...attendant,
+                attendantName: attendantNameData[attendant.attendant_id],
+                attendantPhoto: attendantPhotoData[attendant.attendant_id],
+                attendantRole: attendantRoleData[attendant.attendant_id]
+            }));
+
+            return res.status(200).send(attendantFinalData);
+        } catch (error) {
+            return res.status(500).send({ message: error.message });
+        }
+    }
+
+    async getAttendantsByCategoryFromDB(req, res) {
+        const { categoryId } = req.body;
+
+        const categoryIds = Object.values(systemObjects.ChatCategories).map(category => category.id);
+        if (!categoryIds.includes(parseInt(categoryId))) {
+            return res.status(409).json({ message: 'Categoria inválida.' });
+        }
+        const databaseFramework = new dbUtils(this.connection);
+        try {
+            const getChatAttendants = await databaseFramework.select("chat_attendants", "*", "category_id = ?", [categoryId]);
+            if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
+            return res.status(200).send(getChatAttendants);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
+    async getAttendantsByNameFromDB(req, res) {
+        const { attendantName } = req.body;
+        const databaseFramework = new dbUtils(this.connection);
+        try {
+
+            const getAttendantName = await databaseFramework.select("users", "*", "name = ?"[attendantName]);
+            if (getAttendantName.length <= 0) { return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
+
+            const attendantId = getAttendantName[0].name;
+            const getChatAttendants = await databaseFramework.select("chat_attendants", "*", "attendant_id = ?", [attendantId]);
+
+            return res.status(200).send(getChatAttendants);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
 }
 module.exports = chatAttendantFlow;
