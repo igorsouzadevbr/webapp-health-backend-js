@@ -122,12 +122,18 @@ class System {
   async getAllCategoriesWithAttendantsAvailable(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     try {
-      const sql = `
-      SELECT c.id, c.name, c.imageURL, COUNT(a.id) as attendantsAvailable
+      let sql = `
+      SELECT c.id, c.name, COUNT(a.id) as attendantsAvailable
       FROM chat_categories c
       LEFT JOIN chat_attendants a ON c.id = a.category_id AND a.isAvailable = 1
+      WHERE c.id != 4
       GROUP BY c.id
+      UNION ALL
+      SELECT 4 as id, 'Todos' as name, (SELECT COUNT(*) FROM chat_attendants WHERE isAvailable = 1) as attendantsAvailable
+      FROM dual
+      WHERE EXISTS (SELECT 1 FROM chat_categories WHERE id = 4)
     `;
+
       const categoriesWithAttendants = await databaseFramework.rawQuery(sql);
 
       return res.status(200).send(categoriesWithAttendants);
