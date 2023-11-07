@@ -1,6 +1,7 @@
 const socketIO = require('socket.io');
 const dbUtils = require('../util/databaseUtils.js');
 const utils = require('../util/util.js');
+const attendantFlow = require('../chatFlow/attendantFlow.js');
 
 class SocketConnection {
   constructor(server, connection) {
@@ -38,20 +39,11 @@ class SocketConnection {
     }, 5000);
   }
 
-  async getAttendantsFromDB(callback) {
-    const databaseFramework = new dbUtils(this.connection);
-    try {
-      const getChatAttendants = await databaseFramework.select("chat_attendants", "*");
-      callback(null, getChatAttendants);
-    } catch (error) {
-      callback(error, null);
-    }
-  }
-
   async checkQueue() {
     const databaseFramework = new dbUtils(this.connection);
+    const getAttendantFlow = new attendantFlow(this.connection);
     try {
-      const getAllChatQueues = await databaseFramework.select("chat_queue", "*",);
+      const getAllAtendantsOnQueue = await getAttendantFlow.getAllAttendantsFromDB();
 
     } catch (error) {
 

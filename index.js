@@ -138,6 +138,10 @@ const alterDataWithTokens = new AlterDataWithTokens(connection);
 
 //ROTA DE CHAT -- FLUXOS & DEMAIS
 
+app.get('/api/chat/categories/get', authenticateClient, (req, res) => {
+  system.getAllCategoriesWithAttendantsAvailable(req, res);
+});
+
 app.get('/api/chat/attendant/get', authenticateClient, (req, res) => {
   attendantFlow.getAllAttendantsFromDB(req, res);
 });

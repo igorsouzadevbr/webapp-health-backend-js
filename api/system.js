@@ -118,5 +118,33 @@ class System {
       }, this.connection);
     }
   }
+
+  async getAllCategoriesWithAttendantsAvailable(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    try {
+      const sql = `
+      SELECT c.id, c.name, c.imageURL, COUNT(a.id) as attendantsAvailable
+      FROM chat_categories c
+      LEFT JOIN chat_attendants a ON c.id = a.category_id AND a.isAvailable = 1
+      GROUP BY c.id
+    `;
+      const categoriesWithAttendants = await databaseFramework.rawQuery(sql);
+
+      return res.status(200).send(categoriesWithAttendants);
+
+    } catch (error) {
+      res.status(500).send({ message: 'Erro ao buscar detalhes das categorias.', error });
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: getAllCategoriesWithAttendants: ' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+    }
+
+  }
 }
 module.exports = System;
