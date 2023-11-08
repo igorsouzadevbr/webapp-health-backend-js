@@ -169,7 +169,7 @@ class Users {
   }
 
   async getUserAddressData(req, res) {
-    const { email, secretKey } = req.body;
+    const { email } = req.body;
     const databaseFramework = new dbUtils(this.connection);
     if (email == null || !util.isEmail(email)) {
       return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });

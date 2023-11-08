@@ -217,7 +217,7 @@ app.post('/api/users/info', authenticateClient, (req, res) => {
   users.getUserData(req, res);
 });
 
-app.post('/api/users/location/info', authenticateUser, (req, res) => {
+app.post('/api/users/location/info', authenticateClient, (req, res) => {
   users.getUserAddressData(req, res);
 });
 
