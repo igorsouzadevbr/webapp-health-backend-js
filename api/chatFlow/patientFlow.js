@@ -37,7 +37,7 @@ class chatPatientFlow {
 
             return res.status(200).send({ message: 'Convite enviado ao atendente. Aguardando resposta.' });
         }
-        await databaseFramework.insert("chat_queue", { userSessionId: null, isLogged: 1, patient_id: verifyIfDataAreFromAUser[0].id });
+        await databaseFramework.insert("chat_queue", { userSessionId: null, isLogged: 1, patient_id: verifyIfDataAreFromAUser[0].id, attendant_id: attendantId });
         return res.status(200).send({ message: 'Convite enviado ao atendente. Aguardando resposta.' });
 
 
