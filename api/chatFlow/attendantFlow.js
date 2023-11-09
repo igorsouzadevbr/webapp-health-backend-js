@@ -58,7 +58,11 @@ class chatAttendantFlow {
 
         if (isAttendantAlreadyOnline.length <= 0) {
             try {
-                await databaseFramework.insert("chat_attendants", { attendant_id: userId, category_id: category, isAvailable: 1 });
+                if (category === 4) {
+                    await databaseFramework.insert("chat_attendants", { attendant_id: userId, category_id: category, isAvailable: 1, isAll: 1 });
+                    return res.status(200).json({ message: 'Agora você está online na categoria: ' + systemObjects.getCategoryNameById(category) + "." });
+                }
+                await databaseFramework.insert("chat_attendants", { attendant_id: userId, category_id: category, isAvailable: 1, isAll: 0 });
                 return res.status(200).json({ message: 'Você agora está online e receberá novos chamados.' });
             } catch (error) {
                 return res.status(500).json({ message: 'Ocorreu um erro interno. Acione o suporte.' });
@@ -67,7 +71,11 @@ class chatAttendantFlow {
         const attendantStatusData = isAttendantAlreadyOnline[0];
         if (attendantStatusData.category_id != category || attendantStatusData.isAvailable === 0) {
             try {
-                await databaseFramework.update("chat_attendants", { isAvailable: 1, category_id: category }, `attendant_id = ${userId}`);
+                if (category === 4) {
+                    await databaseFramework.update("chat_attendants", { isAvailable: 1, category_id: category, isAll: 1 }, `attendant_id = ${userId}`);
+                    return res.status(200).json({ message: 'Agora você está online na categoria: ' + systemObjects.getCategoryNameById(category) + "." });
+                }
+                await databaseFramework.update("chat_attendants", { isAvailable: 1, category_id: category, isAll: 0 }, `attendant_id = ${userId}`);
                 return res.status(200).json({ message: 'Agora você está online na categoria: ' + systemObjects.getCategoryNameById(category) + "." });
             } catch (error) {
                 return res.status(500).json({ message: 'Ocorreu um erro interno. Acione o suporte.' });

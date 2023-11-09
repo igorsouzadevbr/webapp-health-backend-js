@@ -147,15 +147,32 @@ class System {
     const databaseFramework = new dbUtils(this.connection);
     try {
       let sql = `
-      SELECT c.id, c.name, c.imageURL, COUNT(a.id) as attendantsAvailable
-      FROM chat_categories c
-      LEFT JOIN chat_attendants a ON c.id = a.category_id AND a.isAvailable = 1
-      WHERE c.id != 4
-      GROUP BY c.id, c.imageURL
-      UNION ALL
-      SELECT 4 as id, 'Todos' as name, (SELECT imageURL FROM chat_categories WHERE id = 4) as imageURL, (SELECT COUNT(*) FROM chat_attendants WHERE isAvailable = 1) as attendantsAvailable
-      FROM dual
-      WHERE EXISTS (SELECT 1 FROM chat_categories WHERE id = 4)
+      SELECT 
+  c.id,
+  c.name,
+  c.imageURL,
+  COUNT(DISTINCT CASE WHEN a.isAll = 1 THEN a.id ELSE NULL END) + 
+  COUNT(DISTINCT CASE WHEN a.isAll = 0 AND a.category_id = c.id THEN a.id ELSE NULL END) AS attendantsAvailable
+FROM 
+  chat_categories c
+LEFT JOIN 
+  chat_attendants a ON a.isAvailable = 1 AND (a.category_id = c.id OR a.isAll = 1)
+WHERE 
+  c.id != 4
+GROUP BY 
+  c.id, c.name, c.imageURL
+
+UNION ALL
+
+SELECT 
+  4 as id, 
+  'Todos' as name, 
+  (SELECT imageURL FROM chat_categories WHERE id = 4) as imageURL, 
+  (SELECT COUNT(*) FROM chat_attendants WHERE isAvailable = 1) as attendantsAvailable
+FROM 
+  dual
+WHERE 
+  EXISTS (SELECT 1 FROM chat_categories WHERE id = 4);
     `;
 
       const categoriesWithAttendants = await databaseFramework.rawQuery(sql);
