@@ -127,7 +127,7 @@ class System {
       if (getAttendantData.length <= 0) { return res.status(404).send({ message: 'Este atendente não existe ou não está disponível.' }); }
 
       const attendantData = getAttendantData[0];
-      if (attendantData.isAvailable == 1) { return res.send(true); } else { return res.send(false); }
+      if (attendantData.isAvailable == 1) { return res.status(200).send(true); } else { return res.status(400).send(false); }
 
     } catch (error) {
       const { v4: uuidv4 } = require('uuid');
