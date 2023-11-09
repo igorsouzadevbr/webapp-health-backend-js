@@ -29,7 +29,7 @@ class chatPatientFlow {
         if (verifyIfAttendantIsAvailable.length <= 0) { return res.status(400).send({ message: 'Este atendente não está na fila de atendimento.' }); }
         if (attendantData.isAvailable === 0) { return res.status(400).send({ message: 'Este atendente não está disponível no momento.' }); }
 
-        const verifyIfDataAreFromAUser = await databaseFramework.select("users", "*", "id = ?", [userData]);
+        const verifyIfDataAreFromAUser = await databaseFramework.select("users", "*", "uniqueid = ?", [userData]);
 
         //usuário nao esta autenticado.
         if (verifyIfDataAreFromAUser.length <= 0) {
