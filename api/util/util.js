@@ -194,6 +194,12 @@ function generateToken() {
 function isBlob(data) {
   return data instanceof Buffer;
 }
+
+function isValidUUID(uuid) {
+  const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return regex.test(uuid);
+}
+
 const dbUtils = require('../util/databaseUtils.js');
 const { stat } = require('fs');
 async function logToDatabase(logData, connection) {
@@ -207,6 +213,7 @@ async function logToDatabase(logData, connection) {
 
 
 
+
 module.exports = {
-  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256
+  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID
 };

@@ -15,10 +15,15 @@ class chatPatientFlow {
         const { userData, attendantId } = req.body;
         const databaseFramework = new dbUtils(this.connection);
 
-        const verifyIfUserIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ?", [userData]);
-        if (verifyIfUserIsOnQueue.length >= 1) {
-            return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
+        //usuario autenticado
+        if (util.isValidUUID(userData)) {
+            const getUserData = await databaseFramework.select("users", "*", "uniqueid = ?", [userData]);
+            const verifyIfUserIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ?", [getUserData[0].id]);
+            if (verifyIfUserIsOnQueue.length >= 1) {
+                return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
+            }
         }
+
         const verifyIfUserNotLoggedIsOnQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ?", [userData]);
         if (verifyIfUserNotLoggedIsOnQueue.length >= 1) {
             return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
