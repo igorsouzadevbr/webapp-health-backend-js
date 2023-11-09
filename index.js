@@ -274,7 +274,7 @@ app.get('/api/system/cep/:postalcode', authenticateClient, (req, res) => {
   system.getPostalCode(req, res);
 });
 
-app.get('/api/system/verify/attendant', authenticateClient, (req, res) => {
+app.post('/api/system/verify/attendant', authenticateClient, (req, res) => {
   system.verifyIfAttendantIsAvailable(req, res);
 });
 
