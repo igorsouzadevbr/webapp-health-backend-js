@@ -119,6 +119,30 @@ class System {
     }
   }
 
+  async verifyIfAttendantIsAvailable(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { attendantId } = req.body;
+    try {
+      const getAttendantData = await databaseFramework.select("chat_attendants", "*", "attendant_id = ?", [attendantId]);
+      if (getAttendantData.length <= 0) { return res.status(404).send({ message: 'Este atendente não existe ou não está disponível.' }); }
+
+      const attendantData = getAttendantData[0];
+      if (attendantData.isAvailable == 1) { return res.send(true); } else { return res.send(false); }
+
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: verifyIfAttendantIsAvailable: ' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao buscar detalhes do atendente.', error });
+    }
+  }
+
   async getAllCategoriesWithAttendantsAvailable(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     try {
@@ -139,7 +163,6 @@ class System {
       return res.status(200).send(categoriesWithAttendants);
 
     } catch (error) {
-      res.status(500).send({ message: 'Erro ao buscar detalhes das categorias.', error });
       const { v4: uuidv4 } = require('uuid');
       const uniqueid = uuidv4();
       util.logToDatabase({
@@ -149,6 +172,7 @@ class System {
         message: 'ERRO: getAllCategoriesWithAttendants: ' + JSON.stringify(error),
         status: 500
       }, this.connection);
+      return res.status(500).send({ message: 'Erro ao buscar detalhes das categorias.', error });
     }
 
   }
