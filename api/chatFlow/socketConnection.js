@@ -17,8 +17,23 @@ class SocketConnection {
     this.io.on('connection', (socket) => {
       console.log(`Socket conectado: ${socket.id}`);
 
-      socket.on('chatMessage', (messageData) => {
-        console.log(messageData);
+      socket.on('chatMessage', async (messageData) => {
+        const messageSender = messageData.sender_id;
+        const messageReceiver = messageData.receiver_id;
+        const messageContent = messageData.message;
+        const chatId = messageData.chatId;
+        const now = new Date();
+
+        try {
+          const databaseFramework = new dbUtils(this.connection);
+          const getChatsFromSenderAndReceiver = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
+          const chatSessionData = getChatsFromSenderAndReceiver[0];
+          await databaseFramework.insert("chat_messages", { sender_id: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
+
+          this.io.emit('chatMessages', { chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' + now });
+        } catch (error) {
+          console.error('Erro na verificação da fila:', error);
+        }
       });
 
       socket.on('joinRoom', (roomId) => {
@@ -51,14 +66,14 @@ class SocketConnection {
               await databaseFramework.update("chat_attendants", { isAvailable: 0 }, `attendant_id = ${chat.attendant_id}`);
               await databaseFramework.insert("chat_sessions", { attendant_id: chat.attendant_id, user_id: null, isLogged: 0, userData: chat.userSessionId, chat_queue_id: chat.id });
 
-              this.io.emit('chatReady', { patientId: chat.userSessionId, attendantId: chat.attendant_id });
+              this.io.emit('chatReady', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
             } else {
 
               await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `patient_id = ${chat.patient_id}`);
               await databaseFramework.update("chat_attendants", { isAvailable: 0 }, `attendant_id = ${chat.attendant_id}`);
               await databaseFramework.insert("chat_sessions", { attendant_id: chat.attendant_id, user_id: chat.patient_id, isLogged: 1, chat_queue_id: chat.id });
 
-              this.io.emit('chatReady', { patientId: chat.patient_id, attendantId: chat.attendant_id });
+              this.io.emit('chatReady', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
             }
           }
         });
