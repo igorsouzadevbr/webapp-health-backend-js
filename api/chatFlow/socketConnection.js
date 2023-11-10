@@ -13,61 +13,67 @@ class SocketConnection {
     });
 
     this.connection = connection;
-    this.users = [];
-    this.queue = [];
 
     this.io.on('connection', (socket) => {
       console.log(`Socket conectado: ${socket.id}`);
 
-      // Lógica para manipular mensagens recebidas do cliente
-      socket.on('message', (data) => {
-        console.log(`Mensagem recebida: ${data}`);
-
-        // Enviar a mensagem de volta para todos os clientes conectados
-        this.io.emit('message', data);
+      socket.on('joinRoom', (roomId) => {
+        socket.join(roomId);
+        console.log(`Socket ${socket.id} joined room ${roomId}`);
       });
 
-      // Lógica para lidar com desconexões de cliente
       socket.on('disconnect', () => {
         console.log(`Socket desconectado: ${socket.id}`);
       });
 
     });
 
-    setInterval(() => {
-
-    }, 5000);
+    // Iniciar verificação de fila
+    this.checkQueue();
   }
 
   async checkQueue() {
-    const databaseFramework = new dbUtils(this.connection);
-    const getAttendantFlow = new attendantFlow(this.connection);
-    try {
-      const usersInQueue = await databaseFramework.select("chat_queue", "*", "attendant_id IS NULL");
-      const availableAttendants = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
+    setInterval(async () => {
+      try {
+        const databaseFramework = new dbUtils(this.connection);
+        const chats = await this.getPendingChats();
 
-      // Supondo que você tenha a lógica para parear usuários e atendentes,
-      // vamos dizer que `matchedPairs` é um array de objetos com `userId` e `attendantId`
-      const matchedPairs = []; // Sua lógica para parear usuários e atendentes
+        chats.forEach(async (chat) => {
+          const attendant = await this.getAttendant(chat.attendant_id);
 
-      for (const pair of matchedPairs) {
-        // Aqui você atualizaria o status na base de dados, etc.
-        // ...
+          if (attendant && attendant.isAvailable && chat.attendantHasAccepted) {
+            if (chat.isLogged === 0) {
+              await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `userSessionId = ${chat.userSessionId}`);
+              await databaseFramework.update("chat_attendants", { isAvailable: 0 }, `attendant_id = ${chat.attendant_id}`);
+              await databaseFramework.insert("chat_sessions", { attendant_id: chat.attendant_id, user_id: null, isLogged: 0, userData: chat.userSessionId, chat_queue_id: chat.id });
 
-        // E então emitiria um evento para o atendente e o usuário para iniciar o chat.
-        // Você precisa de algum mecanismo para mapear os IDs de usuários e atendentes para os IDs de socket.
-        const userSocketId = this.getUserSocketId(pair.userId);
-        const attendantSocketId = this.getAttendantSocketId(pair.attendantId);
+              this.io.emit('chatReady', { patientId: chat.userSessionId, attendantId: chat.attendant_id });
+            } else {
 
-        this.io.to(userSocketId).emit('queue_update', { message: 'Seu atendente está pronto para atendê-lo.' });
-        this.io.to(attendantSocketId).emit('queue_update', { message: 'Você tem um novo usuário para atender.' });
+              await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `patient_id = ${chat.patient_id}`);
+              await databaseFramework.update("chat_attendants", { isAvailable: 0 }, `attendant_id = ${chat.attendant_id}`);
+              await databaseFramework.insert("chat_sessions", { attendant_id: chat.attendant_id, user_id: chat.patient_id, isLogged: 1, chat_queue_id: chat.id });
+
+              this.io.emit('chatReady', { patientId: chat.patient_id, attendantId: chat.attendant_id });
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Erro na verificação da fila:', error);
       }
-
-    } catch (error) {
-      console.error("Erro ao verificar a fila: ", error);
-    }
+    }, 5000);
   }
 
+  async getPendingChats() {
+    const databaseFramework = new dbUtils(this.connection);
+    return await databaseFramework.select("chat_queue", "*", "sessionCreated = 0");
+  }
+
+  async getAttendant(attendantId) {
+    const databaseFramework = new dbUtils(this.connection);
+    const attendants = await databaseFramework.select("chat_attendants", "*", `attendant_id = ${attendantId}`);
+    return attendants.length > 0 ? attendants[0] : null;
+  }
 }
 
 module.exports = SocketConnection;
