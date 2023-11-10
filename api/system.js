@@ -169,6 +169,7 @@ class System {
       // Formata as mensagens para a estrutura de objeto desejada
       const formattedMessages = getAllMessages.map(msg => {
         return {
+          messageId: id,
           chatId: chat_queue,
           sender_id: msg.sender_id,
           receiver_id: msg.receiver_id,
