@@ -28,9 +28,9 @@ class SocketConnection {
           const databaseFramework = new dbUtils(this.connection);
           const getChatsFromSenderAndReceiver = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
           const chatSessionData = getChatsFromSenderAndReceiver[0];
-          await databaseFramework.insert("chat_messages", { sender_id: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
+          const createMessage = await databaseFramework.insert("chat_messages", { sender_id: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
 
-          this.io.emit('chatMessages', { chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
+          this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
         } catch (error) {
           console.error('Erro na verificação da fila:', error);
         }
