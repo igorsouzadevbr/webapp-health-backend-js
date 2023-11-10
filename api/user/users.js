@@ -81,7 +81,7 @@ class Users {
       }
       return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
     } else {
-      const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid, userId: userData[0].id }, keyUseAPI, { expiresIn: '96h' });
+      const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid, userId: userData[0].id, userType: userData[0].usertype }, keyUseAPI, { expiresIn: '96h' });
 
       const uniqueid = uuidv4();
       util.logToDatabase({

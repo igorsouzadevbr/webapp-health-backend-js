@@ -17,6 +17,10 @@ class SocketConnection {
     this.io.on('connection', (socket) => {
       console.log(`Socket conectado: ${socket.id}`);
 
+      socket.on('chatMessage', (messageData) => {
+        console.log(messageData);
+      });
+
       socket.on('joinRoom', (roomId) => {
         socket.join(roomId);
         console.log(`Socket ${socket.id} joined room ${roomId}`);
