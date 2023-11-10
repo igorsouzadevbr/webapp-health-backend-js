@@ -17,6 +17,24 @@ class DatabaseUtils {
         }
     }
 
+    async selectWithLimit(tableName, columns = '*', conditions = '1 = 1', values = [], limit = '', offset = '') {
+        const connection = await this.pool.getConnection();
+        try {
+            let query = `SELECT ${columns} FROM ${tableName} WHERE ${conditions}`;
+            if (limit) query += ` LIMIT ${limit}`;
+            if (offset) query += ` OFFSET ${offset}`;
+            console.log('Executando consulta:', query);
+
+            const [rows] = await connection.query(query, values);
+            return rows;
+        } catch (err) {
+            console.error('Erro na consulta SELECT:', err);
+            throw err;
+        } finally {
+            connection.release();
+        }
+    }
+
     async insert(tableName, data) {
         const connection = await this.pool.getConnection();
         try {

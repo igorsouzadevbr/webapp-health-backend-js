@@ -88,8 +88,15 @@ class chatAttendantFlow {
     async getAllAttendantsFromDB(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         try {
-            const getChatAttendants = await databaseFramework.select("chat_attendants", "*");
-            if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
+            const page = parseInt(req.query.page) || 1;
+            const pageSize = parseInt(req.query.pageSize) || 10;
+            const offset = (page - 1) * pageSize;
+
+            const getChatAttendants = await databaseFramework.selectWithLimit("chat_attendants", "*", undefined, [], pageSize, offset);
+
+            if (getChatAttendants.length <= 0) {
+                return res.status(404).json({ message: 'Não há atendentes disponíveis.' });
+            }
 
             const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
             // Busque os nomes dos atendentes na tabela 'users'
@@ -117,9 +124,54 @@ class chatAttendantFlow {
                 attendantRole: attendantRoleData[attendant.attendant_id]
             }));
 
-            return res.status(200).send(attendantFinalData);
+
+            return res.status(200).send({
+                data: attendantFinalData,
+                pagination: {
+                    page: page,
+                    pageSize: pageSize,
+                    total: getChatAttendants.length
+                }
+            });
         } catch (error) {
             return res.status(500).send({ message: error.message });
+        }
+    }
+
+    async getAttendantData(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        try {
+            const { attendantId } = req.body;
+
+            const getAttendantData = await databaseFramework.select("chat_attendants", "*", "attendant_id = ?", [attendantId]);
+            if (getAttendantData.length <= 0) {
+                return res.status(404).json({ message: 'Atendente inexistente.' });
+            }
+
+            const getAttendantUserData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [attendantId]);
+            if (getAttendantUserData.length <= 0) {
+                return res.status(404).json({ message: 'Usuário inexistente.' });
+            }
+
+
+
+            const getAttendantLocationData = await databaseFramework.select("location", "*", "personid = ?", [getAttendantUserData[0].id]);
+            const locationData = getAttendantLocationData[0];
+            const getCity = await databaseFramework.select("city", "*", "id = ?", [locationData.cityId]);
+            const getState = await databaseFramework.select("states", "*", "id = ?", [locationData.stateId]);
+
+            const attendantData = getAttendantUserData.map(attendant => ({
+                attendantName: attendant.name,
+                attendantPhoto: `${attendant.userphoto}`,
+                attendantRole: attendant.role,
+                attendantCity: getCity[0].name,
+                attendantState: getState[0].nome,
+                attendantStateTag: getState[0].tag
+            }));
+
+            return res.status(200).send(attendantData);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
         }
     }
 
