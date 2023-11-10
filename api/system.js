@@ -143,6 +143,57 @@ class System {
     }
   }
 
+  async getAllMessagesFromConversation(req, res) {
+    const { chatId } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+    try {
+      const getChatId = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
+
+      if (!getChatId || getChatId.length === 0) {
+        return res.status(404).send({ message: 'Chat não encontrado.' });
+      }
+      const chat_queue = getChatId[0].chat_queue_id;
+      const newChatId = getChatId[0].id;
+      const getAllMessages = await databaseFramework.select(
+        "chat_messages",
+        "*",
+        "chat_session_id = ?",
+        [newChatId]
+      );
+
+      // Verifica se há mensagens no chat
+      if (!getAllMessages || getAllMessages.length === 0) {
+        return res.status(404).send({ message: 'Chat não encontrado.' });
+      }
+
+      // Formata as mensagens para a estrutura de objeto desejada
+      const formattedMessages = getAllMessages.map(msg => {
+        return {
+          chatId: chat_queue,
+          sender_id: msg.sender_id,
+          receiver_id: msg.receiver_id,
+          sessionId: msg.session_id,
+          message: msg.message
+        };
+      });
+
+      // Retorna as mensagens com status 200
+      return res.status(200).send(formattedMessages);
+
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: getAllMessagesFromConversation: ' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao buscar detalhes do chat.', error });
+    }
+  }
+
   async getAllCategoriesWithAttendantsAvailable(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     try {

@@ -152,6 +152,10 @@ app.post('/api/chat/attendant/get/category', authenticateClient, (req, res) => {
 
 //ROTA API -- ADMINS & DEMAIS
 
+app.post('/api/chat/get', authenticateClient, (req, res) => {
+  system.getAllMessagesFromConversation(req, res);
+});
+
 app.post('/api/chat/queue/enter', authenticateClient, (req, res) => {
   patientFlow.callAttendant(req, res);
 });
