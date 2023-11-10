@@ -43,7 +43,7 @@ class SocketConnection {
 
           if (attendant && attendant.isAvailable && chat.attendantHasAccepted) {
             if (chat.isLogged === 0) {
-              await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `userSessionId = ${chat.userSessionId}`);
+              await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `userSessionId = '${chat.userSessionId}'`);
               await databaseFramework.update("chat_attendants", { isAvailable: 0 }, `attendant_id = ${chat.attendant_id}`);
               await databaseFramework.insert("chat_sessions", { attendant_id: chat.attendant_id, user_id: null, isLogged: 0, userData: chat.userSessionId, chat_queue_id: chat.id });
 
