@@ -154,13 +154,13 @@ class chatAttendantFlow {
             }
 
 
-
             const getAttendantLocationData = await databaseFramework.select("location", "*", "personid = ?", [getAttendantUserData[0].id]);
             const locationData = getAttendantLocationData[0];
             const getCity = await databaseFramework.select("city", "*", "id = ?", [locationData.cityId]);
             const getState = await databaseFramework.select("states", "*", "id = ?", [locationData.stateId]);
 
             const attendantData = getAttendantUserData.map(attendant => ({
+                attendantId: attendant.id,
                 attendantName: attendant.name,
                 attendantPhoto: `${attendant.userphoto}`,
                 attendantRole: attendant.role,
