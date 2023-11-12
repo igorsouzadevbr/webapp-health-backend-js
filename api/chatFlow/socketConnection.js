@@ -17,6 +17,10 @@ class SocketConnection {
     this.io.on('connection', (socket) => {
       console.log(`Socket conectado: ${socket.id}`);
 
+      socket.on('sendQuiz', async (quizData) => {
+
+      });
+
       socket.on('chatMessage', async (messageData) => {
         const messageSender = messageData.sender_id;
         const messageReceiver = messageData.receiver_id;
@@ -28,12 +32,22 @@ class SocketConnection {
           const databaseFramework = new dbUtils(this.connection);
           const getChatsFromSenderAndReceiver = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
           const chatSessionData = getChatsFromSenderAndReceiver[0];
-          const createMessage = await databaseFramework.insert("chat_messages", { sender_id: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
 
+          if (utils.isInteger(messageSender)) {
+            const createMessage = await databaseFramework.insert("chat_messages", { sender_id: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
+            this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
+            return;
+          }
+          const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 0, senderData: messageSender, sender_id: null, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
           this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
         } catch (error) {
           console.error('Erro na verificação da fila:', error);
         }
+      });
+
+      socket.on('finishChat', async (data) => {
+        const chatId = data.chatId;
+
       });
 
       socket.on('joinRoom', (roomId) => {

@@ -166,8 +166,29 @@ class System {
         return res.status(404).send({ message: 'Chat não encontrado.' });
       }
 
+
       // Formata as mensagens para a estrutura de objeto desejada
       const formattedMessages = getAllMessages.map(msg => {
+        if (msg.senderIsLogged === 0) {
+          return {
+            messageId: msg.id,
+            chatId: chat_queue,
+            sender_id: msg.senderData,
+            receiver_id: msg.receiver_id,
+            sessionId: msg.session_id,
+            message: msg.message
+          };
+        }
+        if (msg.receiverIsLogged === 0) {
+          return {
+            messageId: msg.id,
+            chatId: chat_queue,
+            sender_id: msg.sender_id,
+            receiver_id: msg.receiverData,
+            sessionId: msg.session_id,
+            message: msg.message
+          };
+        }
         return {
           messageId: msg.id,
           chatId: chat_queue,

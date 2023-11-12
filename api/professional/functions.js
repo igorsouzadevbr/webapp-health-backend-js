@@ -30,5 +30,9 @@ class Functions {
     return res.status(200).send({ message: 'Usuário criado com sucesso!', userUniqueId: uniqueid });
   }
 
+  async getSchedules() {
+
+  }
+
 }
 module.exports = Functions;
