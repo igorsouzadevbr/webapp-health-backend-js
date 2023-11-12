@@ -193,7 +193,7 @@ class chatAttendantFlow {
         if (authenticatedUsers.length > 0) {
             const getUserData = await databaseFramework.select("users", "id, userphoto", "id IN (?)", [authenticatedUsers]);
             users = users.concat(getUserData.map(user => {
-                return { userId: user.id, userphoto: user.userphoto };
+                return { userId: user.id, userphoto: `${user.userphoto}` };
             }));
         }
 
