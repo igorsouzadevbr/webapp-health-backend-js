@@ -216,7 +216,6 @@ class chatAttendantFlow {
                 if (getChatQueue.length <= 0) { return res.status(404).send({ message: 'O usuário informado não está na fila do atendente informado.' }); }
                 if (getChatQueue[0].sessionCreated === 1) { return res.status(409).send({ message: 'A sessão de chat já foi iniciada.' }); }
 
-                await databaseFramework.update("chat_attendants", { isOnChat: 1 }, `attendant_id = ${attendantId}`);
                 await databaseFramework.update("chat_queue", { position: 1, attendantHasAccepted: 1 }, `userSessionId = ${patientId} and attendant_id = ${attendantId}`);
 
                 return res.status(200).send({ message: 'Chat aceito, iniciando sessão.' });
@@ -228,7 +227,6 @@ class chatAttendantFlow {
             if (getChatQueue.length <= 0) { return res.status(404).send({ message: 'O usuário informado não está na fila do atendente informado.' }); }
             if (getChatQueue[0].sessionCreated === 1) { return res.status(409).send({ message: 'A sessão de chat já foi iniciada.' }); }
 
-            await databaseFramework.update("chat_attendants", { isOnChat: 1 }, `attendant_id = ${attendantId}`);
             await databaseFramework.update("chat_queue", { position: 1, attendantHasAccepted: 1 }, `patient_id = ${patientId} and attendant_id = ${attendantId}`);
 
             return res.status(200).send({ message: 'Chat aceito, iniciando sessão.' });
