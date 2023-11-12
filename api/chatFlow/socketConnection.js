@@ -84,14 +84,14 @@ class SocketConnection {
           if (attendant && attendant.isAvailable && chat.attendantHasAccepted) {
             if (chat.isLogged === 0) {
               await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `userSessionId = "${chat.userSessionId}"`);
-              await databaseFramework.update("chat_attendants", { isAvailable: 0 }, `attendant_id = ${chat.attendant_id}`);
+              await databaseFramework.update("chat_attendants", { isOnChat: 1 }, `attendant_id = ${chat.attendant_id}`);
               await databaseFramework.insert("chat_sessions", { attendant_id: chat.attendant_id, user_id: null, isLogged: 0, userData: chat.userSessionId, chat_queue_id: chat.id });
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
             } else {
 
               await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `patient_id = ${chat.patient_id}`);
-              await databaseFramework.update("chat_attendants", { isAvailable: 0 }, `attendant_id = ${chat.attendant_id}`);
+              await databaseFramework.update("chat_attendants", { isOnChat: 1 }, `attendant_id = ${chat.attendant_id}`);
               await databaseFramework.insert("chat_sessions", { attendant_id: chat.attendant_id, user_id: chat.patient_id, isLogged: 1, chat_queue_id: chat.id });
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
@@ -111,7 +111,7 @@ class SocketConnection {
 
   async getAttendant(attendantId) {
     const databaseFramework = new dbUtils(this.connection);
-    const attendants = await databaseFramework.select("chat_attendants", "*", `attendant_id = ${attendantId}`);
+    const attendants = await databaseFramework.select("chat_attendants", "*", `attendant_id = ${attendantId} and isOnChat = 0`);
     return attendants.length > 0 ? attendants[0] : null;
   }
 }

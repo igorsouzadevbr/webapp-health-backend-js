@@ -137,6 +137,15 @@ const alterDataWithTokens = new AlterDataWithTokens(connection);
 
 
 //ROTA DE CHAT -- FLUXOS & DEMAIS
+
+app.post('/api/attendant/queue/get', authenticateClient, (req, res) => {
+  attendantFlow.listChatQueue(req, res);
+});
+
+app.post('/api/attendant/queue/accept', authenticateClient, (req, res) => {
+  attendantFlow.acceptChat(req, res);
+});
+
 app.post('/api/attendant/get', authenticateClient, (req, res) => {
   attendantFlow.getAttendantData(req, res);
 });

@@ -176,6 +176,67 @@ class chatAttendantFlow {
     //     }
     // }
 
+    async listChatQueue(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId } = req.body;
+        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ?", [attendantId]);
+
+        if (getAttendantQueue.length <= 0) {
+            return res.status(404).send({ message: 'Este atendente não possui chats pendentes.' });
+        }
+
+        const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
+        const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
+
+        let users = [];
+
+        if (authenticatedUsers.length > 0) {
+            const getUserData = await databaseFramework.select("users", "id, userphoto", "id IN (?)", [authenticatedUsers]);
+            users = users.concat(getUserData.map(user => {
+                return { userId: user.id, userphoto: user.userphoto };
+            }));
+        }
+
+        unauthenticatedUsers.forEach(userId => {
+            users.push({ userId: userId, userphoto: null });
+        });
+
+        return res.status(200).send(users);
+    }
+
+    async acceptChat(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId, patientId } = req.body;
+
+        try {
+            //fluxo de usuário deslogado
+            if (!util.isInteger(patientId)) {
+                const getChatQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ? and attendant_id = ?", [patientId, attendantId]);
+
+                if (getChatQueue.length <= 0) { return res.status(404).send({ message: 'O usuário informado não está na fila do atendente informado.' }); }
+                if (getChatQueue[0].sessionCreated === 1) { return res.status(409).send({ message: 'A sessão de chat já foi iniciada.' }); }
+
+                await databaseFramework.update("chat_attendants", { isOnChat: 1 }, `attendant_id = ${attendantId}`);
+                await databaseFramework.update("chat_queue", { position: 1, attendantHasAccepted: 1 }, `userSessionId = ${patientId} and attendant_id = ${attendantId}`);
+
+                return res.status(200).send({ message: 'Chat aceito, iniciando sessão.' });
+            }
+            const getPatientData = await databaseFramework.select("users", "*", "id = ?", [patientId]);
+            if (getPatientData.length <= 0) { return res.status(404).send({ message: 'Este usuário não existe.' }); }
+
+            const getChatQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ? and attendant_id = ?", [patientId, attendantId]);
+            if (getChatQueue.length <= 0) { return res.status(404).send({ message: 'O usuário informado não está na fila do atendente informado.' }); }
+            if (getChatQueue[0].sessionCreated === 1) { return res.status(409).send({ message: 'A sessão de chat já foi iniciada.' }); }
+
+            await databaseFramework.update("chat_attendants", { isOnChat: 1 }, `attendant_id = ${attendantId}`);
+            await databaseFramework.update("chat_queue", { position: 1, attendantHasAccepted: 1 }, `patient_id = ${patientId} and attendant_id = ${attendantId}`);
+
+            return res.status(200).send({ message: 'Chat aceito, iniciando sessão.' });
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
     async getAttendantData(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         try {
