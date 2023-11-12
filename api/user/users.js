@@ -48,7 +48,7 @@ class Users {
     const diffMinutos = (timestampNow - new Date(timestamp)) / 1000 / 60;
 
     if (exists && diffMinutos < 5 && userLoginAttempts[0].tries <= 3) {
-      await databaseFramework.update("login_attempts", { tries: userLoginAttempts[0].tries + 1 }, `ip = ${ip} and userid = ${userId}`);
+      await databaseFramework.update("login_attempts", { tries: userLoginAttempts[0].tries + 1 }, `ip = '${ip}' and userid = ${userId}`);
       let tentativa = '';
       if (userLoginAttempts[0].tries == 1) { tentativa = 'segunda' };
       if (userLoginAttempts[0].tries == 2) { tentativa = 'terceira' };
