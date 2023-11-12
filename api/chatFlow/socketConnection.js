@@ -38,7 +38,7 @@ class SocketConnection {
           const chatSessionData = getChatsFromSenderAndReceiver[0];
 
           //usuário que envia e que recebe estão logados
-          if (utils.isInteger(messageSender) && utils.isInteger(messageReceiver)) {
+          if (utils.isInteger(messageSender)) {
             const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, receiverIsLogged: 1, sender_id: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
             this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
             return;
