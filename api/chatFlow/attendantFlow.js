@@ -210,7 +210,7 @@ class chatAttendantFlow {
 
         try {
             //fluxo de usuário deslogado
-            if (!util.isInteger(patientId)) {
+            if (!util.isOnlyNumbers(patientId)) {
                 const getChatQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ? and attendant_id = ?", [patientId, attendantId]);
 
                 if (getChatQueue.length <= 0) { return res.status(404).send({ message: 'O usuário informado não está na fila do atendente informado.' }); }

@@ -53,6 +53,10 @@ function decryptSHA256(encryptedText) {
   return decrypted;
 }
 
+function isOnlyNumbers(field) {
+  return /^[0-9]+$/.test(field);
+}
+
 function isInteger(value) {
   return Number.isInteger(value);
 }
@@ -215,5 +219,5 @@ async function logToDatabase(logData, connection) {
 
 
 module.exports = {
-  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID
+  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID, isOnlyNumbers
 };
