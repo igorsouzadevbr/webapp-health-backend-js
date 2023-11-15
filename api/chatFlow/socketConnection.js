@@ -53,8 +53,22 @@ class SocketConnection {
         }
       });
 
-      socket.on('finishQuiz', async (quizData) => {
-
+      socket.on('quizResult', async (quizData) => {
+        const chatId = quizData.chatId;
+        const finalPoints = quizData.finalPoints;
+        try {
+          const databaseFramework = new dbUtils(this.connection);
+          await databaseFramework.update("quiz_answers", { finalPoints: finalPoints, answered: 1 }, `chat_id = ${chatId}`);
+          const getQuizData = await databaseFramework.select("quiz_answers", "*", "chat_id = ?", [chatId]);
+          const quizData = getQuizData[0];
+          if (quizData.patientIsLogged === 1) {
+            this.io.emit('quizResultCallback', { answered: 1, chatId: chatId, patientId: quizData.patient_id, attendantId: quizData.attendant_id, finalPoints: finalPoints });
+          } else {
+            this.io.emit('quizResultCallback', { answered: 1, chatId: chatId, patientId: quizData.userData, attendantId: quizData.attendant_id, finalPoints: finalPoints });
+          }
+        } catch (error) {
+          console.error('Erro no envio do Quiz:', error);
+        }
       });
 
 
