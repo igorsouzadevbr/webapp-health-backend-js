@@ -16,7 +16,44 @@ class SocketConnection {
 
     this.io.on('connection', (socket) => {
 
-      socket.on('sendQuiz', async (quizData) => {
+      socket.on('attendantSendQuiz', async (quizData) => {
+        const attendantId = quizData.attendantId;
+        const patientId = quizData.patientId;
+        const chatId = quizData.chatId;
+
+        //fluxo user deslogado
+        if (!utils.isInteger(patientId)) {
+          try {
+            const databaseFramework = new dbUtils(this.connection);
+            const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "userData = ? and attendant_id = ?", [patientId, attendantId]);
+            if (verifyIfPatientAlreadyHasAQuiz.length >= 1) {
+              this.io.emit('quizError', { message: 'Este paciente já tem um quiz vinculado a ele neste chat.' });
+              return;
+            }
+
+            const insertQuiz = await databaseFramework.insert("quiz_answers", { patientIsLogged: 0, attendant_id: attendantId, userData: patientId, quiz_id: 1, finalPoints: 0, chat_id: chatId });
+            this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 0, message: 'Quiz recebido com sucesso.' });
+          } catch (error) {
+            console.error('Erro no envio do Quiz:', error);
+          }
+          return;
+        }
+        try {
+          const databaseFramework = new dbUtils(this.connection);
+          const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "patient_id = ? and attendant_id = ?", [patientId, attendantId]);
+          if (verifyIfPatientAlreadyHasAQuiz.length >= 1) {
+            this.io.emit('quizError', { message: 'Este paciente já tem um quiz vinculado a ele neste chat.' });
+            return;
+          }
+
+          const insertQuiz = await databaseFramework.insert("quiz_answers", { patientIsLogged: 1, attendant_id: attendantId, patient_id: patientId, quiz_id: 1, finalPoints: 0, chat_id: chatId });
+          this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 1, message: 'Quiz recebido com sucesso.' });
+        } catch (error) {
+          console.error('Erro no envio do Quiz:', error);
+        }
+      });
+
+      socket.on('finishQuiz', async (quizData) => {
 
       });
 
