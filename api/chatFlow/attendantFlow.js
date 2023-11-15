@@ -179,7 +179,7 @@ class chatAttendantFlow {
     async listChatQueue(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId } = req.body;
-        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ?", [attendantId]);
+        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ? and attendantHasAccepted = 0", [attendantId]);
 
         if (getAttendantQueue.length <= 0) {
             return res.status(404).send({ message: 'Este atendente não possui chats pendentes.' });
