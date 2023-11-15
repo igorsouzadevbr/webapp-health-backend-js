@@ -143,6 +143,34 @@ class System {
     }
   }
 
+  async getQuizFromConversation(req, res) {
+    const { chatId } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+    try {
+      const getQuizFromChat = await databaseFramework.select("quiz_answers", "*", "chat_id = ?", [chatId]);
+      if (getQuizFromChat.length <= 0) {
+        return res.status(404).send({ message: 'Chat não contém quiz enviado/recebido.' });
+      }
+      const quizData = getQuizFromChat[0];
+      if (quizData.patientIsLogged === 0) {
+        return res.status(200).send({ patientId: quizData.userData, attendantId: quizData.attendant_id, chatId: quizData.chat_id, quizId: quiz_id });
+      } else {
+        return res.status(200).send({ patientId: quizData.patient_id, attendantId: quizData.attendant_id, chatId: quizData.chat_id, quizId: quiz_id });
+      }
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: getQuizFromConversation: ' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao buscar detalhes do quiz.', error });
+    }
+  }
+
   async getAllMessagesFromConversation(req, res) {
     const { chatId } = req.body;
     const databaseFramework = new dbUtils(this.connection);

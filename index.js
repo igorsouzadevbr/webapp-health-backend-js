@@ -168,6 +168,10 @@ app.post('/api/chat/attendant/get/category', authenticateClient, (req, res) => {
 
 //ROTA API -- ADMINS & DEMAIS
 
+app.post('/api/chat/quiz/get', authenticateClient, (req, res) => {
+  system.getQuizFromConversation(req, res);
+});
+
 app.post('/api/chat/get', authenticateClient, (req, res) => {
   system.getAllMessagesFromConversation(req, res);
 });

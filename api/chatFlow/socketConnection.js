@@ -22,7 +22,7 @@ class SocketConnection {
         const chatId = quizData.chatId;
 
         //fluxo user deslogado
-        if (!utils.isInteger(patientId)) {
+        if (!utils.isOnlyNumbers(patientId)) {
           try {
             const databaseFramework = new dbUtils(this.connection);
             const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "userData = ? and attendant_id = ?", [patientId, attendantId]);
@@ -32,7 +32,7 @@ class SocketConnection {
             }
 
             const insertQuiz = await databaseFramework.insert("quiz_answers", { patientIsLogged: 0, attendant_id: attendantId, userData: patientId, quiz_id: 1, finalPoints: 0, chat_id: chatId });
-            this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 0, message: 'Quiz recebido com sucesso.' });
+            this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 0, message: 'Quiz enviado para o paciente.' });
           } catch (error) {
             console.error('Erro no envio do Quiz:', error);
           }
@@ -47,7 +47,7 @@ class SocketConnection {
           }
 
           const insertQuiz = await databaseFramework.insert("quiz_answers", { patientIsLogged: 1, attendant_id: attendantId, patient_id: patientId, quiz_id: 1, finalPoints: 0, chat_id: chatId });
-          this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 1, message: 'Quiz recebido com sucesso.' });
+          this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 1, message: 'Quiz enviado para o paciente.' });
         } catch (error) {
           console.error('Erro no envio do Quiz:', error);
         }
