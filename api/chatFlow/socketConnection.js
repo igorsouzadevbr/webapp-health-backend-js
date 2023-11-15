@@ -15,12 +15,13 @@ class SocketConnection {
     this.connection = connection;
 
     this.io.on('connection', (socket) => {
-      console.log(`Socket conectado: ${socket.id}`);
 
       socket.on('sendQuiz', async (quizData) => {
 
       });
 
+
+      //FLUXO DE ENVIO DE MENSAGENS.
       socket.on('chatMessage', async (messageData) => {
         const messageSender = messageData.sender_id;
         const messageReceiver = messageData.receiver_id;
@@ -58,18 +59,13 @@ class SocketConnection {
         }
       });
 
+      //finalização de chat
       socket.on('finishChat', async (data) => {
         const chatId = data.chatId;
 
       });
 
-      socket.on('joinRoom', (roomId) => {
-        socket.join(roomId);
-        console.log(`Socket ${socket.id} joined room ${roomId}`);
-      });
-
       socket.on('disconnect', () => {
-        console.log(`Socket desconectado: ${socket.id}`);
       });
 
     });
