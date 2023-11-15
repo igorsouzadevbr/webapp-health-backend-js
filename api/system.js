@@ -167,7 +167,7 @@ class System {
         message: 'ERRO: getQuizFromConversation: ' + JSON.stringify(error),
         status: 500
       }, this.connection);
-      return res.status(500).send({ message: 'Erro ao buscar detalhes do quiz.', error });
+      return res.status(500).send({ message: 'Erro ao buscar detalhes do quiz. erro: ' + error.message });
     }
   }
 
