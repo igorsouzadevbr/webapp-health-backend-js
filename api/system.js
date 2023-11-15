@@ -180,6 +180,11 @@ class System {
       if (!getChatId || getChatId.length === 0) {
         return res.status(404).send({ message: 'Chat não encontrado.' });
       }
+
+      if (getChatId[0].finished === 1) {
+        return res.status(409).send({ message: 'Este chat está finalizado.' });
+      }
+
       const chat_queue = getChatId[0].chat_queue_id;
       const newChatId = getChatId[0].id;
       const getAllMessages = await databaseFramework.select(
