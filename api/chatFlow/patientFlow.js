@@ -11,6 +11,43 @@ class chatPatientFlow {
         this.connection = connection;
     }
 
+    async getPatientData(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        try {
+            const { patientId } = req.body;
+
+            const getPatientData = await databaseFramework.select("chat_queue", "*", "patient_id = ?", [patientId]);
+            if (getPatientData.length <= 0) {
+                return res.status(404).json({ message: 'Paciente inexistente.' });
+            }
+
+            const getPatientUserData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [patientId]);
+            if (getPatientUserData.length <= 0) {
+                return res.status(404).json({ message: 'Usuário inexistente.' });
+            }
+
+
+            const getPatientLocationData = await databaseFramework.select("location", "*", "personid = ?", [getPatientUserData[0].id]);
+            const locationData = getPatientLocationData[0];
+            const getCity = await databaseFramework.select("city", "*", "id = ?", [locationData.cityId]);
+            const getState = await databaseFramework.select("states", "*", "id = ?", [locationData.stateId]);
+
+            const patientData = getPatientUserData.map(patient => ({
+                patientId: patient.id,
+                patientName: patient.name,
+                patientPhoto: `${patient.userphoto}`,
+                patientRole: patient.role,
+                patientCity: getCity[0].name,
+                patientState: getState[0].nome,
+                patientStateTag: getState[0].tag
+            }));
+
+            return res.status(200).send(patientData);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
     async callAttendant(req, res) {
         const { userData, attendantId } = req.body;
         const databaseFramework = new dbUtils(this.connection);
@@ -29,8 +66,8 @@ class chatPatientFlow {
             return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
         }
 
-        const getAttendantData = await databaseFramework.select("users", "*", "id = ? and usertype = ?", [attendantId, systemObjects.UserTypes.ATENDENTE.id]);
-        if (getAttendantData.length <= 0) { return res.status(400).send({ message: 'Este atendente não existe.' }); }
+        const getPatientData = await databaseFramework.select("users", "*", "id = ? and usertype = ?", [attendantId, systemObjects.UserTypes.ATENDENTE.id]);
+        if (getPatientData.length <= 0) { return res.status(400).send({ message: 'Este atendente não existe.' }); }
 
         const verifyIfAttendantIsAvailable = await databaseFramework.select("chat_attendants", "*", "attendant_id = ?", [attendantId]);
         const attendantData = verifyIfAttendantIsAvailable[0];

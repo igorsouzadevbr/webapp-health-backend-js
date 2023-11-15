@@ -150,6 +150,10 @@ app.post('/api/attendant/get', authenticateClient, (req, res) => {
   attendantFlow.getAttendantData(req, res);
 });
 
+app.post('/api/patient/get', authenticateClient, (req, res) => {
+  patientFlow.getPatientData(req, res);
+});
+
 app.get('/api/chat/categories/get', authenticateClient, (req, res) => {
   system.getAllCategoriesWithAttendantsAvailable(req, res);
 });
