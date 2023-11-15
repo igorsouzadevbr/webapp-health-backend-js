@@ -210,13 +210,13 @@ class chatAttendantFlow {
 
         try {
             //fluxo de usuário deslogado
-            if (!util.isOnlyNumbers(patientId)) {
-                const getChatQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ? and attendant_id = ?", [patientId, attendantId]);
+            if (typeof patientId === "string") {
+                const getChatQueue = await databaseFramework.select("chat_queue", "*", `userSessionId = "${patientId}" and attendant_id = ?`, [attendantId]);
 
                 if (getChatQueue.length <= 0) { return res.status(404).send({ message: 'O usuário informado não está na fila do atendente informado.' }); }
                 if (getChatQueue[0].sessionCreated === 1) { return res.status(409).send({ message: 'A sessão de chat já foi iniciada.' }); }
 
-                await databaseFramework.update("chat_queue", { position: 1, attendantHasAccepted: 1 }, `userSessionId = ${patientId} and attendant_id = ${attendantId}`);
+                await databaseFramework.update("chat_queue", { position: 1, attendantHasAccepted: 1 }, `userSessionId = "${patientId}" and attendant_id = ${attendantId}`);
 
                 return res.status(200).send({ message: 'Chat aceito, iniciando sessão.' });
             }
