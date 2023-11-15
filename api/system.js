@@ -153,9 +153,9 @@ class System {
       }
       const quizData = getQuizFromChat[0];
       if (quizData.patientIsLogged === 0) {
-        return res.status(200).send({ patientId: quizData.userData, attendantId: quizData.attendant_id, chatId: quizData.chat_id, quizId: quizData.id });
+        return res.status(200).send({ patientId: quizData.userData, attendantId: quizData.attendant_id, chatId: quizData.chat_id, quizId: quizData.id, answered: quizData.answered });
       } else {
-        return res.status(200).send({ patientId: quizData.patient_id, attendantId: quizData.attendant_id, chatId: quizData.chat_id, quizId: quizData.id });
+        return res.status(200).send({ patientId: quizData.patient_id, attendantId: quizData.attendant_id, chatId: quizData.chat_id, quizId: quizData.id, answered: quizData.answered });
       }
     } catch (error) {
       const { v4: uuidv4 } = require('uuid');
