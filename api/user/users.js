@@ -346,10 +346,10 @@ class Users {
     const month = parseInt(dateParts[1], 10) - 1;
     const day = parseInt(dateParts[0], 10);
     const convertedDate = new Date(year, month, day);
-
+    console.log("convertedDate: " + convertedDate);
     try {
       const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id");
-
+      console.log("attendantsQuery: " + attendantsQuery);
       if (attendantsQuery.length === 0) {
         return res.status(400).send({ message: 'Não há atendentes registrados.' });
       }
@@ -358,7 +358,7 @@ class Users {
 
       for (let hour = 0; hour < 24; hour++) {
         let hourStr = hour.toString().padStart(2, '0');
-
+        console.log("hourstr: " + hourStr);
         const isHourUnavailable = await Promise.all(attendantsQuery.map(async (attendant) => {
           const { attendant_id } = attendant;
 
@@ -368,20 +368,22 @@ class Users {
             "date = ? AND professional_id = ? AND start_time = ? AND isConfirmed = 1",
             [convertedDate, attendant_id, `${hourStr}:00`]
           );
-          console.log(appointmentQuery);
+          console.log("appointment: " + appointmentQuery);
           return appointmentQuery.length > 0;
         }));
 
         if (isHourUnavailable.every((unavailable) => unavailable)) {
           unavailableHours.push(`${hourStr}:00`);
+          console.log("unavailableHours +1: " + unavailableHours);
         }
       }
-
+      console.log("unavailableHours: " + unavailableHours);
       if (unavailableHours.length === 0) {
         return res.status(200).send({ message: 'Todos os horários estão disponíveis.' });
       }
 
       return res.status(200).send(unavailableHours);
+
     } catch (error) {
       console.error('Erro ao realizar listUnavailableHoursByDay', error);
       return res.status(500).send({ message: 'Erro ao realizar consulta de agendamentos dos atendentes.' });
