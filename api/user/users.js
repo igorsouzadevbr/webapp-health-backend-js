@@ -348,8 +348,7 @@ class Users {
       let scheduleData = [];
 
       verifyAvailableHours.forEach(appointment => {
-        const convertedDate = util.convertDateToCustomFormat(appointment.date);
-        scheduleData.push({ appointmentDate: convertedDate, startTime: appointment.start_time, endTime: appointment.end_time });
+        scheduleData.push(appointment.start_time);
       });
 
       return res.status(200).send(scheduleData);
