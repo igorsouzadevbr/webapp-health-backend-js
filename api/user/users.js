@@ -437,7 +437,7 @@ class Users {
 
     try {
 
-      const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and isConfirmed = 1", [professionalId, date, startTime]);
+      const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and isConfirmed = 1", [professionalId, convertedDate, startTime]);
       if (verifyProfessionalAppointments.length === 1) {
         return res.status(409).send({ message: 'Este profissional já possui um agendamento para esta data e horário. Escolha outra.' });
       }
