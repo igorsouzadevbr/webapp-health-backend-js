@@ -210,6 +210,10 @@ app.post('/api/schedules/date/get', authenticateClient, (req, res) => {
   users.listUnavailableHours(req, res);
 });
 
+app.post('/api/schedules/create', authenticateClient, (req, res) => {
+  users.createSchedule(req, res);
+});
+
 app.put('/api/users/create', authenticateClient, (req, res) => {
   users.create(req, res);
 });
