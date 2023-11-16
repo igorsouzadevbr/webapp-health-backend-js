@@ -450,7 +450,7 @@ class Users {
         await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
       }
 
-
+      return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
     } catch (error) {
       console.error('Erro ao realizar criação de agendamento.', error);
       return res.status(500).send({ message: 'Erro ao realizar criação de agendamento. Método: createSchedule' });
