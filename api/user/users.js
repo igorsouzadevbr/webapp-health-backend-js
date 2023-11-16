@@ -354,24 +354,22 @@ class Users {
 
       const unavailableHours = [];
 
-      for (let hour = 0; hour < 24; hour++) {
+      for (let hour = 9; hour <= 18; hour++) {
         let hourStr = hour.toString().padStart(2, '0');
         const isHourUnavailable = await Promise.all(attendantsQuery.map(async (attendant) => {
           const { attendant_id } = attendant;
-
           const appointmentQuery = await databaseFramework.select(
             "appointments",
             "id",
             "date = ? AND professional_id = ? AND start_time = ? AND isConfirmed = 1",
             [convertedDate, attendant_id, `${hourStr}:00`]
           );
-          console.log("appointment: " + appointmentQuery);
           return appointmentQuery.length > 0;
         }));
-
-        if (isHourUnavailable.every((unavailable) => unavailable)) {
+        if (isHourUnavailable.some((unavailable) => unavailable)) {
           unavailableHours.push(`${hourStr}:00`);
         }
+
       }
       if (unavailableHours.length === 0) {
         return res.status(400).send();
