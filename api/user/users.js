@@ -9,6 +9,8 @@ class Users {
     this.connection = connection;
   }
 
+
+
   async verifyLogin(req, res, keyUseAPI) {
     const { email, password } = req.body;
     const cryptoPass = util.convertToSHA256(password);
@@ -327,6 +329,69 @@ class Users {
     await databaseFramework.update("users", { locationid: generatedLocationId }, `id = ${userId}`);
     return res.status(200).send({ message: 'Endereço cadastrado com sucesso.', addressUniqueId: uniqueid });
 
+  }
+
+  async listAvailableHoursByDay(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { date } = req.body;
+    const dateParts = date.split("/");
+    const year = parseInt(dateParts[2], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const day = parseInt(dateParts[0], 10);
+
+    const convertedDate = new Date(year, month, day);
+    try {
+
+      const verifyAvailableHours = await databaseFramework.select("appointments", "*", "date = ? and isConfirmed = 1", [convertedDate]);
+      if (verifyAvailableHours.length === 0) { return res.status(400).send({ message: 'Todos os horários estão disponíveis.' }); }
+
+      let scheduleData = [];
+
+      verifyAvailableHours.forEach(appointment => {
+        const convertedDate = util.convertDateToCustomFormat(appointment.date);
+        scheduleData.push({ appointmentDate: convertedDate, startTime: appointment.start_time, endTime: appointment.end_time });
+      });
+
+      return res.status(200).send(scheduleData);
+
+
+    } catch (error) {
+      console.error('Erro ao realizar listAvailableHoursByDay', error);
+      return res.status(500).send({ message: 'Erro ao realizar consulta de agendamentos do profissional.' });
+    }
+  }
+
+  async createSchedule(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { patientId, professionalId, isOnline, date, startTime, endTime } = req.body;
+
+    const dateParts = date.split("/");
+    const year = parseInt(dateParts[2], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const day = parseInt(dateParts[0], 10);
+
+    const convertedDate = new Date(year, month, day);
+
+    try {
+
+      const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and end_time = ? and isConfirmed = 1", [professionalId, date, startTime, endTime]);
+      if (verifyProfessionalAppointments.length === 1) {
+        return res.status(409).send({ message: 'Este profissional já possui um agendamento para esta data e horário. Escolha outra.' });
+      }
+
+      const createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, end_time: endTime, isConfirmed: 0 });
+
+      if (isOnline === 1) {
+        await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 1, isInPerson: 0, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
+      } else {
+        await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
+      }
+
+
+    } catch (error) {
+      console.error('Erro ao realizar criação de agendamento.', error);
+      return res.status(500).send({ message: 'Erro ao realizar criação de agendamento. Método: createSchedule' });
+    }
   }
 
 }

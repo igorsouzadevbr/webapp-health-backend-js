@@ -215,9 +215,22 @@ async function logToDatabase(logData, connection) {
 
 }
 
+function convertDateToCustomFormat(isoDate) {
+  const dateObject = new Date(isoDate);
+
+  if (isNaN(dateObject.getTime())) {
+    return 'Data inválida';
+  }
+
+  const year = dateObject.getFullYear();
+  const month = (dateObject.getMonth() + 1).toString().padStart(2, '0'); // +1 porque os meses são zero-based
+  const day = dateObject.getDate().toString().padStart(2, '0');
+
+  return `${day}/${month}/${year}`;
+}
 
 
 
 module.exports = {
-  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID, isOnlyNumbers
+  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID, isOnlyNumbers, convertDateToCustomFormat
 };
