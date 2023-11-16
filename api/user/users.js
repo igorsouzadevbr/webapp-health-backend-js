@@ -426,7 +426,7 @@ class Users {
 
   async createSchedule(req, res) {
     const databaseFramework = new dbUtils(this.connection);
-    const { patientId, professionalId, isOnline, date, startTime, endTime } = req.body;
+    const { patientId, professionalId, isOnline, date, startTime } = req.body;
 
     const dateParts = date.split("/");
     const year = parseInt(dateParts[2], 10);
@@ -437,12 +437,12 @@ class Users {
 
     try {
 
-      const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and end_time = ? and isConfirmed = 1", [professionalId, date, startTime, endTime]);
+      const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and isConfirmed = 1", [professionalId, date, startTime]);
       if (verifyProfessionalAppointments.length === 1) {
         return res.status(409).send({ message: 'Este profissional já possui um agendamento para esta data e horário. Escolha outra.' });
       }
 
-      const createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, end_time: endTime, isConfirmed: 0 });
+      const createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
 
       if (isOnline === 1) {
         await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 1, isInPerson: 0, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
