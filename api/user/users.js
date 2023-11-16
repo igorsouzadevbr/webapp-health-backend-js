@@ -337,7 +337,7 @@ class Users {
 
   }
 
-  async listUnavailableHoursByDay(req, res) {
+  async listUnavailableHours(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     const { date } = req.body;
 
@@ -346,42 +346,81 @@ class Users {
     const month = parseInt(dateParts[1], 10) - 1;
     const day = parseInt(dateParts[0], 10);
     const convertedDate = new Date(year, month, day);
-    try {
-      const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id");
-      if (attendantsQuery.length === 0) {
-        return res.status(400).send({ message: 'Não há atendentes registrados.' });
-      }
 
-      const unavailableHours = [];
-
-      for (let hour = 9; hour <= 18; hour++) {
-        let hourStr = hour.toString().padStart(2, '0');
-        const isHourUnavailable = await Promise.all(attendantsQuery.map(async (attendant) => {
-          const { attendant_id } = attendant;
-          const appointmentQuery = await databaseFramework.select(
-            "appointments",
-            "id",
-            "date = ? AND professional_id = ? AND start_time = ? AND isConfirmed = 1",
-            [convertedDate, attendant_id, `${hourStr}:00`]
-          );
-          return appointmentQuery.length > 0;
-        }));
-        if (isHourUnavailable.some((unavailable) => unavailable)) {
-          unavailableHours.push(`${hourStr}:00`);
-        }
-
-      }
-      if (unavailableHours.length === 0) {
-        return res.status(400).send();
-      }
-
-      return res.status(200).send(unavailableHours);
-
-    } catch (error) {
-      console.error('Erro ao realizar listUnavailableHoursByDay', error);
-      return res.status(500).send({ message: 'Erro ao realizar consulta de agendamentos dos atendentes.' });
+    const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id", "isAvailable = 1");
+    if (attendantsQuery.length === 0) {
+      return res.status(400).send({ message: 'Não há atendentes registrados.' });
     }
+
+    const unavailableAttendantsByHour = await databaseFramework.select("appointments", "*", "date = ?", [convertedDate]);
+
+    const unavailableAttendantsData = unavailableAttendantsByHour.map(professional => {
+      return {
+        professionalId: professional.professional_id,
+        startTime: professional.start_time
+      }
+    });
+    const result = { unavailableAttendants: [...unavailableAttendantsData], attendantQuantity: attendantsQuery.length };
+    return res.status(200).send(result);
   }
+
+  // async listUnavailableHoursByDay(req, res) {
+  //   const databaseFramework = new dbUtils(this.connection);
+  //   const { date } = req.body;
+
+  //   const dateParts = date.split("/");
+  //   const year = parseInt(dateParts[2], 10);
+  //   const month = parseInt(dateParts[1], 10) - 1;
+  //   const day = parseInt(dateParts[0], 10);
+  //   const convertedDate = new Date(year, month, day);
+
+  //   try {
+  //     const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id");
+  //     if (attendantsQuery.length === 0) {
+  //       return res.status(400).send({ message: 'Não há atendentes registrados.' });
+  //     }
+
+  //     const unavailableHours = [];
+
+  //     for (let hour = 9; hour <= 18; hour++) {
+  //       let hourStr = hour.toString().padStart(2, '0');
+  //       const isHourUnavailable = await Promise.all(attendantsQuery.map(async (attendant) => {
+  //         const { attendant_id } = attendant;
+  //         const appointmentQuery = await databaseFramework.select(
+  //           "appointments",
+  //           "id",
+  //           "date = ? AND professional_id = ? AND start_time = ? AND isConfirmed = 1",
+  //           [convertedDate, attendant_id, `${hourStr}:00`]
+  //         );
+  //         return appointmentQuery.length > 0;
+  //       }));
+  //       if (isHourUnavailable.some((unavailable) => unavailable)) {
+  //         unavailableHours.push({ hour: `${hourStr}:00`, attendantId: attendant_id });
+  //       }
+  //     }
+
+  //     if (unavailableHours.length === 0) {
+  //       return res.status(200).send([]); // Não há horários indisponíveis
+  //     }
+
+  //     // Verificar se pelo menos um atendente não possui registros nos horários indisponíveis
+  //     const hasAttendantWithoutRecords = await Promise.all(attendantsQuery.map(async (attendant) => {
+  //       const { attendant_id } = attendant;
+
+  //       const hasRecords = unavailableHours.every((hourData) => hourData.attendantId === `${attendant_id}`);
+  //       return !hasRecords;
+  //     }));
+
+  //     if (hasAttendantWithoutRecords.some((withoutRecords) => withoutRecords)) {
+  //       return res.status(400).send({ message: 'Pelo menos um atendente não possui registros nos horários indisponíveis.' });
+  //     }
+
+  //     return res.status(200).send(unavailableHours); // Horários indisponíveis
+  //   } catch (error) {
+  //     console.error('Erro ao realizar listUnavailableHoursByDay', error);
+  //     return res.status(500).send({ message: 'Erro ao realizar consulta de agendamentos dos atendentes.' });
+  //   }
+  // }
 
   // async listAvailableHoursByDay(req, res) {
   //   const databaseFramework = new dbUtils(this.connection);
