@@ -346,10 +346,8 @@ class Users {
     const month = parseInt(dateParts[1], 10) - 1;
     const day = parseInt(dateParts[0], 10);
     const convertedDate = new Date(year, month, day);
-    console.log("convertedDate: " + convertedDate);
     try {
       const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id");
-      console.log("attendantsQuery: " + attendantsQuery);
       if (attendantsQuery.length === 0) {
         return res.status(400).send({ message: 'Não há atendentes registrados.' });
       }
@@ -373,12 +371,10 @@ class Users {
 
         if (isHourUnavailable.every((unavailable) => unavailable)) {
           unavailableHours.push(`${hourStr}:00`);
-          console.log("unavailableHours +1: " + unavailableHours);
         }
       }
-      console.log("unavailableHours: " + unavailableHours);
       if (unavailableHours.length === 0) {
-        return res.status(200).send({ message: 'Todos os horários estão disponíveis.' });
+        return res.status(400).send();
       }
 
       return res.status(200).send(unavailableHours);
