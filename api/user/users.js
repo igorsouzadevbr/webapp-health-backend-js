@@ -376,7 +376,6 @@ class Users {
           unavailableHours.push(`${hourStr}:00`);
         }
       }
-
       if (unavailableHours.length === 0) {
         return res.status(200).send({ message: 'Todos os horários estão disponíveis.' });
       }
