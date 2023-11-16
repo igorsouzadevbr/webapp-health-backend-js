@@ -202,6 +202,10 @@ app.put('/api/professional/users/create', authenticateClient, (req, res) => {
 
 //ROTA API -- USUARIOS
 
+app.post('/api/schedules/professional/get', authenticateClient, (req, res) => {
+  users.getHoursByAttendants(req, res);
+});
+
 app.post('/api/schedules/date/get', authenticateClient, (req, res) => {
   users.listUnavailableHours(req, res);
 });

@@ -384,6 +384,46 @@ class Users {
 
   }
 
+  async getHoursByAttendants(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { date, startTime } = req.body;
+    const dateParts = date.split("/");
+    const year = parseInt(dateParts[2], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const day = parseInt(dateParts[0], 10);
+
+    const convertedDate = new Date(year, month, day);
+    try {
+      const getChatAttendants = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
+      if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
+
+      const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
+      const getProfessionalData = await databaseFramework.select("appointments", "*", "professional_id IN (?) and date = ? and start_time = ? and isConfirmed = 1", [attendantIds, convertedDate, startTime]);
+
+      if (getProfessionalData.length <= 0) {
+
+        const getUserData = await databaseFramework.select("users", "*", "id IN (?)", [attendantIds]);
+
+        const userData = getUserData.map(user => {
+          return {
+            userId: user.id,
+            userName: user.name,
+            userRole: user.role,
+            userPhoto: `${user.userPhoto}`
+          }
+        });
+
+
+        return res.status(200).send(userData);
+      }
+
+      return res.status(400).send();
+
+    } catch (error) {
+      return res.status(500).send({ message: error.message });
+    }
+  }
+
   async createSchedule(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     const { patientId, professionalId, isOnline, date, startTime, endTime } = req.body;
