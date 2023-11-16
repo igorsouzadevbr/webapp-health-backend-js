@@ -337,7 +337,7 @@ class Users {
 
   }
 
-  async listAvailableHoursByDay(req, res) {
+  async listUnavailableHoursByDay(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     const { date } = req.body;
 
@@ -376,6 +376,7 @@ class Users {
           unavailableHours.push(`${hourStr}:00`);
         }
       }
+
       if (unavailableHours.length === 0) {
         return res.status(200).send({ message: 'Todos os horários estão disponíveis.' });
       }
@@ -386,6 +387,53 @@ class Users {
       return res.status(500).send({ message: 'Erro ao realizar consulta de agendamentos dos atendentes.' });
     }
   }
+
+  // async listAvailableHoursByDay(req, res) {
+  //   const databaseFramework = new dbUtils(this.connection);
+  //   const { date } = req.body;
+
+  //   const dateParts = date.split("/");
+  //   const year = parseInt(dateParts[2], 10);
+  //   const month = parseInt(dateParts[1], 10) - 1;
+  //   const day = parseInt(dateParts[0], 10);
+  //   const convertedDate = new Date(year, month, day);
+
+  //   try {
+
+  //     const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id");
+
+  //     if (attendantsQuery.length === 0) {
+  //       return res.status(400).send({ message: 'Não há atendentes registrados.' });
+  //     }
+
+  //     const availableAttendants = [];
+
+  //     for (const attendant of attendantsQuery) {
+  //       const { attendant_id } = attendant;
+
+  //       const appointmentQuery = await databaseFramework.select(
+  //         "appointments",
+  //         "*",
+  //         "date = ? AND professional_id = ? AND isConfirmed = 1",
+  //         [convertedDate, attendant_id]
+  //       );
+
+  //       if (appointmentQuery.length === 0) {
+  //         availableAttendants.push(attendant_id);
+  //       }
+  //     }
+
+  //     if (availableAttendants.length === 0) {
+  //       return res.status(400).send({ message: 'Todos os atendentes estão ocupados.' });
+  //     }
+
+  //     return res.status(200).send(availableAttendants);
+
+  //   } catch (error) {
+  //     console.error('Erro ao realizar listAvailableHoursByDay', error);
+  //     return res.status(500).send({ message: 'Erro ao realizar consulta de agendamentos do profissional.' });
+  //   }
+  // }
 
   async createSchedule(req, res) {
     const databaseFramework = new dbUtils(this.connection);

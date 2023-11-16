@@ -203,7 +203,7 @@ app.put('/api/professional/users/create', authenticateClient, (req, res) => {
 //ROTA API -- USUARIOS
 
 app.post('/api/schedules/date/get', authenticateClient, (req, res) => {
-  users.listAvailableHoursByDay(req, res);
+  users.listUnavailableHoursByDay(req, res);
 });
 
 app.put('/api/users/create', authenticateClient, (req, res) => {
