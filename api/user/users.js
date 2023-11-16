@@ -368,7 +368,7 @@ class Users {
             "date = ? AND professional_id = ? AND start_time = ? AND isConfirmed = 1",
             [convertedDate, attendant_id, `${hourStr}:00`]
           );
-
+          console.log(appointmentQuery);
           return appointmentQuery.length > 0;
         }));
 
