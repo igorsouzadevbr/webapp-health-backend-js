@@ -326,7 +326,9 @@ class Users {
     const userId = getUserIdFromUniqueId[0].id;
     const getUserLocation = await databaseFramework.select("location", "*", "personid = ? and isDeleted = 0", [userId]);
     if (getUserLocation.length > 0) {
-      return res.status(409).send({ message: systemMessages.ErrorMessages.USER_ALREADY_HAS_ADDRESS.message });
+      const locationData = getUserLocation[0];
+      await databaseFramework.update("location", { address: address, number: number, complement: complement, neighborhood: neighborhood, postalcode: postalCode, cityId: cityId, stateId: stateId }, `id = ${locationData.id}`);
+      return res.status(200).send({ message: 'Endereço atualizado com sucesso.', addressUniqueId: uniqueid });
     }
 
     const insertUserLocation = await databaseFramework.insert("location", { uniqueid: uniqueid, personid: userId, address: address, number: number, complement: complement, neighborhood: neighborhood, postalcode: postalCode, cityId: cityId, stateId: stateId });
