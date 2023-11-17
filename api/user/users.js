@@ -417,7 +417,7 @@ class Users {
         return res.status(200).send(userData);
       }
 
-      return res.status(400).send();
+      return res.status(200).send([]);
 
     } catch (error) {
       return res.status(500).send({ message: error.message });
