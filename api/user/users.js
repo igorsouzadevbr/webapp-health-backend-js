@@ -424,6 +424,32 @@ class Users {
     }
   }
 
+  async verifySchedule(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { date, patientId } = req.body;
+
+    const dateParts = date.split("/");
+    const year = parseInt(dateParts[2], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const day = parseInt(dateParts[0], 10);
+
+    const convertedDate = new Date(year, month, day);
+
+    const verifyIfUserHasSchedules = await databaseFramework.select("appointments", "*", "patient_id = ? and date = ?", [patientId, convertedDate]);
+    if (verifyIfUserHasSchedules.length > 0) {
+
+      const appointments = [];
+      await Promise.all(verifyIfUserHasSchedules.map(async (appointment) => {
+        return appointments.push(appointment.start_time);
+      }));
+
+      return res.status(200).send(appointments);
+    } else {
+      return res.status(400).send();
+    }
+
+  }
+
   async createSchedule(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     const { patientId, professionalId, isOnline, date, startTime } = req.body;
