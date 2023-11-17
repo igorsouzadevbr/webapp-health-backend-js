@@ -302,7 +302,33 @@ class chatAttendantFlow {
             }
 
             if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
-            return res.status(200).send(getChatAttendants);
+            const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
+
+            const getAttendantData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id IN (?)", [attendantIds]);
+
+            const attendantNameData = {};
+            getAttendantData.forEach(attendant => {
+                attendantNameData[attendant.id] = attendant.name;
+            });
+
+            const attendantRoleData = {};
+            getAttendantData.forEach(attendant => {
+                attendantRoleData[attendant.id] = attendant.role;
+            });
+
+            const attendantPhotoData = {};
+            getAttendantData.forEach(attendant => {
+                attendantPhotoData[attendant.id] = `${attendant.userphoto}`;
+            });
+
+            const attendantFinalData = getChatAttendants.map(attendant => ({
+                ...attendant,
+                attendantName: attendantNameData[attendant.attendant_id],
+                attendantPhoto: attendantPhotoData[attendant.attendant_id],
+                attendantRole: attendantRoleData[attendant.attendant_id]
+            }));
+
+            return res.status(200).send(attendantFinalData);
         } catch (error) {
             return res.status(500).json({ message: error.message });
         }
