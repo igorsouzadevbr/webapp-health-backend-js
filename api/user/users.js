@@ -450,9 +450,11 @@ class Users {
       const combinedSchedule = getAllUserSchedules.map(appointment => {
         const professional = professionalMap[appointment.professional_id];
         return {
+          scheduleId: appointment.id,
           scheduleDate: util.formatDate(appointment.date),
           scheduleStartTime: appointment.start_time,
           scheduleEndTime: util.addHoursToTime(appointment.start_time, 1),
+          professionalId: professional.id,
           professionalName: professional.name,
           professionalRole: professional.role,
           professionalPhoto: `${professional.userPhoto}`
