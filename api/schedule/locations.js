@@ -14,23 +14,29 @@ class Users {
         const sanitizedPostalCode = postalCode.replace(/\s/g, '');
 
         const exactLocation = await databaseFramework.select("appointments_location", "*", "postalCode = ? and isDeleted = 0", [sanitizedPostalCode]);
+        let allLocations = [];
 
         if (exactLocation.length > 0) {
-            exactLocation[0].image = `${exactLocation[0].image}`;
-            return res.status(200).send(exactLocation[0]);
+            allLocations = exactLocation;
         } else {
             const similarLocations = await databaseFramework.select("appointments_location", "*", "postalCode LIKE ? and isDeleted = 0", [`${sanitizedPostalCode.slice(0, 5)}%`]);
 
             if (similarLocations.length > 0) {
-                similarLocations.forEach(location => {
-                    location.image = `${location.image}`;
-                });
-                return res.status(200).send(similarLocations);
-            } else {
-                return res.status(404).send({ message: 'Localização não encontrada.' });
+                allLocations = similarLocations;
             }
         }
+
+        if (allLocations.length > 0) {
+            allLocations.forEach(location => {
+                location.image = `${location.image}`;
+            });
+            return res.status(200).send(allLocations);
+        } else {
+            return res.status(404).send({ message: 'Localização não encontrada.' });
+        }
     }
+
+
 
 
     async createLocation(req, res) {
