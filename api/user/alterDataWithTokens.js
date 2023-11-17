@@ -102,7 +102,7 @@ class AlterDataWithTokens {
 
             const userLogged = await databaseFramework.select("users", 'uniqueid', `id = ${tokenExists[0].userid}`)
             const secretKey = req.params.secretKey;
-            const getUserLocation = await databaseFramework.select("locations", "*", "personid = ?", [userLogged[0].id]);
+            const getUserLocation = await databaseFramework.select("location", "*", "personid = ?", [userLogged[0].id]);
             const userLocationData = getUserLocation[0];
             const token = jwt.sign({ useremail: alterMailTo, useruniqueid: userLogged[0].uniqueid, userId: userLogged[0].id, userType: userLogged[0].usertype, userPostalCode: userLocationData.postalcode }, secretKey, { expiresIn: '96h' });
 

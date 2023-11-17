@@ -83,7 +83,7 @@ class Users {
       }
       return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
     } else {
-      const getUserLocation = await databaseFramework.select("locations", "*", "personid = ?", [userData[0].id]);
+      const getUserLocation = await databaseFramework.select("location", "*", "personid = ?", [userData[0].id]);
       const userLocationData = getUserLocation[0];
       const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid, userId: userData[0].id, userType: userData[0].usertype, userPostalCode: userLocationData.postalcode }, keyUseAPI, { expiresIn: '96h' });
 
