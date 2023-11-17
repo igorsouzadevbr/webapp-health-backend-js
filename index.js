@@ -246,6 +246,10 @@ app.post('/api/attendant/schedules/pending/get', authenticateClient, (req, res) 
   attendantFlow.listSchedulesPending(req, res);
 });
 
+app.post('/api/attendant/schedules/confirmed/get', authenticateClient, (req, res) => {
+  attendantFlow.listSchedulesConfirmed(req, res);
+});
+
 app.put('/api/users/create', authenticateClient, (req, res) => {
   users.create(req, res);
 });

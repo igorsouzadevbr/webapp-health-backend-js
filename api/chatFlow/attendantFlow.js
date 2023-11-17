@@ -436,6 +436,36 @@ class chatAttendantFlow {
         }
     }
 
+    async listSchedulesConfirmed(req, res) {
+        const { attendantId } = req.body;
+        const databaseFramework = new dbUtils(this.connection);
+        try {
+            const getSchedules = await databaseFramework.select("appointments", ["patient_id", "date", "start_time", "id"], "isConfirmed = 1 and professional_id = ?", [attendantId]);
+            if (getSchedules.length <= 0) { return res.status(200).json([]); }
+
+            const patientData = [];
+
+            for (const schedule of getSchedules) {
+                const getPatientData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]);
+                if (getPatientData.length > 0) {
+                    const patient = getPatientData[0];
+                    patientData.push({
+                        patientId: patient.id,
+                        patientName: patient.name,
+                        patientPhoto: `${patient.userphoto}`,
+                        scheduleId: schedule.id,
+                        scheduleDate: util.convertDateToCustomFormat(schedule.date),
+                        scheduleStartTime: schedule.start_time
+                    });
+                }
+            }
+
+            return res.status(200).json(patientData);
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
 
 }
 module.exports = chatAttendantFlow;
