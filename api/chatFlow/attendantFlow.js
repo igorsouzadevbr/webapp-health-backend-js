@@ -131,7 +131,7 @@ class chatAttendantFlow {
             const offset = (page - 1) * pageSize;
             const category = parseInt(req.query.category) || 4;
 
-            let whereClause = "category_id = ?"; // Consulta inicial para a categoria especificada
+            let whereClause = "category_id = ?";
 
             if (category === 4) {
                 whereClause = "1";
@@ -142,6 +142,9 @@ class chatAttendantFlow {
             if (getChatAttendants.length <= 0) {
                 return res.status(404).json({ message: 'Não há atendentes disponíveis.' });
             }
+
+            const countQuery = await databaseFramework.select("chat_attendants", "COUNT(*) as total", whereClause, [category]);
+            const totalAttendants = countQuery[0].total;
 
             const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
             const getAttendantData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id IN (?)", [attendantIds]);
@@ -168,18 +171,23 @@ class chatAttendantFlow {
                 attendantRole: attendantRoleData[attendant.attendant_id]
             }));
 
+            // Calcular o total de páginas disponíveis
+            const totalPages = Math.ceil(totalAttendants / pageSize);
+
             return res.status(200).send({
                 data: attendantFinalData,
                 pagination: {
                     page: page,
                     pageSize: pageSize,
-                    total: getChatAttendants.length
+                    total: totalAttendants,
+                    totalPages: totalPages
                 }
             });
         } catch (error) {
             return res.status(500).send({ message: error.message });
         }
     }
+
 
     async listChatQueue(req, res) {
         const databaseFramework = new dbUtils(this.connection);
