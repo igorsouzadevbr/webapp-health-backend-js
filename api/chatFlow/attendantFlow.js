@@ -411,7 +411,7 @@ class chatAttendantFlow {
         const databaseFramework = new dbUtils(this.connection);
         try {
             const getSchedules = await databaseFramework.select("appointments", ["patient_id", "date", "start_time", "id"], "isConfirmed = 0 and professional_id = ?", [attendantId]);
-            if (getSchedules.length <= 0) { return res.status(404).json({ message: 'Não há agendamentos disponíveis.' }); }
+            if (getSchedules.length <= 0) { return res.status(200).json([]); }
 
             const patientData = [];
 
