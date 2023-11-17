@@ -294,7 +294,13 @@ class chatAttendantFlow {
         }
         const databaseFramework = new dbUtils(this.connection);
         try {
-            const getChatAttendants = await databaseFramework.select("chat_attendants", "*", "category_id = ?", [categoryId]);
+            let getChatAttendants;
+            if (categoryId === 4) {
+                getChatAttendants = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
+            } else {
+                getChatAttendants = await databaseFramework.select("chat_attendants", "*", "category_id = ? and isAvailable = 1", [categoryId]);
+            }
+
             if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
             return res.status(200).send(getChatAttendants);
         } catch (error) {
