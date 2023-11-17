@@ -378,7 +378,7 @@ class Users {
     if (unavailableAttendantsData.length > 0) {
       return res.status(200).send(unavailableAttendantsData);
     } else {
-      return res.status(400).send();
+      return res.status(200).send();
     }
 
 
@@ -417,7 +417,7 @@ class Users {
         return res.status(200).send(userData);
       }
 
-      return res.status(200).send([]);
+      return res.status(400).send();
 
     } catch (error) {
       return res.status(500).send({ message: error.message });
