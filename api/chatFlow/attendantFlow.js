@@ -131,7 +131,13 @@ class chatAttendantFlow {
             const offset = (page - 1) * pageSize;
             const category = parseInt(req.query.category) || 4;
 
-            const getChatAttendants = await databaseFramework.selectWithLimit("chat_attendants", "*", "category_id = ?", [category], pageSize, offset);
+            let whereClause = "category_id = ?"; // Consulta inicial para a categoria especificada
+
+            if (category === 4) {
+                whereClause = "1";
+            }
+
+            const getChatAttendants = await databaseFramework.selectWithLimit("chat_attendants", "*", whereClause, [category], pageSize, offset);
 
             if (getChatAttendants.length <= 0) {
                 return res.status(404).json({ message: 'Não há atendentes disponíveis.' });
@@ -161,7 +167,6 @@ class chatAttendantFlow {
                 attendantPhoto: attendantPhotoData[attendant.attendant_id],
                 attendantRole: attendantRoleData[attendant.attendant_id]
             }));
-
 
             return res.status(200).send({
                 data: attendantFinalData,
