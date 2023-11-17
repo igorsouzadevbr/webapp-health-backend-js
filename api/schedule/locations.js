@@ -36,6 +36,7 @@ class Users {
     async createLocation(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { name, address, number, complement, neighborhood, cityId, stateId, postalCode, pictureBlob } = req.body;
+        const sanitizedPostalCode = postalCode.replace(/\s/g, '');
 
         if (pictureBlob) {
             const base64Regex = /^data:image\/\w+;base64,/;
@@ -65,11 +66,11 @@ class Users {
             return res.status(500).send({ message: 'Erro ao validar o CEP.' });
         }
         try {
-            const verifyLocation = await databaseFramework.select("appointments_location", "*", "name = ? and address = ? and number = ? and postalcode = ? and isDeleted = 0", [name, address, number, postalCode]);
+            const verifyLocation = await databaseFramework.select("appointments_location", "*", "name = ? and address = ? and number = ? and postalcode = ? and isDeleted = 0", [name, address, number, sanitizedPostalCode]);
             if (verifyLocation.length > 0) {
                 return res.status(400).json({ message: 'Endereço já está cadastrado.' });
             }
-            await databaseFramework.insert("appointments_location", { name: name, address: address, number: number, complement: complement, neighborhood: neighborhood, cityId: cityId, stateId: stateId, postalcode: postalCode, image: pictureBlob });
+            await databaseFramework.insert("appointments_location", { name: name, address: address, number: number, complement: complement, neighborhood: neighborhood, cityId: cityId, stateId: stateId, postalcode: sanitizedPostalCode, image: pictureBlob });
             return res.status(200).json({ message: 'Localização criada com sucesso.' });
         } catch (error) {
             console.error('Erro ao realizar criação de localização.', error);
