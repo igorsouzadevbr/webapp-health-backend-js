@@ -162,6 +162,9 @@ app.get('/api/chat/categories/get', authenticateClient, (req, res) => {
 app.get('/api/chat/attendant/get', authenticateClient, (req, res) => {
   attendantFlow.getAllAttendantsFromDB(req, res);
 });
+app.get('/api/chat/attendant/get/pagination', authenticateClient, (req, res) => {
+  attendantFlow.getAllAttendantsFromDBWithPagination(req, res);
+});
 
 app.post('/api/chat/attendant/get/category', authenticateClient, (req, res) => {
   attendantFlow.getAttendantsByCategoryFromDB(req, res);

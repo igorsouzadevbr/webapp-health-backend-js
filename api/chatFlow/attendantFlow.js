@@ -123,58 +123,58 @@ class chatAttendantFlow {
         }
     }
 
-    // async getAllAttendantsFromDB(req, res) {
-    //     const databaseFramework = new dbUtils(this.connection);
-    //     try {
-    //         const page = parseInt(req.query.page) || 1;
-    //         const pageSize = parseInt(req.query.pageSize) || 10;
-    //         const offset = (page - 1) * pageSize;
+    async getAllAttendantsFromDBWithPagination(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        try {
+            const page = parseInt(req.query.page) || 1;
+            const pageSize = parseInt(req.query.pageSize) || 10;
+            const offset = (page - 1) * pageSize;
+            const category = parseInt(req.query.category) || 4;
 
-    //         const getChatAttendants = await databaseFramework.selectWithLimit("chat_attendants", "*", undefined, [], pageSize, offset);
+            const getChatAttendants = await databaseFramework.selectWithLimit("chat_attendants", "*", "category_id = ?", [category], pageSize, offset);
 
-    //         if (getChatAttendants.length <= 0) {
-    //             return res.status(404).json({ message: 'Não há atendentes disponíveis.' });
-    //         }
+            if (getChatAttendants.length <= 0) {
+                return res.status(404).json({ message: 'Não há atendentes disponíveis.' });
+            }
 
-    //         const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
-    //         // Busque os nomes dos atendentes na tabela 'users'
-    //         const getAttendantData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id IN (?)", [attendantIds]);
+            const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
+            const getAttendantData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id IN (?)", [attendantIds]);
 
-    //         const attendantNameData = {};
-    //         getAttendantData.forEach(attendant => {
-    //             attendantNameData[attendant.id] = attendant.name;
-    //         });
+            const attendantNameData = {};
+            getAttendantData.forEach(attendant => {
+                attendantNameData[attendant.id] = attendant.name;
+            });
 
-    //         const attendantRoleData = {};
-    //         getAttendantData.forEach(attendant => {
-    //             attendantRoleData[attendant.id] = attendant.role;
-    //         });
+            const attendantRoleData = {};
+            getAttendantData.forEach(attendant => {
+                attendantRoleData[attendant.id] = attendant.role;
+            });
 
-    //         const attendantPhotoData = {};
-    //         getAttendantData.forEach(attendant => {
-    //             attendantPhotoData[attendant.id] = `${attendant.userphoto}`;
-    //         });
+            const attendantPhotoData = {};
+            getAttendantData.forEach(attendant => {
+                attendantPhotoData[attendant.id] = `${attendant.userphoto}`;
+            });
 
-    //         const attendantFinalData = getChatAttendants.map(attendant => ({
-    //             ...attendant,
-    //             attendantName: attendantNameData[attendant.attendant_id],
-    //             attendantPhoto: attendantPhotoData[attendant.attendant_id],
-    //             attendantRole: attendantRoleData[attendant.attendant_id]
-    //         }));
+            const attendantFinalData = getChatAttendants.map(attendant => ({
+                ...attendant,
+                attendantName: attendantNameData[attendant.attendant_id],
+                attendantPhoto: attendantPhotoData[attendant.attendant_id],
+                attendantRole: attendantRoleData[attendant.attendant_id]
+            }));
 
 
-    //         return res.status(200).send({
-    //             data: attendantFinalData,
-    //             pagination: {
-    //                 page: page,
-    //                 pageSize: pageSize,
-    //                 total: getChatAttendants.length
-    //             }
-    //         });
-    //     } catch (error) {
-    //         return res.status(500).send({ message: error.message });
-    //     }
-    // }
+            return res.status(200).send({
+                data: attendantFinalData,
+                pagination: {
+                    page: page,
+                    pageSize: pageSize,
+                    total: getChatAttendants.length
+                }
+            });
+        } catch (error) {
+            return res.status(500).send({ message: error.message });
+        }
+    }
 
     async listChatQueue(req, res) {
         const databaseFramework = new dbUtils(this.connection);
