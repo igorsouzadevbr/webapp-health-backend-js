@@ -435,7 +435,7 @@ class Users {
     const databaseFramework = new dbUtils(this.connection);
     const { patientId } = req.body;
 
-    const getAllUserSchedules = await databaseFramework.select("appointments", "*", "patient_id = ? and isConfirmed = 1 and isFinished = 0 and isScheduled = 0", [patientId]);
+    const getAllUserSchedules = await databaseFramework.select("appointments", "*", "patient_id = ? and isConfirmed = 1 and isFinished = 0", [patientId]);
 
     if (getAllUserSchedules.length > 0) {
       const attendantIds = getAllUserSchedules.map(appointment => appointment.professional_id);
