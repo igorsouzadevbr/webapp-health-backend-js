@@ -488,7 +488,7 @@ class Users {
 
   async createSchedule(req, res) {
     const databaseFramework = new dbUtils(this.connection);
-    const { patientId, professionalId, isOnline, date, startTime } = req.body;
+    const { patientId, professionalId, isOnline, date, startTime, locationId } = req.body;
 
     const dateParts = date.split("/");
     const year = parseInt(dateParts[2], 10);
@@ -510,7 +510,7 @@ class Users {
         await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 1, isInPerson: 0, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
         return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
       } else {
-        await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
+        await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule, location_id: locationId });
         return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
       }
 
