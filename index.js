@@ -45,6 +45,7 @@ const AttendantFunctions = require('./api/attendant/functions');
 const ProfessionalFunctions = require('./api/professional/functions');
 const DatabaseUtils = require('./api/util/databaseUtils');
 const AlterDataWithTokens = require('./api/user/alterDataWithTokens');
+const ScheduleFunctions = require('./api/schedule/locations.js');
 
 //limitador de requisições -- importante identificar o uso real do webapp para deixar em um número bacana de requisições x tempo.
 const limiter = rateLimit({
@@ -134,7 +135,7 @@ const professionalFunctions = new ProfessionalFunctions(connection);
 const adminFunctions = new AdminFunctions(connection);
 const databaseUtils = new DatabaseUtils(connection);
 const alterDataWithTokens = new AlterDataWithTokens(connection);
-
+const scheduleFunctions = new ScheduleFunctions(connection);
 
 //ROTA DE CHAT -- FLUXOS & DEMAIS
 
@@ -201,6 +202,14 @@ app.put('/api/professional/users/create', authenticateClient, (req, res) => {
 });
 
 //ROTA API -- USUARIOS
+
+app.post('/api/schedules/location/create', authenticateClient, (req, res) => {
+  scheduleFunctions.createLocation(req, res);
+});
+
+app.post('/api/schedules/location/get', authenticateClient, (req, res) => {
+  scheduleFunctions.getLocation(req, res);
+});
 
 app.post('/api/schedules/professional/get', authenticateClient, (req, res) => {
   users.getHoursByAttendants(req, res);

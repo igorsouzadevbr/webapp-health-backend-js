@@ -83,7 +83,9 @@ class Users {
       }
       return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
     } else {
-      const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid, userId: userData[0].id, userType: userData[0].usertype }, keyUseAPI, { expiresIn: '96h' });
+      const getUserLocation = await databaseFramework.select("locations", "*", "personid = ?", [userData[0].id]);
+      const userLocationData = getUserLocation[0];
+      const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid, userId: userData[0].id, userType: userData[0].usertype, userPostalCode: userLocationData.postalcode }, keyUseAPI, { expiresIn: '96h' });
 
       const uniqueid = uuidv4();
       util.logToDatabase({
@@ -324,8 +326,7 @@ class Users {
     const userId = getUserIdFromUniqueId[0].id;
     const getUserLocation = await databaseFramework.select("location", "*", "personid = ? and isDeleted = 0", [userId]);
     if (getUserLocation.length > 0) {
-
-
+      return res.status(409).send({ message: systemMessages.ErrorMessages.USER_ALREADY_HAS_ADDRESS.message });
     }
 
     const insertUserLocation = await databaseFramework.insert("location", { uniqueid: uniqueid, personid: userId, address: address, number: number, complement: complement, neighborhood: neighborhood, postalcode: postalCode, cityId: cityId, stateId: stateId });
