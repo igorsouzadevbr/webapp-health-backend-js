@@ -398,7 +398,7 @@ class Users {
       if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
 
       const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
-      const getProfessionalData = await databaseFramework.select("appointments", "*", "professional_id IN (?) and date = ? and start_time = ? and isConfirmed = 1", [attendantIds, convertedDate, startTime]);
+      const getProfessionalData = await databaseFramework.select("appointments", "*", "professional_id IN (?) and date = ? and start_time = ? and isConfirmed = 1 and isFinished = 0", [attendantIds, convertedDate, startTime]);
 
       if (getProfessionalData.length <= 0) {
 
@@ -421,6 +421,41 @@ class Users {
 
     } catch (error) {
       return res.status(500).send({ message: error.message });
+    }
+  }
+
+  async listSchedules(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { patientId } = req.body;
+
+    const getAllUserSchedules = await databaseFramework.select("appointments", "*", "patient_id = ? and isConfirmed = 1 and isFinished = 0", [patientId]);
+
+    if (getAllUserSchedules.length > 0) {
+      const attendantIds = getAllUserSchedules.map(appointment => appointment.professional_id);
+
+      const getUserInfo = await databaseFramework.select("users", "*", "id IN(?)", [attendantIds]);
+
+      const professionalMap = getUserInfo.reduce((map, user) => {
+        map[user.id] = user;
+        return map;
+      }, {});
+
+      const combinedSchedule = getAllUserSchedules.map(appointment => {
+        const professional = professionalMap[appointment.professional_id];
+        return {
+          scheduleDate: util.formatDate(appointment.date),
+          scheduleStartTime: appointment.start_time,
+          scheduleEndTime: util.addHoursToTime(appointment.start_time, 1),
+          professionalName: professional.name,
+          professionalRole: professional.role,
+          professionalPhoto: `${professional.userPhoto}`
+        };
+      });
+
+      return res.status(200).json(combinedSchedule);
+
+    } else {
+      return res.status(400).send();
     }
   }
 
@@ -463,7 +498,7 @@ class Users {
 
     try {
 
-      const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and isConfirmed = 1", [professionalId, convertedDate, startTime]);
+      const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and isConfirmed = 1 and isFinished = 0", [professionalId, convertedDate, startTime]);
       if (verifyProfessionalAppointments.length === 1) {
         return res.status(409).send({ message: 'Este profissional já possui um agendamento para esta data e horário. Escolha outra.' });
       }

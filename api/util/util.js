@@ -229,8 +229,32 @@ function convertDateToCustomFormat(isoDate) {
   return `${day}/${month}/${year}`;
 }
 
+function addHoursToTime(time, hours) {
+  const timeParts = time.split(":");
+  const date = new Date();
+  date.setHours(parseInt(timeParts[0]) + hours, parseInt(timeParts[1]), 0);
+
+  return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+}
+
+function formatDate(dateInput) {
+  // Verifica se o input é um objeto Date
+  if (dateInput instanceof Date) {
+    return `${dateInput.getDate().toString().padStart(2, '0')}/${(dateInput.getMonth() + 1).toString().padStart(2, '0')}/${dateInput.getFullYear()}`;
+  }
+  // Caso contrário, trata como uma string
+  else if (typeof dateInput === 'string') {
+    const dateParts = dateInput.split("-");
+    return `${dateParts[2].split('T')[0]}/${dateParts[1]}/${dateParts[0]}`;
+  }
+  // Retorna uma string vazia ou algum valor padrão se o input não for nem Date nem string
+  else {
+    return "";
+  }
+}
+
 
 
 module.exports = {
-  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID, isOnlyNumbers, convertDateToCustomFormat
+  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID, isOnlyNumbers, convertDateToCustomFormat, addHoursToTime, formatDate
 };
