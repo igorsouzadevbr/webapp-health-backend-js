@@ -224,6 +224,10 @@ class Users {
           const hashedPassword = await util.convertToSHA256(fieldsToUpdate[field]);
           fieldsToUpdate[field] = hashedPassword;
         }
+        if (field === 'password' && currentUserData['password'] == await util.convertToSHA256(fieldsToUpdate)) {
+          const hashedPassword = await util.convertToSHA256(fieldsToUpdate[field]);
+          fieldsToUpdate[field] = hashedPassword;
+        }
         if (field === 'email') {
           if (!util.isEmail(email)) {
             return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
