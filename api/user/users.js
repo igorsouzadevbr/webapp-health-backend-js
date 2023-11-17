@@ -378,7 +378,7 @@ class Users {
     if (unavailableAttendantsData.length > 0) {
       return res.status(200).send(unavailableAttendantsData);
     } else {
-      return res.status(200).send();
+      return res.status(200).send([]);
     }
 
 
