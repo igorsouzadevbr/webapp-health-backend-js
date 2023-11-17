@@ -49,7 +49,7 @@ class chatPatientFlow {
     }
 
     async callAttendant(req, res) {
-        const { userData, attendantId } = req.body;
+        const { userData, attendantId, isScheduled } = req.body;
         const databaseFramework = new dbUtils(this.connection);
 
         //usuario autenticado
@@ -76,6 +76,10 @@ class chatPatientFlow {
 
         const verifyIfDataAreFromAUser = await databaseFramework.select("users", "*", "uniqueid = ?", [userData]);
 
+        if (isScheduled === 1) {
+            await databaseFramework.insert("chat_queue", { userSessionId: null, isLogged: 1, patient_id: verifyIfDataAreFromAUser[0].id, attendant_id: attendantId, isScheduled: 1 });
+            return res.status(200).send({ message: 'Convite enviado ao atendente. Aguardando resposta.' });
+        }
         //usuário nao esta autenticado.
         if (verifyIfDataAreFromAUser.length <= 0) {
             await databaseFramework.insert("chat_queue", { userSessionId: userData, isLogged: 0, patient_id: null, attendant_id: attendantId });
