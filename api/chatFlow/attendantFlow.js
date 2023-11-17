@@ -395,11 +395,12 @@ class chatAttendantFlow {
                 return res.status(409).json({ message: 'Agendamento já foi confirmado.' });
             }
 
-            await databaseFramework.update("appointments", { isConfirmed: 1 }, "id = ?", [scheduleId]);
-            await databaseFramework.update("users_appointments", { isConfirmed: 1 }, "schedule_id = ?", [scheduleId]);
+            await databaseFramework.update("appointments", { isConfirmed: 1 }, `id = ${scheduleId}`);
+            await databaseFramework.update("users_appointments", { isConfirmed: 1 }, `schedule_id = ${scheduleId}`);
             return res.status(200).json({ message: 'Agendamento confirmado.' });
 
         } catch (error) {
+            console.log(error);
             return res.status(500).json({ message: error.message });
         }
 
