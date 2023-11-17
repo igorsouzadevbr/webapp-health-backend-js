@@ -511,14 +511,19 @@ class Users {
       if (verifyProfessionalAppointments.length === 1) {
         return res.status(409).send({ message: 'Este profissional já possui um agendamento para esta data e horário. Escolha outra.' });
       }
+      let createSchedule;
+      if (isOnline === 1) {
+        createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
+      } else {
+        createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 1 });
+      }
 
-      const createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
 
       if (isOnline === 1) {
         await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 1, isInPerson: 0, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
         return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
       } else {
-        await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule, location_id: locationId });
+        await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 1, isRefused: 0, schedule_id: createSchedule, location_id: locationId });
         return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
       }
 

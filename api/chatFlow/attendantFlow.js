@@ -379,6 +379,32 @@ class chatAttendantFlow {
         }
     }
 
+    async acceptPendingSchedule(req, res) {
+        const { attendantId, scheduleId } = req.body;
+        const databaseFramework = new dbUtils(this.connection);
+
+        try {
+            const getScheduleData = await databaseFramework.select("appointments", "*", "id = ? and professional_id = ?", [scheduleId, attendantId]);
+            const scheduledData = getScheduleData[0];
+
+            if (scheduledData.isOnline === 0) {
+                return res.status(409).json({ message: 'Agendamento não é online.' });
+            }
+
+            if (scheduledData.isConfirmed === 1) {
+                return res.status(409).json({ message: 'Agendamento já foi confirmado.' });
+            }
+
+            await databaseFramework.update("appointments", { isConfirmed: 1 }, "id = ?", [scheduleId]);
+            await databaseFramework.update("users_appointments", { isConfirmed: 1 }, "schedule_id = ?", [scheduleId]);
+            return res.status(200).json({ message: 'Agendamento confirmado.' });
+
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+
+    }
+
     async listSchedulesPending(req, res) {
         const { attendantId } = req.body;
         const databaseFramework = new dbUtils(this.connection);

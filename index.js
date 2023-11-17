@@ -230,6 +230,10 @@ app.post('/api/schedules/patient/verify', authenticateClient, (req, res) => {
   users.verifySchedule(req, res);
 });
 
+app.post('/api/schedules/attendant/accept', authenticateClient, (req, res) => {
+  attendantFlow.acceptPendingSchedule(req, res);
+});
+
 app.post('/api/schedules/create', authenticateClient, (req, res) => {
   users.createSchedule(req, res);
 });
