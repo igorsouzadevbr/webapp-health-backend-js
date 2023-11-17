@@ -192,7 +192,7 @@ class chatAttendantFlow {
     async listChatQueue(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId } = req.body;
-        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ? and attendantHasAccepted = 0", [attendantId]);
+        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ? and attendantHasAccepted = 0 and finished = 0", [attendantId]);
 
         if (getAttendantQueue.length <= 0) {
             return res.status(404).send({ message: 'Este atendente não possui chats pendentes.' });
@@ -213,6 +213,34 @@ class chatAttendantFlow {
         unauthenticatedUsers.forEach(userId => {
             users.push({ userId: userId, userphoto: null });
         });
+
+        return res.status(200).send(users);
+    }
+
+    async listChatQueueScheduled(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId } = req.body;
+        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ? and attendantHasAccepted = 0 and isScheduled = 1 and finished = 0", [attendantId]);
+        if (getAttendantQueue.length <= 0) {
+            return res.status(404).send({ message: 'Este atendente não possui chats pendentes.' });
+        }
+        const attendantQueueData = getAttendantQueue.map(queue => queue.patient_id);
+
+        const getScheduleData = await databaseFramework.select("appointments", "*", "professional_id = ? and patient_id in (?) and isFinished = 0", [attendantId, attendantQueueData]);
+        if (getScheduleData.length <= 0) { return res.status(404).send({ message: 'Este atendente não possui chats agendados pendentes.' }); }
+
+
+        const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
+
+        let users = [];
+
+        if (authenticatedUsers.length > 0) {
+            const getUserData = await databaseFramework.select("users", "id, userphoto", "id IN (?)", [authenticatedUsers]);
+            users = users.concat(getUserData.map(user => {
+                return { userId: user.id, userphoto: `${user.userphoto}` };
+            }));
+        }
+
 
         return res.status(200).send(users);
     }

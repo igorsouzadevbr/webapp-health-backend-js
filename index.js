@@ -143,6 +143,10 @@ app.post('/api/attendant/queue/get', authenticateClient, (req, res) => {
   attendantFlow.listChatQueue(req, res);
 });
 
+app.post('/api/attendant/queue/scheduled/get', authenticateClient, (req, res) => {
+  attendantFlow.listChatQueueScheduled(req, res);
+});
+
 app.post('/api/attendant/queue/accept', authenticateClient, (req, res) => {
   attendantFlow.acceptChat(req, res);
 });
