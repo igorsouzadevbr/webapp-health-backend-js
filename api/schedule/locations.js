@@ -11,14 +11,15 @@ class Users {
     async getLocation(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { postalCode } = req.body;
+        const sanitizedPostalCode = postalCode.replace(/\s/g, '');
 
-        const exactLocation = await databaseFramework.select("appointments_location", "*", "postalCode = ? and isDeleted = 0", [postalCode]);
+        const exactLocation = await databaseFramework.select("appointments_location", "*", "postalCode = ? and isDeleted = 0", [sanitizedPostalCode]);
 
         if (exactLocation.length > 0) {
             exactLocation[0].image = `${exactLocation[0].image}`;
             return res.status(200).send(exactLocation[0]);
         } else {
-            const similarLocations = await databaseFramework.select("appointments_location", "*", "postalCode LIKE ? and isDeleted = 0", [`${postalCode.slice(0, 5)}%`]);
+            const similarLocations = await databaseFramework.select("appointments_location", "*", "postalCode LIKE ? and isDeleted = 0", [`${sanitizedPostalCode.slice(0, 5)}%`]);
 
             if (similarLocations.length > 0) {
                 similarLocations.forEach(location => {
