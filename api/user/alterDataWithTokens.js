@@ -160,6 +160,8 @@ class AlterDataWithTokens {
 
         const userDetails = await databaseFramework.select("users", '*', `email = ?`, [email]);
 
+        if (userDetails.length === 0) { return res.status(403).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
+
         const userHasAlreadyWithAPendingToken = await databaseFramework.select('users_mail_tokens', '*', `userid = ?`, [userDetails[0].id]);
         let actualTime = new Date();
         if (userHasAlreadyWithAPendingToken.length >= 1 && userHasAlreadyWithAPendingToken[0].isPassword === 1 && actualTime <= userHasAlreadyWithAPendingToken[0].expiresIn) {
