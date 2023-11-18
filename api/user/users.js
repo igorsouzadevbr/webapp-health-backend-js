@@ -83,6 +83,16 @@ class Users {
       }
       return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_USER.message });
     } else {
+
+      if (userData[0].usertype === systemObjects.UserTypes.ATENDENTE.id
+        || userData[0].usertype === systemObjects.UserTypes.PROFISSIONAL.id) {
+        const verifyIfAttendantIsApproved = await databaseFramework.select("attendant_approve", "*", "attendant_id = ?", [userData[0].id]);
+        const attendantApproveData = verifyIfAttendantIsApproved[0];
+        if (attendantApproveData.isApproved === 0) {
+          return res.status(401).send({ message: 'Seu cadastro ainda não foi aprovado, entre em contato com a equipe responsável.' });
+        }
+      }
+
       const getUserLocation = await databaseFramework.select("location", "*", "personid = ?", [userData[0].id]);
       const userLocationData = getUserLocation[0];
       const token = jwt.sign({ userEmail: email, userUniqueId: userData[0].uniqueid, userId: userData[0].id, userType: userData[0].usertype, userPostalCode: userLocationData.postalcode }, keyUseAPI, { expiresIn: '96h' });

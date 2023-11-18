@@ -204,6 +204,10 @@ app.put('/api/attendant/users/create', authenticateClient, (req, res) => {
   attendantFunctions.create(req, res);
 });
 
+app.post('/api/attendant/approve', authenticateClient, (req, res) => {
+  attendantFunctions.approveAttendant(req, res);
+});
+
 app.patch('/api/attendant/users/update', authenticateClient, (req, res) => {
   attendantFunctions.alterAttendantData(req, res);
 });

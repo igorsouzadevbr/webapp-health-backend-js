@@ -10,7 +10,7 @@ class Functions {
   }
 
   async create(req, res) {
-    const { name, email, phone, birthdate, gender, role, registerNumber, password } = req.body;
+    const { name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, ocupationArea, password } = req.body;
     const uniqueid = uuidv4();
     const databaseFramework = new dbUtils(this.connection);
 
@@ -25,13 +25,46 @@ class Functions {
     const formattedPhone = util.formatPhoneNumber(phone);
     const formattedBirthDate = util.formatToDate(birthdate);
 
-    // Inserção do usuário no banco de dados
-    await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.ATENDENTE.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender, role: role, registerNumber: registerNumber });
+    const createAttendant = await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.ATENDENTE.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender, role: role, registerNumber: registerNumber, cpf: cpf, rg: rg, ocupationArea: ocupationArea });
+    await databaseFramework.insert("attendant_aprove", { attendant_id: createAttendant, isApproved: 0 });
     return res.status(200).send({ message: 'Profissional/Atendente criado com sucesso!', userUniqueId: uniqueid });
   }
 
+  async approveAttendant(req, res) {
+    const { attendantId } = req.body;
+    const databaseFramework = new dbUtils(this.connection);
+    try {
+      const getUserData = await databaseFramework.select("users", "*", "id = ? and usertype >= 2", [attendantId]);
+      if (getUserData.length === 0) {
+        return res.status(409).send({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
+      }
+
+      const userData = getUserData[0];
+      if (userData.isApproved === 1) {
+        return res.status(409).send({ message: 'Este atendente já foi aprovado.' });
+      }
+
+      await databaseFramework.update("attendant_approve", { isApproved: 1 }, "attendant_id =?", [userData.id]);
+      return res.status(200).send({ message: 'Atendente aprovado com sucesso!' });
+    } catch (error) {
+      return res.status(500).send({ message: 'Erro ao aprovar atendente.' });
+    }
+  }
+
+  // async getAttendantApprovalStatus(req, res) {
+  //   const { attendantId } = req.body;
+  //   const databaseFramework = new dbUtils(this.connection);
+
+  //   try {
+
+  //   } catch (error) {
+  //     return res.status(500).send({ message: 'Erro ao pegar status atual da aprovação do atendente.' });
+  //   }
+
+  // }
+
   async alterAttendantData(req, res) {
-    const { name, email, phone, birthdate, gender, password, userUniqueId } = req.body;
+    const { name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, ocupationArea, password, userUniqueId } = req.body;
     const databaseFramework = new dbUtils(this.connection);
 
     const getUserData = await databaseFramework.select("users", "*", "uniqueid = ? and usertype >=2", [userUniqueId]);
@@ -43,7 +76,7 @@ class Functions {
     let hasChanges = false;
 
     const fieldsToUpdate = {
-      name, email, phone, birthdate, gender, role, registerNumber, password
+      name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, ocupationArea, password
     }
     for (const field in fieldsToUpdate) {
       if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
