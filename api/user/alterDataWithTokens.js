@@ -115,10 +115,10 @@ class AlterDataWithTokens {
     async verifyTokenAndAlterUserPassword(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { token } = req.body;
-
+        const tokenToUppercase = token.toUpperCase();
         if (token.length < 7) { return res.status(409).json({ message: 'O token deve possuir no mínimo 7 dígitos, sendo 3 letras e 4 números.' }); }
 
-        const tokenExists = await databaseFramework.select("users_mail_tokens", '*', 'token = ? and isPassword = 1', [token]);
+        const tokenExists = await databaseFramework.select("users_mail_tokens", '*', 'token = ? and isPassword = 1', [tokenToUppercase]);
 
         if (tokenExists.length === 1) {
             const alterPasswordTo = tokenExists[0].alterPasswordTo;
