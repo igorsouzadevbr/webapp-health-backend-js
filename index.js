@@ -281,7 +281,7 @@ app.post('/api/users/update/token/password', authenticateClient, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
 
-app.patch('/api/update/users/password', authenticateClient, (req, res) => {
+app.patch('/api/users/update/password', authenticateClient, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserPassword(req, res);
 });
 
