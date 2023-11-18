@@ -204,9 +204,13 @@ app.put('/api/attendant/users/create', authenticateClient, (req, res) => {
   attendantFunctions.create(req, res);
 });
 
-app.put('/api/professional/users/create', authenticateClient, (req, res) => {
-  professionalFunctions.create(req, res);
+app.patch('/api/attendant/users/update', authenticateClient, (req, res) => {
+  attendantFunctions.alterAttendantData(req, res);
 });
+
+// app.put('/api/professional/users/create', authenticateClient, (req, res) => {
+//   professionalFunctions.create(req, res);
+// });
 
 //ROTA API -- USUARIOS
 
@@ -273,11 +277,11 @@ app.post('/api/users/login', authenticateClient, (req, res) => {
 });
 //mudar o codigo dos demais metodos
 
-app.get('/api/users/update/token/password', authenticateUser, (req, res) => {
+app.get('/api/users/update/token/password', authenticateClient, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
 
-app.patch('/api/update/users/password', authenticateUser, (req, res) => {
+app.patch('/api/update/users/password', authenticateClient, (req, res) => {
   alterDataWithTokens.verifyTokenAndAlterUserPassword(req, res);
 });
 

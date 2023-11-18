@@ -10,7 +10,7 @@ class Functions {
   }
 
   async create(req, res) {
-    const { name, email, phone, birthdate, gender, password } = req.body;
+    const { name, email, phone, birthdate, gender, role, registerNumber, password } = req.body;
     const uniqueid = uuidv4();
     const databaseFramework = new dbUtils(this.connection);
 
@@ -26,8 +26,8 @@ class Functions {
     const formattedBirthDate = util.formatToDate(birthdate);
 
     // Inserção do usuário no banco de dados
-    await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.PROFISSIONAL.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender });
-    return res.status(200).send({ message: 'Usuário criado com sucesso!', userUniqueId: uniqueid });
+    await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.PROFISSIONAL.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender, role: role, registerNumber: registerNumber });
+    return res.status(200).send({ message: 'Profissional/Atendente criado com sucesso!', userUniqueId: uniqueid });
   }
 
   async getSchedules() {

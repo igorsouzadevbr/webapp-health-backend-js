@@ -152,10 +152,9 @@ class AlterDataWithTokens {
 
     async getTokenToAlterUserPassword(req, res) {
         const databaseFramework = new dbUtils(this.connection);
-        const { email, actualPassword, newpassword, secretKey } = req.body;
+        const { email, newPassword } = req.body;
 
-        const actualPasswordEncrypted = util.convertToSHA256(actualPassword);
-        const newPasswordEncrypted = util.convertToSHA256(newpassword);
+        const newPasswordEncrypted = util.convertToSHA256(newPassword);
 
         if (email == null || !util.isEmail(email)) { return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
 
@@ -169,7 +168,6 @@ class AlterDataWithTokens {
 
         if (userDetails.length > 0) {
             const userActualPassword = userDetails[0].password;
-            if (userActualPassword !== actualPasswordEncrypted) { return res.status(409).json({ message: 'Senha atual incorreta.' }); }
             if (newPasswordEncrypted === userActualPassword) { return res.status(409).json({ message: 'A nova senha é igual a senha anterior.' }); }
 
             const userToken = util.generateToken();
