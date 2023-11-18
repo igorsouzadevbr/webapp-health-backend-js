@@ -277,7 +277,7 @@ app.post('/api/users/login', authenticateClient, (req, res) => {
 });
 //mudar o codigo dos demais metodos
 
-app.get('/api/users/update/token/password', authenticateClient, (req, res) => {
+app.post('/api/users/update/token/password', authenticateClient, (req, res) => {
   alterDataWithTokens.getTokenToAlterUserPassword(req, res);
 });
 
