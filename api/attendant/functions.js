@@ -26,7 +26,7 @@ class Functions {
     const formattedBirthDate = util.formatToDate(birthdate);
 
     const createAttendant = await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.ATENDENTE.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender, role: role, registerNumber: registerNumber, cpf: cpf, rg: rg, ocupationArea: ocupationArea });
-    await databaseFramework.insert("attendant_aprove", { attendant_id: createAttendant, isApproved: 0 });
+    await databaseFramework.insert("attendant_approve", { attendant_id: createAttendant, isApproved: 0 });
     return res.status(200).send({ message: 'Profissional/Atendente criado com sucesso!', userUniqueId: uniqueid });
   }
 
