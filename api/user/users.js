@@ -88,7 +88,7 @@ class Users {
         || userData[0].usertype === systemObjects.UserTypes.PROFISSIONAL.id) {
         const verifyIfAttendantIsApproved = await databaseFramework.select("attendant_approve", "*", "attendant_id = ?", [userData[0].id]);
         const attendantApproveData = verifyIfAttendantIsApproved[0];
-        if (verifyIfAttendantIsApproved.length && attendantApproveData.isApproved === 0) {
+        if (verifyIfAttendantIsApproved.length > 0 && attendantApproveData.isApproved === 0) {
           return res.status(401).send({ message: 'Seu cadastro ainda não foi aprovado, entre em contato com a equipe responsável.' });
         }
       }
