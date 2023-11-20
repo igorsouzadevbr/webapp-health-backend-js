@@ -166,7 +166,7 @@ class Users {
       return res.status(403).json({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message });
     }
 
-    const userDataByEmail = await databaseFramework.select("users", "id, uniqueid, name, email, phone, birthdate, gender, userphoto, password, usertype", "email = ? and uniqueid = ?", [email, userUniqueId]);
+    const userDataByEmail = await databaseFramework.select("users", "id, uniqueid, name, email, phone, birthdate, gender, userphoto, password, usertype, rg, cpf, role, registerNumber, occupationArea", "email = ? and uniqueid = ?", [email, userUniqueId]);
     if (userDataByEmail.length === 0) {
       return res.status(404).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message });
     }
