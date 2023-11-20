@@ -10,7 +10,7 @@ class Functions {
   }
 
   async create(req, res) {
-    const { name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, ocupationArea, password } = req.body;
+    const { name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, occupationArea, password } = req.body;
     const uniqueid = uuidv4();
     const databaseFramework = new dbUtils(this.connection);
 
@@ -25,7 +25,7 @@ class Functions {
     const formattedPhone = util.formatPhoneNumber(phone);
     const formattedBirthDate = util.formatToDate(birthdate);
 
-    const createAttendant = await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.ATENDENTE.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender, role: role, registerNumber: registerNumber, cpf: cpf, rg: rg, ocupationArea: ocupationArea });
+    const createAttendant = await databaseFramework.insert("users", { uniqueid: uniqueid, name: name, email: email, password: util.convertToSHA256(password), usertype: systemObjects.UserTypes.ATENDENTE.id, phone: formattedPhone, birthdate: formattedBirthDate, gender: gender, role: role, registerNumber: registerNumber, cpf: cpf, rg: rg, occupationArea: occupationArea });
     await databaseFramework.insert("attendant_approve", { attendant_id: createAttendant, isApproved: 0 });
     return res.status(200).send({ message: 'Profissional/Atendente criado com sucesso!', userUniqueId: uniqueid });
   }
@@ -64,7 +64,7 @@ class Functions {
   // }
 
   async alterAttendantData(req, res) {
-    const { name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, ocupationArea, password, userUniqueId } = req.body;
+    const { name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, occupationArea, password, userUniqueId } = req.body;
     const databaseFramework = new dbUtils(this.connection);
 
     const getUserData = await databaseFramework.select("users", "*", "uniqueid = ? and usertype >=2", [userUniqueId]);
@@ -76,7 +76,7 @@ class Functions {
     let hasChanges = false;
 
     const fieldsToUpdate = {
-      name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, ocupationArea, password
+      name, email, phone, birthdate, gender, role, registerNumber, cpf, rg, occupationArea, password
     }
     for (const field in fieldsToUpdate) {
       if (fieldsToUpdate[field] && fieldsToUpdate[field] !== currentUserData[field]) {
