@@ -26,7 +26,7 @@ class SocketConnection {
         if (!utils.isOnlyNumbers(patientId)) {
           try {
             const databaseFramework = new dbUtils(this.connection);
-            const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "userData = ? and attendant_id = ?", [patientId, attendantId]);
+            const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "userData = ? and attendant_id = ? and chat_id = ?", [patientId, attendantId, chatId]);
             if (verifyIfPatientAlreadyHasAQuiz.length >= 1) {
               this.io.emit('quizError', { message: 'Este paciente já tem um quiz vinculado a ele neste chat.' });
               return;
@@ -41,7 +41,7 @@ class SocketConnection {
         }
         try {
           const databaseFramework = new dbUtils(this.connection);
-          const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "patient_id = ? and attendant_id = ?", [patientId, attendantId]);
+          const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "patient_id = ? and attendant_id = ? and chat_id = ?", [patientId, attendantId, chatId]);
           if (verifyIfPatientAlreadyHasAQuiz.length >= 1) {
             this.io.emit('quizError', { message: 'Este paciente já tem um quiz vinculado a ele neste chat.' });
             return;
