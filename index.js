@@ -5,7 +5,11 @@ const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const fs = require('fs');
 const app = express();
-const socketServer = http.createServer(app);
+const options = {
+  key: fs.readFileSync('./cert/key.pem'),
+  cert: fs.readFileSync('./cert/cert.pem')
+};
+const socketServer = http.createServer(options, app);
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json({ limit: '50mb' }));
