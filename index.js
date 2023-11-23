@@ -175,12 +175,8 @@ app.get('/api/chat/categories/get', authenticateClient, (req, res) => {
   system.getAllCategoriesWithAttendantsAvailable(req, res);
 });
 
-app.post('/api/attendant/status/off', authenticateClient, (req, res) => {
+app.post('/api/attendant/status', authenticateClient, (req, res) => {
   system.turnAttendantOffline(req, res);
-});
-
-app.post('/api/attendant/status/on', authenticateClient, (req, res) => {
-  system.turnAttendantOnline(req, res);
 });
 
 app.get('/api/chat/attendant/random', authenticateClient, (req, res) => {
