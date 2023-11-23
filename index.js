@@ -387,12 +387,12 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-httpsServer.listen(PORT, () => {
+httpsServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor ouvindo na porta:${PORT}`);
 });
 
 const portSocket = process.env.PORT_SOCKET || 3001;
-socketServer.listen(portSocket, () => {
+socketServer.listen(portSocket, '0.0.0.0', () => {
   console.log(`Servidor Socket.IO ouvindo na porta: ${portSocket}`);
 });
 
