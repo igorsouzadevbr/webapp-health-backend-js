@@ -137,6 +137,29 @@ class SocketConnection {
 
       });
 
+      socket.on('finishService', async (data) => {
+        try {
+          const chatId = data.chatId;
+          const databaseFramework = new dbUtils(this.connection);
+
+          const getChatData = await databaseFramework.select("chat_queue", "*", "id = ?", [chatId]);
+          const chatData = getChatData[0];
+
+          await databaseFramework.update("chat_attendants", { isOnChat: 0 }, `attendant_id = ${chatData.attendant_id}`);
+
+          await databaseFramework.update("chat_queue", { finished: 1 }, `id = ${chatId}`);
+          await databaseFramework.update("chat_sessions", { finished: 1 }, `chat_queue_id = ${chatId}`);
+          if (chatData.isScheduled === 1) {
+            await databaseFramework.update("appointments", { isFinished: 1 }, `patient_id = ${chatData.patient_id}`);
+            await databaseFramework.update("user_appointments", { isFinished: 1 }, `patient_id = ${chatData.patient_id}`);
+          }
+          this.io.emit('finishedService', { finished: 1 });
+        } catch (error) {
+          console.error('Erro no envio de mensagens:', error);
+        }
+
+      });
+
       socket.on('teste', () => {
         this.io.emit('finishedChat', { eae: 'blz?' });
       });
