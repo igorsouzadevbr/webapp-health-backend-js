@@ -249,6 +249,103 @@ class System {
     }
   }
 
+  async turnAttendantOffline(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { attendantId } = req.body;
+    try {
+      let sql = `UPDATE chat_attendants SET isAvailable = 0 WHERE attendant_id = ${attendantId} and isOnChat = 0`;
+      await databaseFramework.rawQuery(sql);
+
+      return res.status(200).send({ message: 'Atendente desativado com sucesso.' });
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: turnAttendantOffline:' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao desativar atendente.', error });
+    }
+  }
+
+  async turnAttendantOnline(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { attendantId } = req.body;
+    try {
+      let sql = `UPDATE chat_attendants SET isAvailable = 1 WHERE attendant_id = ${attendantId} and isOnChat = 0`;
+      await databaseFramework.rawQuery(sql);
+
+      return res.status(200).send({ message: 'Atendente está online.' });
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: turnAttendantOffline:' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao desativar atendente.', error });
+    }
+  }
+
+  async getAvailableChatAttendant(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    try {
+      let sql = `SELECT attendant_id FROM chat_attendants WHERE isOnChat = 0 AND isAvailable = 1 LIMIT 1`;
+      const availableAttendant = await databaseFramework.rawQuery(sql);
+
+      if (availableAttendant.length > 0) {
+        return res.status(200).send({ attendantId: availableAttendant[0].attendant_id });
+      } else {
+        return res.status(404).send({ message: 'Nenhum atendente disponível encontrado.' });
+      }
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: getAvailableChatAttendant: ' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao buscar atendente disponível.', error });
+    }
+  }
+
+  async getAttendantScheduledQuantity(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { attendantId } = req.body;
+    try {
+      let confirmedSQL = `SELECT COUNT(*) FROM appointments WHERE professional_id = ${attendantId} AND isConfirmed = 1`;
+      const confirmedCount = await databaseFramework.rawQuery(confirmedSQL);
+
+      let waitingConfirmationSQL = `SELECT COUNT(*) FROM appointments WHERE professional_id = ${attendantId} AND isConfirmed = 0`;
+      const waitingConfirmationCount = await databaseFramework.rawQuery(waitingConfirmationSQL);
+
+      return res.status(200).send({
+        confirmedCount: confirmedCount[0]['COUNT(*)'],
+        waitingConfirmationCount: waitingConfirmationCount[0]['COUNT(*)']
+      });
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: getAllCategoriesWithAttendants: ' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao buscar detalhes das categorias.', error });
+    }
+  }
+
   async getAllCategoriesWithAttendantsAvailable(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     try {

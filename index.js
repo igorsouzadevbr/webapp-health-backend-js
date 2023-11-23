@@ -32,6 +32,7 @@ const corsOptions = {
   optionsSuccessStatus: 204,
   allowedHeaders: 'Authorization,Content-Type',
 };
+
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
@@ -172,6 +173,22 @@ app.post('/api/patient/get', authenticateClient, (req, res) => {
 
 app.get('/api/chat/categories/get', authenticateClient, (req, res) => {
   system.getAllCategoriesWithAttendantsAvailable(req, res);
+});
+
+app.post('/api/attendant/status/off', authenticateClient, (req, res) => {
+  system.turnAttendantOffline(req, res);
+});
+
+app.post('/api/attendant/status/on', authenticateClient, (req, res) => {
+  system.turnAttendantOnline(req, res);
+});
+
+app.get('/api/chat/attendant/random', authenticateClient, (req, res) => {
+  system.getAvailableChatAttendant(req, res);
+});
+
+app.post('/api/attendant/schedules/get', authenticateClient, (req, res) => {
+  system.getAttendantScheduledQuantity(req, res);
 });
 
 app.get('/api/chat/attendant/get', authenticateClient, (req, res) => {
