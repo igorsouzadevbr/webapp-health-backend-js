@@ -137,6 +137,7 @@ class SocketConnection {
       });
 
       socket.on('disconnect', () => {
+        this.io.emit('finishedChat', { eae: 'blz?' });
       });
 
     });
