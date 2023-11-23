@@ -1,5 +1,6 @@
 const express = require('express');
 const http = require('http');
+const https = require('https');
 const server = http.createServer(http);
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
@@ -9,7 +10,7 @@ const options = {
   key: fs.readFileSync('./cert/key.pem'),
   cert: fs.readFileSync('./cert/cert.pem')
 };
-const socketServer = http.createServer(options, app);
+const socketServer = https.createServer(options, app);
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -55,7 +56,7 @@ const ScheduleFunctions = require('./api/schedule/locations.js');
 //limitador de requisições -- importante identificar o uso real do webapp para deixar em um número bacana de requisições x tempo.
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 500,
+  max: 5000,
   message: "Você excedeu olimite de requisições em 15 minutos."
 });
 app.use('/api/', limiter);
@@ -381,7 +382,7 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Servidor ouvindo na porta:${PORT}`);
 });
 
