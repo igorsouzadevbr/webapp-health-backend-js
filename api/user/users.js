@@ -445,10 +445,19 @@ class Users {
     const databaseFramework = new dbUtils(this.connection);
     const { patientId } = req.body;
 
-    const getAllUserSchedules = await databaseFramework.select("appointments", "*", "patient_id = ? and isConfirmed = 1 and isFinished = 0", [patientId]);
+    // Obtenha a data atual no formato 'YYYY-MM-DD' e o horário atual no formato 'HH:MM'
+    const currentDate = new Date().toISOString().split('T')[0];
+    const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
+
+    const getAllUserSchedules = await databaseFramework.select(
+      "appointments",
+      "*",
+      "patient_id = ? AND date = ? AND start_time >= ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0",
+      [patientId, currentDate, currentTime]
+    );
 
     if (getAllUserSchedules.length > 0) {
-      const attendantIds = getAllUserSchedules.map(appointment => appointment.professional_id);
+      const attendantIds = getAllUserSchedules.map((appointment) => appointment.professional_id);
 
       const getUserInfo = await databaseFramework.select("users", "*", "id IN(?)", [attendantIds]);
 
@@ -457,7 +466,7 @@ class Users {
         return map;
       }, {});
 
-      const combinedSchedule = getAllUserSchedules.map(appointment => {
+      const combinedSchedule = getAllUserSchedules.map((appointment) => {
         const professional = professionalMap[appointment.professional_id];
         return {
           scheduleId: appointment.id,
@@ -467,12 +476,11 @@ class Users {
           professionalId: professional.id,
           professionalName: professional.name,
           professionalRole: professional.role,
-          professionalPhoto: `${professional.userPhoto}`
+          professionalPhoto: `${professional.userPhoto}`,
         };
       });
 
       return res.status(200).json(combinedSchedule);
-
     } else {
       return res.status(400).send();
     }
@@ -489,7 +497,7 @@ class Users {
 
     const convertedDate = new Date(year, month, day);
 
-    const verifyIfUserHasSchedules = await databaseFramework.select("appointments", "*", "patient_id = ? and date = ?", [patientId, convertedDate]);
+    const verifyIfUserHasSchedules = await databaseFramework.select("appointments", "*", "patient_id = ? and date = ? and isDeleted = 0", [patientId, convertedDate]);
     if (verifyIfUserHasSchedules.length > 0) {
 
       const appointments = [];

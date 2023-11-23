@@ -258,6 +258,10 @@ app.post('/api/schedules/professional/get', authenticateClient, (req, res) => {
   users.getHoursByAttendants(req, res);
 });
 
+app.post('/api/patient/schedules/cancel', authenticateClient, (req, res) => {
+  scheduleFunctions.cancelSchedule(req, res);
+});
+
 app.post('/api/schedules/date/get', authenticateClient, (req, res) => {
   users.listUnavailableHours(req, res);
 });
