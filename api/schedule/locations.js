@@ -12,11 +12,11 @@ class Users {
         const databaseFramework = new dbUtils(this.connection);
         const { scheduleId, patientId } = req.body;
         try {
-            const verifyIfScheduleExists = await databaseFramework.select("appointments", "*", "id = ? and isDeleted = 0 and patient_id = ?", [scheduleId, patientId]);
+            const verifyIfScheduleExists = await databaseFramework.select("appointments", "*", "id = ? and patient_id = ? and isDeleted = 0", [scheduleId, patientId]);
             if (verifyIfScheduleExists.length === 0) {
                 return res.status(404).send({ message: 'Agendamento não encontrado.' });
             }
-            await databaseFramework.update("appointments", "isDeleted = 1", "id = ?", [scheduleId]);
+            await databaseFramework.update("appointments", { isDeleted: 1 }, "id = ?", [scheduleId]);
             return res.status(200).send({ message: 'Agendamento cancelado com sucesso.' });
         } catch (error) {
             return res.status(500).send({ message: error.message });
