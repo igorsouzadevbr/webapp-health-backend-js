@@ -1,7 +1,5 @@
 const express = require('express');
-const http = require('http');
 const https = require('https');
-const server = http.createServer(http);
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const fs = require('fs');
@@ -10,7 +8,14 @@ const options = {
   key: fs.readFileSync('./cert/key.pem'),
   cert: fs.readFileSync('./cert/cert.pem')
 };
+
+const privateKey = fs.readFileSync('./cert/key.pem', 'utf8');
+const certificate = fs.readFileSync('./cert/cert.pem', 'utf8');
+const credentials = { key: privateKey, cert: certificate };
+
+const httpsServer = https.createServer(credentials, app);
 const socketServer = https.createServer(options, app);
+
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -382,7 +387,7 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, () => {
+httpsServer.listen(PORT, () => {
   console.log(`Servidor ouvindo na porta:${PORT}`);
 });
 
