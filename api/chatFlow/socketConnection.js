@@ -6,6 +6,7 @@ const attendantFlow = require('../chatFlow/attendantFlow.js');
 class SocketConnection {
   constructor(server, connection) {
     this.io = socketIO(server, {
+      rejectUnauthorized: false,
       cors: {
         origin: "*",
         methods: ["GET", "POST"]
