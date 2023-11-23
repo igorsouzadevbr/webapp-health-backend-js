@@ -7,9 +7,9 @@ class SocketConnection {
   constructor(server, connection) {
     this.io = socketIO(server, {
       cors: {
-        origin: '*',
-        methods: ['GET', 'POST'],
-      },
+        origin: "*",
+        methods: ["GET", "POST"]
+      }
     });
 
     this.connection = connection;
