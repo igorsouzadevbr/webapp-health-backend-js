@@ -338,7 +338,7 @@ class System {
       util.logToDatabase({
         uniqueid: uniqueid,
         ip: req.ip,
-        method: 'GET',
+        method: 'POST',
         message: 'ERRO: getAllCategoriesWithAttendants: ' + JSON.stringify(error),
         status: 500
       }, this.connection);

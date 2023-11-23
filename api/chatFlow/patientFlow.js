@@ -54,14 +54,14 @@ class chatPatientFlow {
 
         //usuario autenticado
         if (util.isValidUUID(userData)) {
-            const getUserData = await databaseFramework.select("users", "*", "uniqueid = ?", [userData]);
-            const verifyIfUserIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ?", [getUserData[0].id]);
+            const getUserData = await databaseFramework.select("users", "*", "uniqueid = ? ", [userData]);
+            const verifyIfUserIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ? and finished = 0", [getUserData[0].id]);
             if (verifyIfUserIsOnQueue.length >= 1) {
                 return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
             }
         }
 
-        const verifyIfUserNotLoggedIsOnQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ?", [userData]);
+        const verifyIfUserNotLoggedIsOnQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ? and finished = 0", [userData]);
         if (verifyIfUserNotLoggedIsOnQueue.length >= 1) {
             return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
         }
