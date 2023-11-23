@@ -249,10 +249,34 @@ class System {
     }
   }
 
-  async turnAttendantOffline(req, res) {
+  async getAttendantStatus(req, res) {
+    const databaseFramework = new dbUtils(this.connection);
+    const { attendantId } = req.body;
+    try {
+      const getAttendantStatus = await databaseFramework.select("chat_attendants", "*", "attendant_id =?", [attendantId]);
+      if (getAttendantStatus.length <= 0) {
+        return res.status(404).send({ message: 'Este atendente não existe ou não está disponível.' });
+      }
+      const attendantStatus = getAttendantStatus[0];
+      return res.status(200).send({ isAvailable: attendantStatus.isAvailable });
+    } catch (error) {
+      const { v4: uuidv4 } = require('uuid');
+      const uniqueid = uuidv4();
+      util.logToDatabase({
+        uniqueid: uniqueid,
+        ip: req.ip,
+        method: 'GET',
+        message: 'ERRO: getAttendantStatus:' + JSON.stringify(error),
+        status: 500
+      }, this.connection);
+      return res.status(500).send({ message: 'Erro ao buscar detalhes do atendente.', error });
+    }
+  }
+
+  async turnAttendantStatus(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     const { attendantId, status } = req.body;
-    if (status !== 1 || status !== 0) {
+    if (!util.isInteger(status)) {
       return res.status(400).send({ message: 'Status inválido.' });
     }
     try {
