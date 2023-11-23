@@ -136,7 +136,7 @@ class SocketConnection {
 
       });
 
-      socket.on('disconnect', () => {
+      socket.on('teste', () => {
         this.io.emit('finishedChat', { eae: 'blz?' });
       });
 
