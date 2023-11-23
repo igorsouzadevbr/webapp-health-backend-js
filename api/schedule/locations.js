@@ -16,7 +16,7 @@ class Users {
             if (verifyIfScheduleExists.length === 0) {
                 return res.status(404).send({ message: 'Agendamento não encontrado.' });
             }
-            await databaseFramework.update("appointments", { isDeleted: 1 }, "id = ?", [scheduleId]);
+            await databaseFramework.update("appointments", { isDeleted: 1 }, `id = ${scheduleId}`);
             return res.status(200).send({ message: 'Agendamento cancelado com sucesso.' });
         } catch (error) {
             return res.status(500).send({ message: error.message });
