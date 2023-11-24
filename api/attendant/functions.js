@@ -99,11 +99,6 @@ class Functions {
           }
           fieldsToUpdate[field] = util.formatPhoneNumber(fieldsToUpdate[field]);
         }
-        if (field === 'gender' && currentUserData[field] != gender) {
-          if (!util.isInteger(gender)) {
-            return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_GENDER.message });
-          }
-        }
         if (field === 'birthdate' && currentUserData[field] != await util.formatToDate(birthdate)) {
           fieldsToUpdate[field] = util.formatToDate(fieldsToUpdate[field]);
         }
