@@ -190,7 +190,7 @@ class SocketConnection {
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
-    }, 10000);
+    }, 2 * 60 * 1000);
   }
 
   async checkQueue() {
