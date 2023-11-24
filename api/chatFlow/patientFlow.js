@@ -51,6 +51,7 @@ class chatPatientFlow {
     async callAttendant(req, res) {
         const { userData, attendantId, isScheduled } = req.body;
         const databaseFramework = new dbUtils(this.connection);
+        const date = new Date();
 
         //usuario autenticado
         if (util.isValidUUID(userData)) {
@@ -80,16 +81,15 @@ class chatPatientFlow {
             await databaseFramework.insert("chat_queue", { userSessionId: null, isLogged: 1, patient_id: verifyIfDataAreFromAUser[0].id, attendant_id: attendantId, isScheduled: 1 });
             return res.status(200).send({ message: 'Convite enviado ao atendente. Aguardando resposta.' });
         }
+
         //usuário nao esta autenticado.
         if (verifyIfDataAreFromAUser.length <= 0) {
-            await databaseFramework.insert("chat_queue", { userSessionId: userData, isLogged: 0, patient_id: null, attendant_id: attendantId });
+            await databaseFramework.insert("chat_queue", { userSessionId: userData, isLogged: 0, patient_id: null, attendant_id: attendantId, date: date });
 
             return res.status(200).send({ message: 'Convite enviado ao atendente. Aguardando resposta.' });
         }
-        await databaseFramework.insert("chat_queue", { userSessionId: null, isLogged: 1, patient_id: verifyIfDataAreFromAUser[0].id, attendant_id: attendantId });
+        await databaseFramework.insert("chat_queue", { userSessionId: null, isLogged: 1, patient_id: verifyIfDataAreFromAUser[0].id, attendant_id: attendantId, date: date });
         return res.status(200).send({ message: 'Convite enviado ao atendente. Aguardando resposta.' });
-
-
     }
 
 

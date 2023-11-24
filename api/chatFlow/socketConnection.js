@@ -2,7 +2,7 @@ const socketIO = require('socket.io');
 const dbUtils = require('../util/databaseUtils.js');
 const utils = require('../util/util.js');
 const attendantFlow = require('../chatFlow/attendantFlow.js');
-
+const moment = require('moment');
 class SocketConnection {
   constructor(server, connection) {
     this.io = socketIO(server, {
@@ -39,6 +39,8 @@ class SocketConnection {
           }
           return;
         }
+
+
         try {
           const databaseFramework = new dbUtils(this.connection);
           const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "patient_id = ? and attendant_id = ? and chat_id = ?", [patientId, attendantId, chatId]);
@@ -72,8 +74,6 @@ class SocketConnection {
         }
       });
 
-
-      //FLUXO DE ENVIO DE MENSAGENS.
       socket.on('chatMessage', async (messageData) => {
         const messageSender = messageData.sender_id;
         const messageReceiver = messageData.receiver_id;
@@ -111,7 +111,6 @@ class SocketConnection {
         }
       });
 
-      //finalização de chat
       socket.on('finishChat', async (data) => {
 
         try {
@@ -160,14 +159,39 @@ class SocketConnection {
 
       });
 
-      socket.on('teste', () => {
-        this.io.emit('finishedChat', { eae: 'blz?' });
-      });
-
     });
 
-    // Iniciar verificação de fila
     this.checkQueue();
+    this.checkAndDeleteQueueItems();
+  }
+
+  async checkAndDeleteQueueItems() {
+    setInterval(async () => {
+      try {
+        const databaseFramework = new dbUtils(this.connection);
+
+        const fiveMinutesAgo = currentDate.clone().subtract(5, 'minutes');
+
+        const queueItems = await databaseFramework.select(
+          'chat_queue',
+          '*',
+          'finished = 0 AND attendantHasAccepted = 0 AND isScheduled = 0 AND date >= ?',
+          [fiveMinutesAgo.format('YYYY-MM-DD HH:mm:ss')]
+        );
+
+        for (const item of queueItems) {
+          await databaseFramework.delete('chat_queue', `id = ${item.id}`);
+          if (item.isLogged === 1) {
+            this.io.emit('deletedUserFromQueue', { patientId: item.patient_id, attendantId: item.attendant_id });
+          } else {
+            this.io.emit('deletedUserFromQueue', { patientId: item.userSessionId, attendantId: item.attendant_id });
+          }
+        }
+
+      } catch (error) {
+        console.error('Erro na verificação e exclusão da fila:', error);
+      }
+    }, 2 * 60 * 1000);
   }
 
   async checkQueue() {
@@ -187,6 +211,7 @@ class SocketConnection {
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
               this.io.emit('chatReadyAttendant', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
+
             } else {
 
               await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `patient_id = ${chat.patient_id}`);
