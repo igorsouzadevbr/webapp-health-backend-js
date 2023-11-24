@@ -175,7 +175,7 @@ class SocketConnection {
         const queueItems = await databaseFramework.select(
           'chat_queue',
           '*',
-          'finished = 0 AND attendantHasAccepted = 0 AND isScheduled = 0 AND date >= ?',
+          'finished = 0 AND attendantHasAccepted = 0 AND isScheduled = 0 AND date <= ?',
           [fiveMinutesAgo.format('YYYY-MM-DD HH:mm:ss')]
         );
 
@@ -191,7 +191,7 @@ class SocketConnection {
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
-    }, 2 * 60 * 1000);
+    }, 10000);
   }
 
   async checkQueue() {
