@@ -440,14 +440,13 @@ class Users {
     const databaseFramework = new dbUtils(this.connection);
     const { patientId } = req.body;
 
-    // Obtenha a data atual no formato 'YYYY-MM-DD' e o horário atual no formato 'HH:MM'
     const currentDate = new Date().toISOString().split('T')[0];
     const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-
+    console.log(currentTime);
     const getAllUserSchedules = await databaseFramework.select(
       "appointments",
       "*",
-      "patient_id = ? AND date = ? AND start_time >= ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0",
+      "patient_id = ? AND date >= ? AND start_time >= ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0",
       [patientId, currentDate, currentTime]
     );
 
@@ -461,9 +460,45 @@ class Users {
         return map;
       }, {});
 
-      const combinedSchedule = getAllUserSchedules.map((appointment) => {
+      const combinedSchedule = [];
+
+      for (const appointment of getAllUserSchedules) {
         const professional = professionalMap[appointment.professional_id];
-        return {
+        const userAppointments = await databaseFramework.select(
+          "users_appointments",
+          "*",
+          "schedule_id = ? AND isInPerson = 1",
+          [appointment.id]
+        );
+
+        const locationInfo = [];
+
+        for (const userAppointment of userAppointments) {
+
+          const locationId = userAppointment.location_id;
+
+          const locationData = await databaseFramework.select(
+            "appointments_location",
+            "*",
+            "id = ?",
+            [locationId]
+          );
+          if (locationData.length > 0) {
+            locationInfo.push({
+              locationId: locationData[0].id,
+              locationName: locationData[0].name,
+              locationAddress: locationData[0].address,
+              locationNumber: locationData[0].number,
+              locationComplement: locationData[0].complement,
+              locationNeighborhood: locationData[0].neighborhood,
+              locationPostalCode: locationData[0].postalCode,
+              locationCity: await this.getCityNameById(locationData[0].cityId),
+              locationState: await this.getStateNameById(locationData[0].stateId),
+            });
+          }
+        }
+
+        combinedSchedule.push({
           scheduleId: appointment.id,
           scheduleDate: util.formatDate(appointment.date),
           scheduleStartTime: appointment.start_time,
@@ -472,13 +507,26 @@ class Users {
           professionalName: professional.name,
           professionalRole: professional.role,
           professionalPhoto: `${professional.userPhoto}`,
-        };
-      });
+          locationInfo: locationInfo,
+        });
+      }
 
       return res.status(200).json(combinedSchedule);
     } else {
       return res.status(400).send();
     }
+  }
+
+  async getCityNameById(cityId) {
+    const databaseFramework = new dbUtils(this.connection);
+    const cityData = await databaseFramework.select("city", "name", "id = ?", [cityId]);
+    return cityData.length > 0 ? cityData[0].name : null;
+  }
+
+  async getStateNameById(stateId) {
+    const databaseFramework = new dbUtils(this.connection);
+    const stateData = await databaseFramework.select("states", "nome", "id = ?", [stateId]);
+    return stateData.length > 0 ? stateData[0].nome : null;
   }
 
   async verifySchedule(req, res) {
