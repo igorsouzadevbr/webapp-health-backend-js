@@ -26,12 +26,11 @@ class SocketConnection {
         if (!utils.isOnlyNumbers(patientId)) {
           try {
             const databaseFramework = new dbUtils(this.connection);
-            const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "userData = ? and attendant_id = ? and chat_id = ?", [patientId, attendantId, chatId]);
+            const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "userData = ? and attendant_id = ? and chat_id = ? and answered = 1", [patientId, attendantId, chatId]);
             if (verifyIfPatientAlreadyHasAQuiz.length >= 1) {
               this.io.emit('quizError', { message: 'Este paciente já tem um quiz vinculado a ele neste chat.' });
               return;
             }
-
             const insertQuiz = await databaseFramework.insert("quiz_answers", { patientIsLogged: 0, attendant_id: attendantId, userData: patientId, quiz_id: 1, finalPoints: 0, chat_id: chatId });
             this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 0, message: 'Quiz enviado para o paciente.' });
           } catch (error) {
