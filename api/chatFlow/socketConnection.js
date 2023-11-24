@@ -169,7 +169,7 @@ class SocketConnection {
     setInterval(async () => {
       try {
         const databaseFramework = new dbUtils(this.connection);
-
+        const currentDate = moment();
         const fiveMinutesAgo = currentDate.clone().subtract(5, 'minutes');
 
         const queueItems = await databaseFramework.select(
