@@ -327,10 +327,10 @@ class System {
     const databaseFramework = new dbUtils(this.connection);
     const { attendantId } = req.body;
     try {
-      let confirmedSQL = `SELECT COUNT(*) FROM appointments WHERE professional_id = ${attendantId} AND isConfirmed = 1`;
+      let confirmedSQL = `SELECT COUNT(*) FROM appointments WHERE professional_id = ${attendantId} AND isConfirmed = 1 and isDeleted = 0`;
       const confirmedCount = await databaseFramework.rawQuery(confirmedSQL);
 
-      let waitingConfirmationSQL = `SELECT COUNT(*) FROM appointments WHERE professional_id = ${attendantId} AND isConfirmed = 0`;
+      let waitingConfirmationSQL = `SELECT COUNT(*) FROM appointments WHERE professional_id = ${attendantId} AND isConfirmed = 0 and isDeleted = 0`;
       const waitingConfirmationCount = await databaseFramework.rawQuery(waitingConfirmationSQL);
 
       return res.status(200).send({
