@@ -22,56 +22,56 @@ class Users {
 
     const userId = userData[0].id;
     const userPunishments = await databaseFramework.select("users_punishments", "*", "userid = ?"[userId]);
-
-    if (userPunishments.length > 0) {
-      if (userPunishments[0].isblocked == 1) { return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message, blockreason: userPunishments[0].blockedreason }); }
-
-
-      if (userPunishments[0].isbanned == 1) {
-        const bannedDate = userPunishments[0].banneddate;
-        const data = new Date(bannedDate);
-
-        const dia = String(data.getDate()).padStart(2, '0');
-        const mes = String(data.getMonth() + 1).padStart(2, '0');
-        const ano = data.getFullYear();
-        const horas = String(data.getHours()).padStart(2, '0');
-        const minutos = String(data.getMinutes()).padStart(2, '0');
-
-        const dataFormatada = `${dia}/${mes}/${ano} ás ${horas}:${minutos}`;
-        return res.status(429).send({ message: systemMessages.ErrorMessages.BANNED_USER_MESSAGE.message, bannedreason: userPunishments[0].bannedreason, banneddate: dataFormatada });
-      }
-    }
-    const userLoginAttempts = await databaseFramework.select("login_attempts", "*", "ip = ? and userid = ?", [ip, userId]);
-    const timestampNow = new Date();
-
-    let exists = userLoginAttempts.length > 0;
-    let timestamp = exists ? userLoginAttempts[0].timestamp : timestampNow;
-
-    const diffMinutos = (timestampNow - new Date(timestamp)) / 1000 / 60;
-
-    if (exists && diffMinutos < 5 && userLoginAttempts[0].tries <= 3) {
-      await databaseFramework.update("login_attempts", { tries: userLoginAttempts[0].tries + 1 }, `ip = '${ip}' and userid = ${userId}`);
-      let tentativa = '';
-      if (userLoginAttempts[0].tries == 1) { tentativa = 'segunda' };
-      if (userLoginAttempts[0].tries == 2) { tentativa = 'terceira' };
-      if (userLoginAttempts[0].tries == 3) { tentativa = 'quarta' };
-      if (userLoginAttempts[0].tries == 4) { tentativa = 'quinta' };
-      if (tentativa == 'quarta') { return res.status(429).send({ message: 'ATENÇÃO: Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você erre mais uma vez, seu usuário será bloqueado.' }); }
-      return res.status(429).send({ message: 'Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você atinja 5 tentativas, seu usuário será bloqueado.' });
-    }
-
-    //bloquear usuário
-    if (exists && diffMinutos < 5 && userLoginAttempts[0].tries > 3) {
-
-      if (userPunishments.length === 0) {
-        await databaseFramework.insert("users_punishments", { userid: userId, isBlocked: 1, blockedReason: 'Excesso de tentativas de login.', blockedDate: timestampNow });
-      }
-      else { await databaseFramework.update("users_punishments", { isblocked: 1, blockedreason: 'Excesso de tentativas de login.', blockeddate: timestampNow }, `userid = ${userId}`); }
-      return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message });
-    }
-
     const verifyUserLoginData = await databaseFramework.select("users", "*", "email = ? and password = ?", [email, cryptoPass]);
     if (verifyUserLoginData.length === 0) {
+      if (userPunishments.length > 0) {
+        if (userPunishments[0].isblocked == 1) { return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message, blockreason: userPunishments[0].blockedreason }); }
+
+
+        if (userPunishments[0].isbanned == 1) {
+          const bannedDate = userPunishments[0].banneddate;
+          const data = new Date(bannedDate);
+
+          const dia = String(data.getDate()).padStart(2, '0');
+          const mes = String(data.getMonth() + 1).padStart(2, '0');
+          const ano = data.getFullYear();
+          const horas = String(data.getHours()).padStart(2, '0');
+          const minutos = String(data.getMinutes()).padStart(2, '0');
+
+          const dataFormatada = `${dia}/${mes}/${ano} ás ${horas}:${minutos}`;
+          return res.status(429).send({ message: systemMessages.ErrorMessages.BANNED_USER_MESSAGE.message, bannedreason: userPunishments[0].bannedreason, banneddate: dataFormatada });
+        }
+      }
+      const userLoginAttempts = await databaseFramework.select("login_attempts", "*", "ip = ? and userid = ?", [ip, userId]);
+      const timestampNow = new Date();
+
+      let exists = userLoginAttempts.length > 0;
+      let timestamp = exists ? userLoginAttempts[0].timestamp : timestampNow;
+
+      const diffMinutos = (timestampNow - new Date(timestamp)) / 1000 / 60;
+
+      if (exists && diffMinutos < 5 && userLoginAttempts[0].tries <= 3) {
+        await databaseFramework.update("login_attempts", { tries: userLoginAttempts[0].tries + 1 }, `ip = '${ip}' and userid = ${userId}`);
+        let tentativa = '';
+        if (userLoginAttempts[0].tries == 1) { tentativa = 'segunda' };
+        if (userLoginAttempts[0].tries == 2) { tentativa = 'terceira' };
+        if (userLoginAttempts[0].tries == 3) { tentativa = 'quarta' };
+        if (userLoginAttempts[0].tries == 4) { tentativa = 'quinta' };
+        if (tentativa == 'quarta') { return res.status(429).send({ message: 'ATENÇÃO: Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você erre mais uma vez, seu usuário será bloqueado.' }); }
+        return res.status(429).send({ message: 'Dados incorretos! Essa é a sua ' + tentativa + ' tentativa. Caso você atinja 5 tentativas, seu usuário será bloqueado.' });
+      }
+
+      //bloquear usuário
+      if (exists && diffMinutos < 5 && userLoginAttempts[0].tries > 3) {
+
+        if (userPunishments.length === 0) {
+          await databaseFramework.insert("users_punishments", { userid: userId, isBlocked: 1, blockedReason: 'Excesso de tentativas de login.', blockedDate: timestampNow });
+        }
+        else { await databaseFramework.update("users_punishments", { isblocked: 1, blockedreason: 'Excesso de tentativas de login.', blockeddate: timestampNow }, `userid = ${userId}`); }
+        return res.status(429).send({ message: systemMessages.ErrorMessages.BLOCKED_TOO_MUCH_TRIES.message });
+      }
+
+
       if (exists) {
         if (diffMinutos < 5) {
           await databaseFramework.update("login_attempts", { tries: tries + 1 }, `ip = ${ip} and userid = ${userId}`);
