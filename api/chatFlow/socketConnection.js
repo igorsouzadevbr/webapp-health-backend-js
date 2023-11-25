@@ -128,7 +128,7 @@ class SocketConnection {
             await databaseFramework.update("appointments", { isFinished: 1 }, `patient_id = ${chatData.patient_id}`);
             await databaseFramework.update("user_appointments", { isFinished: 1 }, `patient_id = ${chatData.patient_id}`);
           }
-          this.io.emit('finishedChat', { finished: 1 });
+          this.io.emit('finishedChat', { chatId: chatId, finished: 1 });
         } catch (error) {
           console.error('Erro no envio de mensagens:', error);
         }
@@ -151,7 +151,7 @@ class SocketConnection {
             await databaseFramework.update("appointments", { isFinished: 1 }, `patient_id = ${chatData.patient_id}`);
             await databaseFramework.update("user_appointments", { isFinished: 1 }, `patient_id = ${chatData.patient_id}`);
           }
-          this.io.emit('finishedService', { finished: 1 });
+          this.io.emit('finishedService', { chatId: chatId, finished: 1 });
         } catch (error) {
           console.error('Erro no envio de mensagens:', error);
         }
