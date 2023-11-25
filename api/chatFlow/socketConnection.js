@@ -73,6 +73,33 @@ class SocketConnection {
         }
       });
 
+      socket.on('chatMessageWithService', async (messageData) => {
+        const messageSender = 93;
+        const messageReceiver = messageData.receiver_id;
+        const messageContent = messageData.message;
+        const chatId = messageData.chatId;
+        const now = new Date();
+
+        try {
+          const databaseFramework = new dbUtils(this.connection);
+          const getChatsFromSenderAndReceiver = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
+
+          if (getChatsFromSenderAndReceiver.length <= 0) {
+            this.io.emit('chatMessages', { message: 'Este chat não existe' });
+            return;
+          }
+
+          const chatSessionData = getChatsFromSenderAndReceiver[0];
+
+          const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 0, senderData: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
+          this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem com usuário de serviço enviada com sucesso. ' });
+
+        } catch (error) {
+          console.error('Erro no envio de mensagens com o user de serviço:', error);
+        }
+      }
+      );
+
       socket.on('chatMessage', async (messageData) => {
         const messageSender = messageData.sender_id;
         const messageReceiver = messageData.receiver_id;
@@ -225,7 +252,7 @@ class SocketConnection {
       } catch (error) {
         console.error('Erro na verificação da fila:', error);
       }
-    }, 5000);
+    }, 4000);
   }
 
   async getPendingChats() {
