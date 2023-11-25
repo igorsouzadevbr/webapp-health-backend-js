@@ -75,8 +75,8 @@ class SocketConnection {
 
       socket.on('chatMessageWithService', async (messageData) => {
         const messageSender = 93;
-        const messageReceiver = messageData.receiver_id;
-        const messageContent = messageData.message;
+        const messageReceiver = messageData.messageReceiver;
+        const messageContent = messageData.messageContent;
         const chatId = messageData.chatId;
         const now = new Date();
 
