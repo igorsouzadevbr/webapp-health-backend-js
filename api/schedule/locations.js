@@ -59,13 +59,6 @@ class Users {
         const { name, address, number, complement, neighborhood, cityId, stateId, postalCode, pictureBlob } = req.body;
         const sanitizedPostalCode = postalCode.replace(/\s/g, '');
 
-        if (pictureBlob) {
-            const base64Regex = /^data:image\/\w+;base64,/;
-            if (!base64Regex.test(pictureBlob)) {
-                return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message });
-            }
-        }
-
         try {
             if (!await util.validateStateById(stateId, this.connection)) { return res.status(409).send({ message: systemMessages.ErrorMessages.INCORRECT_CITY.message }); }
         } catch (error) {

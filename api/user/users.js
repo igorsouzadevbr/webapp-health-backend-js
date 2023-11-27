@@ -290,13 +290,9 @@ class Users {
     const { userUniqueId, pictureBlob } = req.body;
     const databaseFramework = new dbUtils(this.connection);
 
-    // Verifique se a pictureBlob é uma string base64 válida
-    const base64Regex = /^data:image\/\w+;base64,/;
-    if (!base64Regex.test(pictureBlob)) {
-      return res.status(409).json({ message: systemMessages.ErrorMessages.INVALID_BLOB.message });
-    }
     const userData = await databaseFramework.select("users", "*", "uniqueid = ?", [userUniqueId]);
     if (userData.length <= 0) { return res.status(409).json({ message: systemMessages.ErrorMessages.INEXISTENT_USER.message }); }
+
     await databaseFramework.update("users", { userPhoto: pictureBlob }, `id = ${userData[0].id}`);
     return res.status(200).json({ message: 'Foto de perfil atualizada com sucesso.' });
   }
