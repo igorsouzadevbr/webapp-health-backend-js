@@ -138,7 +138,6 @@ function validaHora(timeValue) {
 }
 
 function getWeekDay(weekday) {
-  console.log('Recebido: ' + weekday);
   switch (weekday) {
     case "0":
       return "Domingo";
@@ -210,7 +209,6 @@ async function logToDatabase(logData, connection) {
   const databaseFramework = new dbUtils(connection);
   const dataAtual = new Date();
   await databaseFramework.insert("apilogrequests", { uniqueid: logData.uniqueid, ip: logData.ip, method: logData.method, message: logData.message, status: logData.status, datetime: dataAtual });
-  console.log('Log registrado');
 
 
 }

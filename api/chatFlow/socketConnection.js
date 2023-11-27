@@ -92,7 +92,7 @@ class SocketConnection {
 
           const chatSessionData = getChatsFromSenderAndReceiver[0];
 
-          if (!utils.isInteger(messageReceiver) && utils.isInteger(messageSender)) {
+          if (!utils.isOnlyNumbers(messageReceiver) && utils.isOnlyNumbers(messageSender)) {
             const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 0, receiverData: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
             this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
             return;
@@ -125,13 +125,13 @@ class SocketConnection {
 
           const chatSessionData = getChatsFromSenderAndReceiver[0];
 
-          if (!utils.isInteger(messageReceiver) && utils.isInteger(messageSender)) {
+          if (!utils.isOnlyNumbers(messageReceiver) && utils.isOnlyNumbers(messageSender)) {
             const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 0, receiverData: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
             this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
             return;
           }
 
-          if (utils.isInteger(messageSender)) {
+          if (utils.isOnlyNumbers(messageSender)) {
             const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
             this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
             return;
@@ -208,24 +208,16 @@ class SocketConnection {
 
         const chatSessions = databaseFramework.select('chat_sessions', '*', 'finished = 0');
         if (chatSessions.length >= 1) {
-          const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id IN (?) and created_at <= ?", [chatSessions.id, tenMinutesAgo]);
+          for (const chatSession of chatSessions) {
+            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at > ?", [chatSession.id, tenMinutesAgo]);
 
-          for (const chatMessage of getChatMessages) {
-
-            if (chatMessage.length <= 0) {
-              const getChatSessionsId = await databaseFramework.select("chat_sessions", "*", "id =?", [chatMessage.chat_session_id]);
-              const chatSessionData = getChatSessionsId[0];
-
-              await databaseFramework.update("chat_sessions", { finished: 1 }, `id = ${chatSessionData.id}`);
-              await databaseFramework.update("chat_queue", { finished: 1 }, `id = ${chatSessionData.chat_queue_id}`);
-
-              this.io.emit('finishedChat', { chatId: chatMessage.chat_session_id, finished: 1 });
+            if (getChatMessages.length === 0) {
+              await databaseFramework.update("chat_sessions", { finished: 1 }, `id = ${chatSession.id}`);
+              await databaseFramework.update("chat_queue", { finished: 1 }, `id = ${chatSession.chat_queue_id}`);
+              this.io.emit('finishedChat', { chatId: chatSession.id, finished: 1 });
             }
-
           }
         }
-
-
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
@@ -278,7 +270,6 @@ class SocketConnection {
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
               this.io.emit('chatReadyAttendant', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
-              console.log('chat ready', chatId);
             } else {
 
               await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `patient_id = ${chat.patient_id}`);
@@ -287,7 +278,6 @@ class SocketConnection {
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
               this.io.emit('chatReadyAttendant', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
-              console.log('chat ready', chatId);
             }
           }
         });

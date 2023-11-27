@@ -253,7 +253,6 @@ class Users {
           fieldsToUpdate[field] = util.formatToDate(fieldsToUpdate[field]);
         }
         updatedData[field] = fieldsToUpdate[field];
-        console.log(updatedData[field]);
         hasChanges = true;
       }
     }
@@ -438,7 +437,7 @@ class Users {
 
     const currentDate = new Date().toISOString().split('T')[0];
     const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-    console.log(currentTime);
+
     const getAllUserSchedules = await databaseFramework.select(
       "appointments",
       "*",

@@ -23,7 +23,6 @@ class DatabaseUtils {
             let query = `SELECT ${columns} FROM ${tableName} WHERE ${conditions}`;
             if (limit) query += ` LIMIT ${limit}`;
             if (offset) query += ` OFFSET ${offset}`;
-            console.log('Executando consulta:', query);
 
             const [rows] = await connection.query(query, values);
             return rows;
