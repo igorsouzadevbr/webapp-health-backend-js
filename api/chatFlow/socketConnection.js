@@ -30,10 +30,8 @@ class SocketConnection {
             const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "userData = ? and attendant_id = ? and chat_id = ? and answered = 0", [patientId, attendantId, chatId]);
             if (verifyIfPatientAlreadyHasAQuiz.length === 1) {
               this.io.emit('quizError', { message: 'Este paciente já tem um quiz pendente vinculado a ele neste chat.' });
-              console.log('deu erro');
               return;
             }
-            console.log('deu bom');
             const insertQuiz = await databaseFramework.insert("quiz_answers", { patientIsLogged: 0, attendant_id: attendantId, userData: patientId, quiz_id: 1, finalPoints: 0, chat_id: chatId });
             this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 0, message: 'Quiz enviado para o paciente.' });
           } catch (error) {
@@ -43,13 +41,11 @@ class SocketConnection {
         }
         try {
           const databaseFramework = new dbUtils(this.connection);
-          const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "patient_id = ? and attendant_id = ? and chat_id = ?", [patientId, attendantId, chatId]);
-          if (verifyIfPatientAlreadyHasAQuiz.length >= 1) {
+          const verifyIfPatientAlreadyHasAQuiz = await databaseFramework.select("quiz_answers", "*", "patient_id = ? and attendant_id = ? and chat_id = ? and answered = 0", [patientId, attendantId, chatId]);
+          if (verifyIfPatientAlreadyHasAQuiz.length === 1) {
             this.io.emit('quizError', { message: 'Este paciente já tem um quiz vinculado a ele neste chat.' });
-            console.log('deu erro');
             return;
           }
-          console.log('deu bom');
           const insertQuiz = await databaseFramework.insert("quiz_answers", { patientIsLogged: 1, attendant_id: attendantId, patient_id: patientId, quiz_id: 1, finalPoints: 0, chat_id: chatId });
           this.io.emit('quizToPatientSession', { patientId: patientId, attendantId: attendantId, quizId: insertQuiz, chatId: chatId, patientIsLogged: 1, message: 'Quiz enviado para o paciente.' });
         } catch (error) {
