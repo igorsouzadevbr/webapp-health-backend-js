@@ -196,7 +196,7 @@ class SocketConnection {
 
     this.checkQueue();
     this.checkAndDeleteQueueItems();
-
+    this.checkChatsWithNoMessages();
   }
 
   async checkChatsWithNoMessages() {
