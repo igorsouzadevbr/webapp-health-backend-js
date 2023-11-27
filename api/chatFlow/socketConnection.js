@@ -196,7 +196,7 @@ class SocketConnection {
 
     this.checkQueue();
     this.checkAndDeleteQueueItems();
-    this.checkChatsWithNoMessages();
+    //this.checkChatsWithNoMessages();
   }
 
   async checkChatsWithNoMessages() {
@@ -278,7 +278,7 @@ class SocketConnection {
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
               this.io.emit('chatReadyAttendant', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
-
+              console.log('chat ready', chatId);
             } else {
 
               await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `patient_id = ${chat.patient_id}`);
@@ -287,6 +287,7 @@ class SocketConnection {
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
               this.io.emit('chatReadyAttendant', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
+              console.log('chat ready', chatId);
             }
           }
         });
