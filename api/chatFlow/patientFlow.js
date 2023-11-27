@@ -56,26 +56,24 @@ class chatPatientFlow {
         //usuario autenticado
         if (util.isValidUUID(userData)) {
             const getUserData = await databaseFramework.select("users", "*", "uniqueid = ? ", [userData]);
-            const verifyIfUserIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ? and finished = 0", [getUserData[0].id]);
 
             const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "user_id = ? and finished = 0", [getUserData[0].id]);
             const userChatSessionData = verifyIfUserHaveAChatSession[0];
 
             if (verifyIfUserHaveAChatSession.length >= 1) {
-                return res.status(301).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
+                return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
             }
 
+            const verifyIfUserIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ? and finished = 0", [getUserData[0].id]);
             if (verifyIfUserIsOnQueue.length >= 1) {
                 return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
             }
-
         }
 
         const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "userData = ? and finished = 0", [userData]);
         const userChatSessionData = verifyIfUserHaveAChatSession[0];
-
         if (verifyIfUserHaveAChatSession.length >= 1) {
-            return res.status(301).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
+            return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
         }
 
         const verifyIfUserNotLoggedIsOnQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ? and finished = 0", [userData]);
@@ -87,7 +85,6 @@ class chatPatientFlow {
         if (getPatientData.length <= 0) { return res.status(400).send({ message: 'Este atendente não existe.' }); }
 
         const verifyIfAttendantIsAvailable = await databaseFramework.select("chat_attendants", "*", "attendant_id = ?", [attendantId]);
-        const attendantData = verifyIfAttendantIsAvailable[0];
 
         if (verifyIfAttendantIsAvailable.length <= 0) { return res.status(400).send({ message: 'Este atendente não está na fila de atendimento.' }); }
 
@@ -98,7 +95,6 @@ class chatPatientFlow {
             return res.status(200).send({ message: 'Convite enviado ao atendente. Aguardando resposta.' });
         }
 
-        //usuário nao esta autenticado.
         if (verifyIfDataAreFromAUser.length <= 0) {
             await databaseFramework.insert("chat_queue", { userSessionId: userData, isLogged: 0, patient_id: null, attendant_id: attendantId, date: date });
 

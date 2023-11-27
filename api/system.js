@@ -300,7 +300,24 @@ class System {
 
   async getAvailableChatAttendant(req, res) {
     const databaseFramework = new dbUtils(this.connection);
+    const { patientId } = req.body;
     try {
+      if (util.isInteger(patientId)) {
+        const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "user_id = ? and finished = 0", [patientId]);
+        const userChatSessionData = verifyIfUserHaveAChatSession[0];
+
+        if (verifyIfUserHaveAChatSession.length >= 1) {
+          return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
+        }
+      }
+
+      const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "userData = ? and finished = 0", [patientId]);
+      const userChatSessionData = verifyIfUserHaveAChatSession[0];
+
+      if (verifyIfUserHaveAChatSession.length >= 1) {
+        return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
+      }
+
       let sql = `SELECT attendant_id FROM chat_attendants WHERE isOnChat = 0 AND isAvailable = 1 LIMIT 1`;
       const availableAttendant = await databaseFramework.rawQuery(sql);
 
