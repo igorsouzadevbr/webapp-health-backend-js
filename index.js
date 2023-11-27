@@ -183,7 +183,7 @@ app.post('/api/attendant/status/get', authenticateClient, (req, res) => {
   system.getAttendantStatus(req, res);
 });
 
-app.get('/api/chat/attendant/random', authenticateClient, (req, res) => {
+app.post('/api/chat/attendant/random', authenticateClient, (req, res) => {
   system.getAvailableChatAttendant(req, res);
 });
 
