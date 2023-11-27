@@ -57,9 +57,25 @@ class chatPatientFlow {
         if (util.isValidUUID(userData)) {
             const getUserData = await databaseFramework.select("users", "*", "uniqueid = ? ", [userData]);
             const verifyIfUserIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ? and finished = 0", [getUserData[0].id]);
+
+            const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "user_id = ? and finished = 0", [getUserData[0].id]);
+            const userChatSessionData = verifyIfUserHaveAChatSession[0];
+
+            if (verifyIfUserHaveAChatSession.length >= 1) {
+                return res.status(301).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
+            }
+
             if (verifyIfUserIsOnQueue.length >= 1) {
                 return res.status(409).send({ message: 'Você já está na fila de atendimento. Aguarde até o atendente aceitar.' });
             }
+
+        }
+
+        const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "userData = ? and finished = 0", [userData]);
+        const userChatSessionData = verifyIfUserHaveAChatSession[0];
+
+        if (verifyIfUserHaveAChatSession.length >= 1) {
+            return res.status(301).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
         }
 
         const verifyIfUserNotLoggedIsOnQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ? and finished = 0", [userData]);

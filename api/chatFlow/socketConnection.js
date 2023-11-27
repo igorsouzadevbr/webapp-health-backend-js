@@ -4,6 +4,7 @@ const utils = require('../util/util.js');
 const attendantFlow = require('../chatFlow/attendantFlow.js');
 const moment = require('moment');
 class SocketConnection {
+
   constructor(server, connection) {
     this.io = socketIO(server, {
       rejectUnauthorized: false,
