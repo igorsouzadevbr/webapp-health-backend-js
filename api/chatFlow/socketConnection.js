@@ -90,32 +90,32 @@ class SocketConnection {
           const chatSessionData = getChatsFromSenderAndReceiver[0];
 
 
-          //user deslogado manda mensagem pra user logado
-          if (!utils.isOnlyNumbers(messageSender) && utils.isOnlyNumbers(messageReceiver)) {
-            const createMessage = await databaseFramework.insert("chat_messages",
-              {
-                senderIsLogged: 0,
-                senderData: messageSender,
-                receiverIsLogged: 1,
-                receiver_id: messageReceiver,
-                message: messageContent,
-                created_at: now,
-                chat_session_id: chatSessionData.id
-              }
-            );
-            this.io.emit('chatMessages',
-              {
-                messageId: createMessage,
-                chatId: chatId,
-                sender_id: messageSender,
-                receiver_id: +messageReceiver,
-                sessionId: chatSessionData.id,
-                message: messageContent,
-                return: 'Mensagem enviada com sucesso. '
-              }
-            );
-            return;
-          }
+          // //user deslogado manda mensagem pra user logado
+          // if (!utils.isOnlyNumbers(messageSender) && utils.isOnlyNumbers(messageReceiver)) {
+          //   const createMessage = await databaseFramework.insert("chat_messages",
+          //     {
+          //       senderIsLogged: 0,
+          //       senderData: messageSender,
+          //       receiverIsLogged: 1,
+          //       receiver_id: messageReceiver,
+          //       message: messageContent,
+          //       created_at: now,
+          //       chat_session_id: chatSessionData.id
+          //     }
+          //   );
+          //   this.io.emit('chatMessages',
+          //     {
+          //       messageId: createMessage,
+          //       chatId: chatId,
+          //       sender_id: messageSender,
+          //       receiver_id: +messageReceiver,
+          //       sessionId: chatSessionData.id,
+          //       message: messageContent,
+          //       return: 'Mensagem enviada com sucesso. '
+          //     }
+          //   );
+          //   return;
+          // }
 
           //user logado manda mensagem pra user deslogado
           if (utils.isOnlyNumbers(messageSender) && !utils.isOnlyNumbers(messageReceiver)) {
