@@ -3,7 +3,7 @@ const util = require('../util/util.js');
 const systemMessages = require('../system/systemMessages.js');
 const systemObjects = require('../system/systemObjects.js');
 const dbUtils = require('../util/databaseUtils.js');
-class Users {
+class ScheduleLocations {
     constructor(connection) {
         this.connection = connection;
     }
@@ -96,4 +96,4 @@ class Users {
 
 }
 
-module.exports = Users;
+module.exports = ScheduleLocations;

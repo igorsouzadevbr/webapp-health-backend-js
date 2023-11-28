@@ -369,7 +369,7 @@ class SocketConnection {
 
     this.checkQueue();
     this.checkAndDeleteQueueItems();
-    //this.checkChatsWithNoMessages();
+    this.checkChatsWithNoMessages();
   }
 
   async checkChatsWithNoMessages() {
@@ -394,7 +394,7 @@ class SocketConnection {
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
-    }, 1 * 60 * 1000);
+    }, 10 * 60 * 1000);
   }
 
   async checkAndDeleteQueueItems() {
