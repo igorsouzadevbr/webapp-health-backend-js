@@ -318,7 +318,7 @@ class System {
         return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
       }
 
-      let sql = `SELECT attendant_id FROM chat_attendants WHERE isOnChat = 0 AND isAvailable = 1 LIMIT 1`;
+      let sql = `SELECT attendant_id FROM chat_attendants WHERE isAvailable = 1 LIMIT 1`;
       const availableAttendant = await databaseFramework.rawQuery(sql);
 
       if (availableAttendant.length > 0) {
