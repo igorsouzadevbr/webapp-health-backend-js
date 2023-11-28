@@ -18,7 +18,7 @@ class Users {
     const databaseFramework = new dbUtils(this.connection);
 
     const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
-    if (userData.length === 0) { return res.status(401).send({ message: systemMessages.ErrorMessages.INCORRECT_EMAIL.message }); }
+    if (userData.length === 0) { return res.status(401).send({ message: 'Usuário ou senha incorretos' }); }
 
     const userId = userData[0].id;
     const userPunishments = await databaseFramework.select("users_punishments", "*", "userid = ?"[userId]);
