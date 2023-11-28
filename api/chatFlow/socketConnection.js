@@ -89,20 +89,103 @@ class SocketConnection {
 
           const chatSessionData = getChatsFromSenderAndReceiver[0];
 
-          if (!utils.isOnlyNumbers(messageReceiver) && utils.isOnlyNumbers(messageSender)) {
-            const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 0, receiverData: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
-            this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: +messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
+
+          //user deslogado manda mensagem pra user logado
+          if (!utils.isOnlyNumbers(messageSender) && utils.isOnlyNumbers(messageReceiver)) {
+            const createMessage = await databaseFramework.insert("chat_messages",
+              {
+                senderIsLogged: 0,
+                senderData: messageSender,
+                receiverIsLogged: 1,
+                receiver_id: messageReceiver,
+                message: messageContent,
+                created_at: now,
+                chat_session_id: chatSessionData.id
+              }
+            );
+            this.io.emit('chatMessages',
+              {
+                messageId: createMessage,
+                chatId: chatId,
+                sender_id: messageSender,
+                receiver_id: +messageReceiver,
+                sessionId: chatSessionData.id,
+                message: messageContent,
+                return: 'Mensagem enviada com sucesso. '
+              }
+            );
             return;
           }
 
+          //user logado manda mensagem pra user deslogado
+          if (utils.isOnlyNumbers(messageSender) && !utils.isOnlyNumbers(messageReceiver)) {
+            const createMessage = await databaseFramework.insert("chat_messages",
+              {
+                senderIsLogged: 1,
+                sender_id: messageSender,
+                receiverIsLogged: 0,
+                receiverData: messageReceiver,
+                message: messageContent,
+                created_at: now,
+                chat_session_id: chatSessionData.id
+              }
+            );
+            this.io.emit('chatMessages',
+              {
+                messageId: createMessage,
+                chatId: chatId,
+                sender_id: +messageSender,
+                receiver_id: messageReceiver,
+                sessionId: chatSessionData.id,
+                message: messageContent,
+                return: 'Mensagem enviada com sucesso. '
+              }
+            );
+            return;
+          }
+
+          //user logado manda mensagem pra user logado
           if (utils.isOnlyNumbers(messageSender) && utils.isOnlyNumbers(messageReceiver)) {
-            const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 1, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
-            this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: +messageSender, receiver_id: +messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
+            const createMessage = await databaseFramework.insert("chat_messages",
+              {
+                senderIsLogged: 1,
+                sender_id: messageSender,
+                receiverIsLogged: 1,
+                receiver_id: messageReceiver,
+                message: messageContent,
+                created_at: now,
+                chat_session_id: chatSessionData.id
+              }
+            );
+            this.io.emit('chatMessages',
+              {
+                messageId: createMessage,
+                chatId: chatId,
+                sender_id: +messageSender,
+                receiver_id: +messageReceiver,
+                sessionId: chatSessionData.id,
+                message: messageContent,
+                return: 'Mensagem enviada com sucesso. '
+              }
+            );
             return;
           }
 
-          const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 1, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
-          this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: +messageSender, receiver_id: +messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem com usuário de serviço enviada com sucesso. ' });
+
+          // if (!utils.isOnlyNumbers(messageReceiver) && utils.isOnlyNumbers(messageSender)) {
+          //   const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 0, receiverData: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
+          //   this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: +messageSender, receiver_id: messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
+          //   return;
+          // }
+
+          // if (utils.isOnlyNumbers(messageSender) && utils.isOnlyNumbers(messageReceiver)) {
+          //   const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 1, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
+          //   this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: +messageSender, receiver_id: +messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem enviada com sucesso. ' });
+          //   return;
+          // }
+
+          // const createMessage = await databaseFramework.insert("chat_messages", { senderIsLogged: 1, sender_id: messageSender, receiverIsLogged: 1, receiver_id: messageReceiver, message: messageContent, created_at: now, chat_session_id: chatSessionData.id });
+          // this.io.emit('chatMessages', { messageId: createMessage, chatId: chatId, sender_id: +messageSender, receiver_id: +messageReceiver, sessionId: chatSessionData.id, message: messageContent, return: 'Mensagem com usuário de serviço enviada com sucesso. ' });
 
         } catch (error) {
           console.error('Erro no envio de mensagens com o user de serviço:', error);
@@ -219,7 +302,7 @@ class SocketConnection {
         const chatSessions = databaseFramework.select('chat_sessions', '*', 'finished = 0');
         if (chatSessions.length >= 1) {
           for (const chatSession of chatSessions) {
-            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at > ?", [chatSession.id, tenMinutesAgo]);
+            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at >= ?", [chatSession.id, tenMinutesAgo]);
 
             if (getChatMessages.length === 0) {
               await databaseFramework.update("chat_sessions", { finished: 1 }, `id = ${chatSession.id}`);
