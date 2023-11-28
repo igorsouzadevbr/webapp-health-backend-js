@@ -131,7 +131,7 @@ const socketConnection = new SocketConnection(socketServer, connection);
 
 
 //ROUTES
-userRoutes(connection, app, users, adminFunctions, alterDataWithTokens, attendantFunctions,attendantFlow, authenticateClient, system);
+userRoutes(connection, app, users, adminFunctions, alterDataWithTokens, attendantFunctions,attendantFlow, authenticateClient, system, patientFlow);
 chatRoutes(connection, app, system, attendantFlow, patientFlow, authenticateClient); 
 scheduleRoutes(connection, app, system, scheduleLocationFunctions, scheduleFunctions, authenticateClient); 
 systemRoutes(connection, app, system, authenticateClient);

@@ -1,4 +1,4 @@
-module.exports = (connection, app, users, adminFunctions, alterDataWithTokens, attendantFunctions, attendantFlow, authenticateClient, system) => {
+module.exports = (connection, app, users, adminFunctions, alterDataWithTokens, attendantFunctions, attendantFlow, authenticateClient, system, patientFlow) => {
  app.put('/api/users/create', authenticateClient, (req, res) => {
     users.create(req, res);
   });
