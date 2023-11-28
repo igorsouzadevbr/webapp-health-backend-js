@@ -126,6 +126,9 @@ const attendantFlow = new AttendantFlow(connection);
 const patientFlow = new PatientFlow(connection);
 const scheduleFunctions = new ScheduleFunctions(connection);
 const scheduleLocationFunctions = new ScheduleLocationFunctions(connection);
+const SocketConnection = require('./api/chatFlow/socketConnection');
+const socketConnection = new SocketConnection(socketServer, connection);
+
 
 //ROUTES
 userRoutes(connection, app, users, adminFunctions, alterDataWithTokens, attendantFunctions,attendantFlow, authenticateClient, system);
