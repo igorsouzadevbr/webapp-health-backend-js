@@ -89,7 +89,6 @@ class SocketConnection {
 
           const chatSessionData = getChatsFromSenderAndReceiver[0];
 
-
           // //user deslogado manda mensagem pra user logado
           // if (!utils.isOnlyNumbers(messageSender) && utils.isOnlyNumbers(messageReceiver)) {
           //   const createMessage = await databaseFramework.insert("chat_messages",
