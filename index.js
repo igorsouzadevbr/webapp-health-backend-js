@@ -128,7 +128,7 @@ const scheduleFunctions = new ScheduleFunctions(connection);
 const scheduleLocationFunctions = new ScheduleLocationFunctions(connection);
 
 //ROUTES
-userRoutes(connection, app, users, adminFunctions, alterDataWithTokens, attendantFunctions,attendantFlow, authenticateClient);
+userRoutes(connection, app, users, adminFunctions, alterDataWithTokens, attendantFunctions,attendantFlow, authenticateClient, system);
 chatRoutes(connection, app, system, attendantFlow, patientFlow, authenticateClient); 
 scheduleRoutes(connection, app, system, scheduleLocationFunctions, scheduleFunctions, authenticateClient); 
 systemRoutes(connection, app, system, authenticateClient);
