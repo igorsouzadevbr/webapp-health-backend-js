@@ -372,49 +372,103 @@ class SocketConnection {
     this.checkChatsWithNoMessages();
     this.checkQttOfAttendantSchedules();
     this.getAttendantQueue();
+    this.getCategoriesWithAttendantsAvailable();
   }
 
-  async getAttendantQueue() {
-    setInterval(async () => {
+  async getCategoriesWithAttendantsAvailable() {
+    const databaseFramework = new dbUtils(this.connection);
     try {
-      const databaseFramework = new dbUtils(this.connection);
-      
-      const getAllAttendants = await databaseFramework.select("chat_queue", "DISTINCT attendant_id", "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0");
-      
-      const attendantQueue = [];
-      
-      for (const attendant of getAllAttendants) {
-        const attendantId = attendant.attendant_id;
-        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0", [attendantId]);
-  
-        if (getAttendantQueue.length > 0) {
-          const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
-          const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
-  
-          let users = [];
-  
-          if (authenticatedUsers.length > 0) {
-            const getUserData = await databaseFramework.select("users", "id, userphoto", "id IN (?)", [authenticatedUsers]);
-            users = users.concat(getUserData.map(user => {
-              return { userId: user.id, userphoto: `${user.userphoto}` };
-            }));
-          }
-  
-          unauthenticatedUsers.forEach(userId => {
-            users.push({ userId: userId, userphoto: null });
-          });
-  
-          attendantQueue.push({ attendantId: attendantId, users });
-        }
-      }
-  
-      this.io.emit('attendantQueue', attendantQueue);
+      setInterval(async () => {
+      let sql = `
+      SELECT 
+  c.id,
+  c.name,
+  c.imageURL,
+  COUNT(DISTINCT CASE WHEN a.isAll = 1 THEN a.id ELSE NULL END) + 
+  COUNT(DISTINCT CASE WHEN a.isAll = 0 AND a.category_id = c.id THEN a.id ELSE NULL END) AS attendantsAvailable
+FROM 
+  chat_categories c
+LEFT JOIN 
+  chat_attendants a ON a.isAvailable = 1 AND (a.category_id = c.id OR a.isAll = 1)
+WHERE 
+  c.id != 4
+GROUP BY 
+  c.id, c.name, c.imageURL
+
+UNION ALL
+
+SELECT 
+  4 as id, 
+  'Todos' as name, 
+  (SELECT imageURL FROM chat_categories WHERE id = 4) as imageURL, 
+  (SELECT COUNT(*) FROM chat_attendants WHERE isAvailable = 1) as attendantsAvailable
+FROM 
+  dual
+WHERE 
+  EXISTS (SELECT 1 FROM chat_categories WHERE id = 4);
+    `;
+
+      const categoriesWithAttendants = await databaseFramework.rawQuery(sql);
+      this.io.emit('categoriesWithAttendantsAvailable', { categoriesWithAttendants });
+    }, 3000);
     } catch (error) {
       console.error('Erro ao obter a fila de atendentes:', error);
     }
-  }, 3000);
+
   }
+
+  async getAttendantQueue() {
+    try {
+      const databaseFramework = new dbUtils(this.connection);
+      
+      setInterval(async () => {
+        const currentTime = new Date();
+        
+        const getAllAttendants = await databaseFramework.select(
+          "chat_queue",
+          "DISTINCT attendant_id",
+          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= DATE_SUB(?, INTERVAL 1 MINUTE)",
+          [currentTime]
+        );
+        
+        const attendantQueue = [];
+        
+        for (const attendant of getAllAttendants) {
+          const attendantId = attendant.attendant_id;
+          const getAttendantQueue = await databaseFramework.select(
+            "chat_queue",
+            "*",
+            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= DATE_SUB(?, INTERVAL 1 MINUTE)",
+            [attendantId, currentTime]
+          );
   
+          if (getAttendantQueue.length > 0) {
+            const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
+            const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
+  
+            let users = [];
+  
+            if (authenticatedUsers.length > 0) {
+              const getUserData = await databaseFramework.select("users", "id, userphoto", "id IN (?)", [authenticatedUsers]);
+              users = users.concat(getUserData.map(user => {
+                return { userId: user.id, userphoto: `${user.userphoto}` };
+              }));
+            }
+  
+            unauthenticatedUsers.forEach(userId => {
+              users.push({ userId: userId, userphoto: null });
+            });
+  
+            attendantQueue.push({ attendantId: attendantId, users });
+          }
+        }
+  
+        this.io.emit('attendantQueue', attendantQueue);
+      }, 3000);
+    } catch (error) {
+      console.error('Erro ao obter a fila de atendentes:', error);
+    }
+  } 
 
   async checkChatsWithNoMessages() {
     setInterval(async () => {
