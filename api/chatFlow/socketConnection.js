@@ -397,6 +397,40 @@ class SocketConnection {
     }, 10 * 60 * 1000);
   }
 
+  async checkQttOfAttendantSchedules() {
+    setInterval(async () => {
+      try {
+        const databaseFramework = new dbUtils(this.connection);
+        
+        let sql = `
+          SELECT attendantId,
+                 SUM(CASE WHEN isConfirmed = 1 AND isDeleted = 0 THEN 1 ELSE 0 END) AS confirmedCount,
+                 SUM(CASE WHEN isConfirmed = 0 AND isDeleted = 0 THEN 1 ELSE 0 END) AS waitingConfirmationCount
+          FROM appointments
+          WHERE isDeleted = 0
+          GROUP BY attendantId
+        `;
+        
+        const results = await databaseFramework.rawQuery(sql);
+        
+        results.forEach(result => {
+          const { attendantId, confirmedCount, waitingConfirmationCount } = result;
+          
+          if (confirmedCount > 0 || waitingConfirmationCount > 0) {
+            this.io.emit('attendantSchedulesQuantity', {
+              attendantId,
+              confirmedCount,
+              waitingConfirmationCount
+            });
+          }
+        });
+  
+      } catch (error) {
+        console.error('Erro na verificação e exclusão da fila:', error);
+      }
+    }, 10000);
+  }
+
   async checkAndDeleteQueueItems() {
     setInterval(async () => {
       try {
