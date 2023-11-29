@@ -11,7 +11,7 @@ class ScheduleFunctions {
 
     async createSchedule(req, res) {
       const databaseFramework = new dbUtils(this.connection);
-      const { patientId, professionalId, isOnline, date, locationId } = req.body;
+      const { patientId, professionalId, startTime, isOnline, date, locationId } = req.body;
     
       const dateParts = date.split("/");
       const year = parseInt(dateParts[2], 10);
@@ -32,9 +32,9 @@ class ScheduleFunctions {
         }
         let createSchedule;
         if (isOnline === 1) {
-          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, isConfirmed: 0 });
+          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
         } else {
-          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, isConfirmed: 1 });
+          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 1 });
         }
     
         if (isOnline === 1) {
