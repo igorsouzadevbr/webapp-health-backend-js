@@ -34,14 +34,14 @@ class ScheduleFunctions {
         if (isOnline === 1) {
           createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
         } else {
-          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 1 });
+          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
         }
     
         if (isOnline === 1) {
           await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 1, isInPerson: 0, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
           return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
         } else {
-          await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 1, isRefused: 0, schedule_id: createSchedule, location_id: locationId });
+          await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule, location_id: locationId });
           return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
         }
     
@@ -265,10 +265,6 @@ class ScheduleFunctions {
             const getScheduleData = await databaseFramework.select("appointments", "*", "id = ? and professional_id = ?", [scheduleId, attendantId]);
             const scheduledData = getScheduleData[0];
 
-            if (scheduledData.isOnline === 0) {
-                return res.status(409).json({ message: 'Agendamento não é online.' });
-            }
-
             if (scheduledData.isConfirmed === 1) {
                 return res.status(409).json({ message: 'Agendamento já foi confirmado.' });
             }
@@ -318,6 +314,7 @@ class ScheduleFunctions {
 
           for (const schedule of getSchedules) {
               const getPatientData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]);
+              const getUserScheduleData = await databaseFramework.select("users_appointments", ["isOnline"], "schedule_id = ?", [schedule.id]);
               if (getPatientData.length > 0) {
                   const patient = getPatientData[0];
                   patientData.push({
@@ -326,7 +323,8 @@ class ScheduleFunctions {
                       patientPhoto: `${patient.userphoto}`,
                       scheduleId: schedule.id,
                       scheduleDate: util.convertDateToCustomFormat(schedule.date),
-                      scheduleStartTime: schedule.start_time
+                      scheduleStartTime: schedule.start_time,
+                      scheduleIsOnline: getUserScheduleData[0].isOnline,
                   });
               }
           }
