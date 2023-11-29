@@ -348,7 +348,7 @@ class ScheduleFunctions {
 
           for (const schedule of getSchedules) {
               const getPatientData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]);
-              const getUserScheduleData = await databaseFramework.select("users_appointments", ["schedule_id"], "schedule_id = ?", [schedule.id]);
+              const getUserScheduleData = await databaseFramework.select("users_appointments", ["isOnline"], "schedule_id = ?", [schedule.id]);
               if (getPatientData.length > 0) {
                   const patient = getPatientData[0];
                   patientData.push({
