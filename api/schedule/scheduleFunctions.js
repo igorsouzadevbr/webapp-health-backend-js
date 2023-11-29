@@ -11,28 +11,32 @@ class ScheduleFunctions {
 
     async createSchedule(req, res) {
       const databaseFramework = new dbUtils(this.connection);
-      const { patientId, professionalId, isOnline, date, startTime, locationId } = req.body;
-  
+      const { patientId, professionalId, isOnline, date, locationId } = req.body;
+    
       const dateParts = date.split("/");
       const year = parseInt(dateParts[2], 10);
       const month = parseInt(dateParts[1], 10) - 1;
       const day = parseInt(dateParts[0], 10);
-  
-      const convertedDate = new Date(year, month, day);
-  
+    
+      const currentDate = new Date();
+      const hours = currentDate.getHours();
+      const minutes = currentDate.getMinutes();
+    
+      const convertedDate = new Date(year, month, day, hours, minutes);
+    
       try {
-  
-        const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and start_time = ? and isConfirmed = 1 and isFinished = 0", [professionalId, convertedDate, startTime]);
+    
+        const verifyProfessionalAppointments = await databaseFramework.select("appointments", "*", "professional_id = ? and date = ? and isConfirmed = 1 and isFinished = 0", [professionalId, convertedDate]);
         if (verifyProfessionalAppointments.length === 1) {
           return res.status(409).send({ message: 'Este profissional já possui um agendamento para esta data e horário. Escolha outra.' });
         }
         let createSchedule;
         if (isOnline === 1) {
-          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
+          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, isConfirmed: 0 });
         } else {
-          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 1 });
+          createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, isConfirmed: 1 });
         }
-  
+    
         if (isOnline === 1) {
           await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 1, isInPerson: 0, isConfirmed: 0, isRefused: 0, schedule_id: createSchedule });
           return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
@@ -40,7 +44,7 @@ class ScheduleFunctions {
           await databaseFramework.insert("users_appointments", { patient_id: patientId, isOnline: 0, isInPerson: 1, isConfirmed: 1, isRefused: 0, schedule_id: createSchedule, location_id: locationId });
           return res.status(200).send({ message: 'Agendamento realizado com sucesso.' });
         }
-  
+    
       } catch (error) {
         console.error('Erro ao realizar criação de agendamento.', error);
         return res.status(500).send({ message: 'Erro ao realizar criação de agendamento. Método: createSchedule' });
