@@ -280,7 +280,7 @@ class System {
       return res.status(400).send({ message: 'Status inválido.' });
     }
     try {
-      let sql = `UPDATE chat_attendants SET isAvailable = ${status} WHERE attendant_id = ${attendantId} and isOnChat = 0`;
+      let sql = `UPDATE chat_attendants SET isAvailable = ${status} WHERE attendant_id = ${attendantId} and isOnChat = 0 and date = CURRENT_TIMESTAMP`;
       await databaseFramework.rawQuery(sql);
 
       return res.status(200).send({ message: 'Status alterado com sucesso.' });
