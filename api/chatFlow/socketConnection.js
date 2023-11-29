@@ -483,13 +483,14 @@ class SocketConnection {
         const chatSessions = databaseFramework.select('chat_sessions', '*', 'finished = 0');
         if (chatSessions.length >= 1) {
           for (const chatSession of chatSessions) {
-            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at >= ?", [chatSession.id, tenMinutesAgo]);
+            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at >= ? ORDER BY ID desc LIMIT 1", [chatSession.id, tenMinutesAgo]);
 
-            if (getChatMessages.length === 0) {
+            if (getChatMessages.length > 0) {
               await databaseFramework.update("chat_attendants", { isOnChat: 0 }, `attendant_id = ${chatSession.attendant_id}`);
               await databaseFramework.update("chat_sessions", { finished: 1 }, `id = ${chatSession.id}`);
               await databaseFramework.update("chat_queue", { finished: 1 }, `id = ${chatSession.chat_queue_id}`);
-              this.io.emit('finishService', { chatId: chatSession.id, finished: 1 });
+              this.io.emit('finishService', { chatId: chatSession.id, finished: 1, reason: 'Chat finalizado por falta de interação.' });
+              console.log(`Chat ${chatSession.id} finalizado por falta de interação.`);
             }
           }
         }
