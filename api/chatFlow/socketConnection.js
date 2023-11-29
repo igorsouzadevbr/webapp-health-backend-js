@@ -370,6 +370,7 @@ class SocketConnection {
     this.checkQueue();
     this.checkAndDeleteQueueItems();
     this.checkChatsWithNoMessages();
+    this.checkQttOfAttendantSchedules();
   }
 
   async checkChatsWithNoMessages() {
