@@ -57,8 +57,8 @@ class ScheduleFunctions {
       const getAllUserSchedules = await databaseFramework.select(
         "appointments",
         "*",
-        "patient_id = ? AND date >= ? AND start_time >= ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0",
-        [patientId, currentDate, currentTime]
+        "patient_id = ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0",
+        [patientId]
       );
   
       if (getAllUserSchedules.length > 0) {

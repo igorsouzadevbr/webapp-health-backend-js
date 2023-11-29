@@ -33,8 +33,9 @@ class ScheduleLocations {
 
         if (exactLocation.length > 0) {
             allLocations = exactLocation;
+
         } else {
-            const similarLocations = await databaseFramework.select("appointments_location", "*", "postalCode LIKE ? and isDeleted = 0", [`${sanitizedPostalCode.slice(0, 5)}%`]);
+            const similarLocations = await databaseFramework.select("appointments_location", "*", "postalCode LIKE ? and isDeleted = 0", [`${sanitizedPostalCode.slice(0, 3)}%`]);
 
             if (similarLocations.length > 0) {
                 allLocations = similarLocations;
