@@ -404,7 +404,7 @@ class SocketConnection {
         const databaseFramework = new dbUtils(this.connection);
         
         let sql = `
-          SELECT attendant_id AS attendantId,
+          SELECT professional_id AS attendantId,
                  SUM(CASE WHEN isConfirmed = 1 AND isDeleted = 0 THEN 1 ELSE 0 END) AS confirmedCount,
                  SUM(CASE WHEN isConfirmed = 0 AND isDeleted = 0 THEN 1 ELSE 0 END) AS waitingConfirmationCount
           FROM appointments
