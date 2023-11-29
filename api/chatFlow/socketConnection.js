@@ -489,7 +489,7 @@ class SocketConnection {
               await databaseFramework.update("chat_attendants", { isOnChat: 0 }, `attendant_id = ${chatSession.attendant_id}`);
               await databaseFramework.update("chat_sessions", { finished: 1 }, `id = ${chatSession.id}`);
               await databaseFramework.update("chat_queue", { finished: 1 }, `id = ${chatSession.chat_queue_id}`);
-              this.io.emit('finishService', { chatId: chatSession.id, finished: 1, reason: 'Chat finalizado por falta de interação.' });
+              this.io.emit('finishedService', { chatId: chatSession.id, finished: 1, reason: 'Chat finalizado por falta de interação.' });
             }
           }
         }
