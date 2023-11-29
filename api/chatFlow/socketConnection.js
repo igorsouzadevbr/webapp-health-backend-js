@@ -371,7 +371,50 @@ class SocketConnection {
     this.checkAndDeleteQueueItems();
     this.checkChatsWithNoMessages();
     this.checkQttOfAttendantSchedules();
+    this.getAttendantQueue();
   }
+
+  async getAttendantQueue() {
+    setInterval(async () => {
+    try {
+      const databaseFramework = new dbUtils(this.connection);
+      
+      const getAllAttendants = await databaseFramework.select("chat_queue", "DISTINCT attendant_id", "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0");
+      
+      const attendantQueue = [];
+      
+      for (const attendant of getAllAttendants) {
+        const attendantId = attendant.attendant_id;
+        const getAttendantQueue = await databaseFramework.select("chat_queue", "*", "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0", [attendantId]);
+  
+        if (getAttendantQueue.length > 0) {
+          const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
+          const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
+  
+          let users = [];
+  
+          if (authenticatedUsers.length > 0) {
+            const getUserData = await databaseFramework.select("users", "id, userphoto", "id IN (?)", [authenticatedUsers]);
+            users = users.concat(getUserData.map(user => {
+              return { userId: user.id, userphoto: `${user.userphoto}` };
+            }));
+          }
+  
+          unauthenticatedUsers.forEach(userId => {
+            users.push({ userId: userId, userphoto: null });
+          });
+  
+          attendantQueue.push({ attendantId: attendantId, users });
+        }
+      }
+  
+      this.io.emit('attendantQueue', attendantQueue);
+    } catch (error) {
+      console.error('Erro ao obter a fila de atendentes:', error);
+    }
+  }, 3000);
+  }
+  
 
   async checkChatsWithNoMessages() {
     setInterval(async () => {
