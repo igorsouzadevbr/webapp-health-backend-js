@@ -2,7 +2,7 @@ const socketIO = require('socket.io');
 const dbUtils = require('../util/databaseUtils.js');
 const utils = require('../util/util.js');
 const attendantFlow = require('../chatFlow/attendantFlow.js');
-const moment = require('moment');
+const moment = require('moment-timezone');
 class SocketConnection {
 
   constructor(server, connection) {
@@ -477,27 +477,26 @@ class SocketConnection {
     setInterval(async () => {
       try {
         const databaseFramework = new dbUtils(this.connection);
+        moment.tz.setDefault('America/Sao_Paulo');
         const currentDate = moment();
         const tenMinutesAgo = currentDate.clone().subtract(10, 'minutes');
 
-        const chatSessions = databaseFramework.select('chat_sessions', '*', 'finished = 0');
+        const chatSessions = await databaseFramework.select('chat_sessions', '*', 'finished = 0');
         if (chatSessions.length >= 1) {
           for (const chatSession of chatSessions) {
-            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at <= ? ORDER BY ID desc LIMIT 1", [chatSession.id, tenMinutesAgo]);
-
+            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at <= ? ORDER BY ID desc LIMIT 1", [chatSession.id, tenMinutesAgo.format('YYYY-MM-DD HH:mm:ss')]);
             if (getChatMessages.length > 0) {
               await databaseFramework.update("chat_attendants", { isOnChat: 0 }, `attendant_id = ${chatSession.attendant_id}`);
               await databaseFramework.update("chat_sessions", { finished: 1 }, `id = ${chatSession.id}`);
               await databaseFramework.update("chat_queue", { finished: 1 }, `id = ${chatSession.chat_queue_id}`);
               this.io.emit('finishService', { chatId: chatSession.id, finished: 1, reason: 'Chat finalizado por falta de interação.' });
-              console.log(`Chat ${chatSession.id} finalizado por falta de interação.`);
             }
           }
         }
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
-    }, 1000);
+    }, 10000);
   }
 
   async checkQttOfAttendantSchedules() {
@@ -538,6 +537,7 @@ class SocketConnection {
     setInterval(async () => {
       try {
         const databaseFramework = new dbUtils(this.connection);
+        moment.tz.setDefault('America/Sao_Paulo');
         const currentDate = moment();
         const fiveMinutesAgo = currentDate.clone().subtract(5, 'minutes');
 
