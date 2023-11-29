@@ -379,42 +379,45 @@ class SocketConnection {
     const databaseFramework = new dbUtils(this.connection);
     try {
       setInterval(async () => {
-      let sql = `
-      SELECT 
-  c.id,
-  c.name,
-  c.imageURL,
-  COUNT(DISTINCT CASE WHEN a.isAll = 1 THEN a.id ELSE NULL END) + 
-  COUNT(DISTINCT CASE WHEN a.isAll = 0 AND a.category_id = c.id THEN a.id ELSE NULL END) AS attendantsAvailable
-FROM 
-  chat_categories c
-LEFT JOIN 
-  chat_attendants a ON a.isAvailable = 1 AND (a.category_id = c.id OR a.isAll = 1)
-WHERE 
-  c.id != 4
-GROUP BY 
-  c.id, c.name, c.imageURL
-
-UNION ALL
-
-SELECT 
-  4 as id, 
-  'Todos' as name, 
-  (SELECT imageURL FROM chat_categories WHERE id = 4) as imageURL, 
-  (SELECT COUNT(*) FROM chat_attendants WHERE isAvailable = 1) as attendantsAvailable
-FROM 
-  dual
-WHERE 
-  EXISTS (SELECT 1 FROM chat_categories WHERE id = 4);
-    `;
-
-      const categoriesWithAttendants = await databaseFramework.rawQuery(sql);
-      this.io.emit('categoriesWithAttendantsAvailable', { categoriesWithAttendants });
-    }, 3000);
+        const currentTime = new Date();
+        const fourSecondsAgo = new Date(currentTime - 4000); // 4000 milissegundos = 4 segundos
+  
+        let sql = `
+          SELECT 
+            c.id,
+            c.name,
+            c.imageURL,
+            COUNT(DISTINCT CASE WHEN a.isAll = 1 THEN a.id ELSE NULL END) + 
+            COUNT(DISTINCT CASE WHEN a.isAll = 0 AND a.category_id = c.id THEN a.id ELSE NULL END) AS attendantsAvailable
+          FROM 
+            chat_categories c
+          LEFT JOIN 
+            chat_attendants a ON a.isAvailable = 1 AND (a.category_id = c.id OR a.isAll = 1)
+          WHERE 
+            c.id != 4
+            AND a.date >= ?
+          GROUP BY 
+            c.id, c.name, c.imageURL
+  
+          UNION ALL
+  
+          SELECT 
+            4 as id, 
+            'Todos' as name, 
+            (SELECT imageURL FROM chat_categories WHERE id = 4) as imageURL, 
+            (SELECT COUNT(*) FROM chat_attendants WHERE isAvailable = 1) as attendantsAvailable
+          FROM 
+            dual
+          WHERE 
+            EXISTS (SELECT 1 FROM chat_categories WHERE id = 4);
+        `;
+  
+        const categoriesWithAttendants = await databaseFramework.rawQuery(sql, [fourSecondsAgo]);
+        this.io.emit('categoriesWithAttendantsAvailable', { categoriesWithAttendants });
+      }, 3000);
     } catch (error) {
       console.error('Erro ao obter a fila de atendentes:', error);
     }
-
   }
 
   async getAttendantQueue() {

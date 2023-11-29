@@ -17,6 +17,8 @@ class Users {
     const ip = req.headers['x-forwarded-for'] || req.ip;
     const databaseFramework = new dbUtils(this.connection);
 
+    const currentDate = new Date();
+
     const userData = await databaseFramework.select("users", "*", "email = ?", [email]);
     if (userData.length === 0) { return res.status(401).send({ message: 'Usuário ou senha incorretos' }); }
 
@@ -108,7 +110,7 @@ class Users {
       if (userData[0].usertype === systemObjects.UserTypes.ATENDENTE.id || userData[0].usertype === systemObjects.UserTypes.PROFISSIONAL.id) {
         const verifyIfAttendantIsOnTable = await databaseFramework.select("chat_attendants", "*", "attendant_id = ?", [userData[0].id]);
         if (verifyIfAttendantIsOnTable.length <= 0) {
-          await databaseFramework.insert("chat_attendants", { attendant_id: userData[0].id, category_id: 1, isAvailable: 0, isAll: 0, isOnChat: 0 });
+          await databaseFramework.insert("chat_attendants", { attendant_id: userData[0].id, category_id: 1, isAvailable: 0, isAll: 0, isOnChat: 0, date: currentDate });
         }
       }
       return res.status(200).send({ message: 'Login realizado com sucesso.', token: token, expiresIn: 3 });
