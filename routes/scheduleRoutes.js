@@ -48,4 +48,8 @@ module.exports = (connection, app, system, scheduleLocationFunctions, scheduleFu
     system.getAttendantScheduledQuantity(req, res);
   });
 
+  app.patch('/api/attendant/schedules/meet/update', authenticateClient, (req, res) => {
+    scheduleFunctions.syncLinkToSchedule(req, res);
+  });
+
 };

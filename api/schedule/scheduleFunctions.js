@@ -283,6 +283,30 @@ class ScheduleFunctions {
 
     }
 
+    async syncLinkToSchedule(req, res) {
+      const { scheduleId, meetUrl } = req.body;
+      const databaseFramework = new dbUtils(this.connection);
+
+      if (!util.validaURL(meetUrl) || !meetUrl.includes('meet')) { return res.status(400).json({ message: 'Link inválido.' }); }
+      try {
+        const getScheduleData = await databaseFramework.select("appointments", "*", "id = ? and isDeleted = 0", [scheduleId]);
+        if (getScheduleData.length <= 0) { return res.status(404).json({ message: 'Agendamento não encontrado.' }); }
+        
+        const getUserScheduleData = await databaseFramework.select("users_appointments", "*", "schedule_id = ? and isOnline = 1", [scheduleId]);
+        if (getUserScheduleData.length <= 0) { return res.status(404).json({ message: 'Agendamento não encontrado.' }); }
+
+        const scheduleData = getScheduleData[0];
+        if (scheduleData.isConfirmed === 0) { return res.status(409).json({ message: 'Agendamento não foi confirmado' }); }
+        if (scheduleData.isFinished === 1) { return res.status(409).json({ message: 'Agendamento já foi concluído' }); }
+
+        await databaseFramework.update("appointments", { meetUrl: meetUrl }, `id = ${scheduleId}`);
+        return res.status(200).json({ message: 'Agendamento atualizado com sucesso' });
+      } catch (error) {
+        return res.status(500).json({ message: error.message });
+      }
+    
+    }
+
     async listSchedulesPending(req, res) {
       const { attendantId } = req.body;
       const databaseFramework = new dbUtils(this.connection);
