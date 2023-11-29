@@ -348,6 +348,7 @@ class ScheduleFunctions {
 
           for (const schedule of getSchedules) {
               const getPatientData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]);
+              const getUserScheduleData = await databaseFramework.select("users_appointments", ["schedule_id"], "schedule_id = ?", [schedule.id]);
               if (getPatientData.length > 0) {
                   const patient = getPatientData[0];
                   patientData.push({
@@ -357,7 +358,8 @@ class ScheduleFunctions {
                       patientPhoto: `${patient.userphoto}`,
                       scheduleId: schedule.id,
                       scheduleDate: util.convertDateToCustomFormat(schedule.date),
-                      scheduleStartTime: schedule.start_time
+                      scheduleStartTime: schedule.start_time,
+                      scheduleIsOnline: getUserScheduleData[0].isOnline,
                   });
               }
           }
