@@ -483,7 +483,7 @@ class SocketConnection {
         const chatSessions = databaseFramework.select('chat_sessions', '*', 'finished = 0');
         if (chatSessions.length >= 1) {
           for (const chatSession of chatSessions) {
-            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at >= ? ORDER BY ID desc LIMIT 1", [chatSession.id, tenMinutesAgo]);
+            const getChatMessages = await databaseFramework.select("chat_messages", "*", "chat_session_id = ? and created_at <= ? ORDER BY ID desc LIMIT 1", [chatSession.id, tenMinutesAgo]);
 
             if (getChatMessages.length > 0) {
               await databaseFramework.update("chat_attendants", { isOnChat: 0 }, `attendant_id = ${chatSession.attendant_id}`);
