@@ -55,9 +55,6 @@ class ScheduleFunctions {
       const databaseFramework = new dbUtils(this.connection);
       const { patientId } = req.body;
   
-      const currentDate = new Date().toISOString().split('T')[0];
-      const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false });
-  
       const getAllUserSchedules = await databaseFramework.select(
         "appointments",
         "*",
@@ -118,6 +115,7 @@ class ScheduleFunctions {
             scheduleDate: util.formatDate(appointment.date),
             scheduleStartTime: appointment.start_time,
             scheduleEndTime: util.addHoursToTime(appointment.start_time, 1),
+            scheduleMeetUrl: appointment.meetUrl,
             professionalId: professional.id,
             professionalName: professional.name,
             professionalRole: professional.role,
