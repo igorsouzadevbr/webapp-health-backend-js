@@ -425,35 +425,23 @@ class SocketConnection {
       const databaseFramework = new dbUtils(this.connection);
       
       setInterval(async () => {
-        moment.tz.setDefault('America/Sao_Paulo');
-        const currentDate = moment();
-        const thirtySecondsAgo = currentDate.clone().subtract(30, 'seconds');
-        // const getAllAttendants = await databaseFramework.select(
-        //   "chat_queue",
-        //   "DISTINCT attendant_id",
-        //   "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date <=?", [thirtySecondsAgo.format('YYYY-MM-DD HH:mm:ss')]
-        // );
         const getAllAttendants = await databaseFramework.select(
           "chat_queue",
           "DISTINCT attendant_id",
           "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0"
         );
+
         const attendantQueue = [];
         
         for (const attendant of getAllAttendants) {
           const attendantId = attendant.attendant_id;
-          // const getAttendantQueue = await databaseFramework.select(
-          //   "chat_queue",
-          //   "*",
-          //   "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date <=?",
-          //   [attendantId, thirtySecondsAgo.format('YYYY-MM-DD HH:mm:ss')]
-          // );
           const getAttendantQueue = await databaseFramework.select(
             "chat_queue",
             "*",
             "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0",
             [attendantId]
           );
+     
           if (getAttendantQueue.length > 0) {
             const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
             const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
@@ -468,16 +456,16 @@ class SocketConnection {
             }
   
             unauthenticatedUsers.forEach(userId => {
-              users.push({ userId: userId, userphoto: null });
+              users.push({ attendantId: attendantId, userId: userId, userphoto: null });
             });
   
-            attendantQueue.push({ attendantId: attendantId, users });
-          }else {
-            attendantQueue.push({ attendantId: attendantId, users: [] });
+            attendantQueue.push( {attendantId}, users );
+            
           }
         }
-  
+        console.log(attendantQueue);
         this.io.emit('attendantQueue', attendantQueue);
+        
       }, 3000);
     } catch (error) {
       console.error('Erro ao obter a fila de atendentes:', error);
