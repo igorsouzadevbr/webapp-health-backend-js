@@ -441,7 +441,7 @@ class SocketConnection {
           const getAttendantQueue = await databaseFramework.select(
             "chat_queue",
             "*",
-            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= DATE_SUB(?, INTERVAL 1 MINUTE)",
+            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date <= DATE_SUB(?, INTERVAL 5 MINUTE)",
             [attendantId, currentTime]
           );
   
