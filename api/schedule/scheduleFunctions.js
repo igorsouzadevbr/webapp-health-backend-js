@@ -61,7 +61,7 @@ class ScheduleFunctions {
         "appointments",
         "*",
         "patient_id = ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0 AND date >=? ORDER BY date ASC",
-        [patientId, currentDate.format('YYYY-MM-DD HH:mm:ss')]
+        [patientId, currentDate.format('YYYY-MM-DD')]
       );
   
       if (getAllUserSchedules.length > 0) {
