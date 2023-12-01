@@ -77,15 +77,19 @@ class ScheduleFunctions {
         const combinedSchedule = [];
   
         for (const appointment of getAllUserSchedules) {
-          const professional = professionalMap[appointment.professional_id];
-          const userAppointments = await databaseFramework.select(
-            "users_appointments",
-            "*",
-            "schedule_id = ? AND isInPerson = 1",
-            [appointment.id]
-          );
-  
-          const locationInfo = [];
+          const appointmentTime = moment(appointment.start_time, 'HH:mm');
+    
+          if (currentDate.isBefore(appointmentTime)) {
+            
+            const locationInfo = [];
+            const professional = professionalMap[appointment.professional_id];
+            const userAppointments = await databaseFramework.select(
+              "users_appointments",
+              "*",
+              "schedule_id = ? AND isInPerson = 1",
+              [appointment.id]
+            );
+
   
           for (const userAppointment of userAppointments) {
   
