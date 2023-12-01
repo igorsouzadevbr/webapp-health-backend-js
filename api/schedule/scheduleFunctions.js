@@ -77,9 +77,9 @@ class ScheduleFunctions {
         const combinedSchedule = [];
   
         for (const appointment of getAllUserSchedules) {
-          const appointmentTime = moment(appointment.start_time, 'HH:mm');
+          const appointmentEndTime = moment(util.addHoursToTime(appointment.start_time, 1), 'HH:mm');
     
-          if (currentDate.isSameOrBefore(appointmentTime.subtract(1, 'minutes'))) {
+          if (currentDate.isSameOrBefore(appointmentEndTime.subtract(1, 'minutes'))) {
             
             const locationInfo = [];
             const professional = professionalMap[appointment.professional_id];
