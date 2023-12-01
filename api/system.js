@@ -183,9 +183,14 @@ class System {
   
       const chatData = getChatId[0];
       const isUserInChat = chatData.user_id === userId;
+      const isUserUnloggedInChat = chatData.userData === userId;
       const isAttendantInChat = chatData.attendant_id === userId;
-  
-      if (!isUserInChat && !isAttendantInChat) {
+      
+      if (!util.isOnlyNumbers(userId) && !isUserUnloggedInChat) {
+        return res.status(400).send({ message: 'Este chat não está vinculado para este usuário.' });
+      }
+      
+      if (util.isOnlyNumbers(userId) && !isUserInChat && !isAttendantInChat) {
         return res.status(400).send({ message: 'Este chat não está vinculado para este usuário.' });
       }
   
