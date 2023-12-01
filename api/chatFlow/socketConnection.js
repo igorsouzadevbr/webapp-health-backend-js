@@ -379,8 +379,9 @@ class SocketConnection {
     const databaseFramework = new dbUtils(this.connection);
     try {
       setInterval(async () => {
-        const currentTime = new Date();
-        const fourSecondsAgo = new Date(currentTime - 4000); // 4000 milissegundos = 4 segundos
+        moment.tz.setDefault('America/Sao_Paulo');
+        const currentDate = moment();
+        const secondsAgo = currentDate.clone().subtract(30, 'seconds');
   
         let sql = `
           SELECT 
@@ -411,8 +412,9 @@ class SocketConnection {
           WHERE 
             EXISTS (SELECT 1 FROM chat_categories WHERE id = 4);
         `;
-  
-        const categoriesWithAttendants = await databaseFramework.rawQuery(sql, [fourSecondsAgo]);
+        
+        const categoriesWithAttendants = await databaseFramework.rawQuery(sql, [secondsAgo.format('YYYY-MM-DD HH:mm:ss')]);
+        console.log(categoriesWithAttendants);
         this.io.emit('categoriesWithAttendantsAvailable', { categoriesWithAttendants });
       }, 3000);
     } catch (error) {
