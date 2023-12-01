@@ -427,6 +427,7 @@ class SocketConnection {
       setInterval(async () => {
         const currentTime = new Date();
         const MinuteAgo = new Date(currentTime - 30000);
+        console.log(MinuteAgo);
         const getAllAttendants = await databaseFramework.select(
           "chat_queue",
           "DISTINCT attendant_id",
