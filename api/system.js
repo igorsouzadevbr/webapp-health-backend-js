@@ -176,11 +176,22 @@ class System {
     const databaseFramework = new dbUtils(this.connection);
     try {
       const getChatId = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
-
-      if (!getChatId || getChatId.length === 0) { return res.status(404).send({ message: 'Chat não encontrado.' }); }
-      if (!util.isOnlyNumbers(userId) && getChatId[0].userData !== userId) { return res.status(400).send({ message: 'Este chat não está vinculado para este usuário.' });}
-      if (getChatId[0].user_id !== userId || getChatId[0].attendant_id !== userId) { return res.status(400).send({ message: 'Este chat não está vinculado para este usuário.' }); }
-      if (getChatId[0].finished === 1) { return res.status(409).send({ message: 'Este chat está finalizado.' }); }
+  
+      if (!getChatId || getChatId.length === 0) {
+        return res.status(404).send({ message: 'Chat não encontrado.' });
+      }
+  
+      const chatData = getChatId[0];
+      const isUserInChat = chatData.user_id === userId;
+      const isAttendantInChat = chatData.attendant_id === userId;
+  
+      if (!isUserInChat && !isAttendantInChat) {
+        return res.status(400).send({ message: 'Este chat não está vinculado para este usuário.' });
+      }
+  
+      if (chatData.finished === 1) {
+        return res.status(409).send({ message: 'Este chat está finalizado.' });
+      }
 
       const chat_queue = getChatId[0].chat_queue_id;
       const newChatId = getChatId[0].id;
@@ -191,13 +202,11 @@ class System {
         [newChatId]
       );
 
-      // Verifica se há mensagens no chat
       if (!getAllMessages || getAllMessages.length === 0) {
         return res.status(404).send({ message: 'Chat não encontrado.' });
       }
 
 
-      // Formata as mensagens para a estrutura de objeto desejada
       const formattedMessages = getAllMessages.map(msg => {
         if (msg.senderIsLogged === 0) {
           return {
@@ -209,6 +218,7 @@ class System {
             message: msg.message
           };
         }
+
         if (msg.receiverIsLogged === 0) {
           return {
             messageId: msg.id,
@@ -219,6 +229,7 @@ class System {
             message: msg.message
           };
         }
+
         return {
           messageId: msg.id,
           chatId: chat_queue,
@@ -229,7 +240,6 @@ class System {
         };
       });
 
-      // Retorna as mensagens com status 200
       return res.status(200).send(formattedMessages);
 
     } catch (error) {
