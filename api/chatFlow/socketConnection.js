@@ -372,7 +372,7 @@ class SocketConnection {
     this.checkChatsWithNoMessages();
     this.checkQttOfAttendantSchedules();
     this.getAttendantQueue();
-    //this.getCategoriesWithAttendantsAvailable();
+    this.getCategoriesWithAttendantsAvailable();
   }
 
   async getCategoriesWithAttendantsAvailable() {
@@ -430,7 +430,7 @@ class SocketConnection {
         const getAllAttendants = await databaseFramework.select(
           "chat_queue",
           "DISTINCT attendant_id",
-          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= DATE_SUB(?, INTERVAL 1 MINUTE)",
+          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date <= DATE_SUB(?, INTERVAL 5 MINUTE)",
           [currentTime]
         );
         
