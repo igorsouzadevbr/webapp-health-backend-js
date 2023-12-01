@@ -3,6 +3,7 @@ const util = require('../util/util.js');
 const systemMessages = require('../system/systemMessages.js');
 const systemObjects = require('../system/systemObjects.js');
 const dbUtils = require('../util/databaseUtils.js');
+const moment = require('moment-timezone');
 
 class ScheduleFunctions {
     constructor(connection) {
@@ -54,12 +55,13 @@ class ScheduleFunctions {
     async listSchedules(req, res) {
       const databaseFramework = new dbUtils(this.connection);
       const { patientId } = req.body;
-  
+      moment.tz.setDefault('America/Sao_Paulo');
+      const currentDate = moment();
       const getAllUserSchedules = await databaseFramework.select(
         "appointments",
         "*",
-        "patient_id = ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0",
-        [patientId]
+        "patient_id = ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0 AND date >=? ORDER BY date ASC",
+        [patientId, currentDate.format('YYYY-MM-DD HH:mm:ss')]
       );
   
       if (getAllUserSchedules.length > 0) {
