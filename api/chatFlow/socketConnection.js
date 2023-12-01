@@ -431,7 +431,7 @@ class SocketConnection {
         const getAllAttendants = await databaseFramework.select(
           "chat_queue",
           "DISTINCT attendant_id",
-          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= NOW() - INTERVAL 1 MINUTE"
+          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0"
         );
         
         const attendantQueue = [];
@@ -441,7 +441,7 @@ class SocketConnection {
           const getAttendantQueue = await databaseFramework.select(
             "chat_queue",
             "*",
-            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= NOW() - INTERVAL 1 MINUTE",
+            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0",
             [attendantId]
           );
   
