@@ -456,14 +456,13 @@ class SocketConnection {
             }
   
             unauthenticatedUsers.forEach(userId => {
-              users.push({ attendantId: attendantId, userId: userId, userphoto: null });
+              users.push( { attendantId: attendantId, userId: userId, userphoto: null });
             });
   
-            attendantQueue.push( {attendantId}, users );
+            attendantQueue.push( { attendantId, users } );
             
           }
         }
-        console.log(attendantQueue);
         this.io.emit('attendantQueue', attendantQueue);
         
       }, 3000);
