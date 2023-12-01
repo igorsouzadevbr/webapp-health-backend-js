@@ -304,67 +304,140 @@ class ScheduleFunctions {
     }
 
     async listSchedulesPending(req, res) {
-      const { attendantId } = req.body;
-      const databaseFramework = new dbUtils(this.connection);
       try {
-          const getSchedules = await databaseFramework.select("appointments", ["patient_id", "date", "start_time", "id"], "isConfirmed = 0 and professional_id = ?", [attendantId]);
-          if (getSchedules.length <= 0) { return res.status(200).json([]); }
+        const { attendantId } = req.body;
+        const databaseFramework = new dbUtils(this.connection);
+    
+        const getSchedules = await databaseFramework.select(
+          "appointments",
+          ["patient_id", "date", "start_time", "id", "meetUrl"],
+          "isConfirmed = 0 and professional_id = ?",
+          [attendantId]
+        );
+    
+        if (getSchedules.length === 0) {
+          return res.status(200).json([]);
+        }
+    
+        const patientDataPromises = getSchedules.map(async (schedule) => {
 
-          const patientData = [];
-
-          for (const schedule of getSchedules) {
-              const getPatientData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]);
-              const getUserScheduleData = await databaseFramework.select("users_appointments", ["isOnline"], "schedule_id = ?", [schedule.id]);
-              if (getPatientData.length > 0) {
-                  const patient = getPatientData[0];
-                  patientData.push({
-                      patientId: patient.id,
-                      patientName: patient.name,
-                      patientPhoto: `${patient.userphoto}`,
-                      scheduleId: schedule.id,
-                      scheduleDate: util.convertDateToCustomFormat(schedule.date),
-                      scheduleStartTime: schedule.start_time,
-                      scheduleIsOnline: getUserScheduleData[0].isOnline,
-                  });
-              }
+          const [getPatientData, getUserScheduleData, userAppointments] = await Promise.all([
+            databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]),
+            databaseFramework.select("users_appointments", ["isOnline"], "schedule_id = ?", [schedule.id]),
+            databaseFramework.select("users_appointments", "*", "schedule_id = ? AND isInPerson = 1", [schedule.id])
+          ]);
+    
+          const locationInfoPromises = userAppointments.map(async (userAppointment) => {
+            const locationId = userAppointment.location_id;
+            const locationData = await databaseFramework.select("appointments_location", "*", "id = ?", [locationId]);
+    
+            if (locationData.length > 0) {
+              return {
+                locationId: locationData[0].id,
+                locationName: locationData[0].name,
+                locationAddress: locationData[0].address,
+                locationNumber: locationData[0].number,
+                locationComplement: locationData[0].complement,
+                locationNeighborhood: locationData[0].neighborhood,
+                locationPostalCode: locationData[0].postalCode,
+                locationCity: await this.getCityNameById(locationData[0].cityId),
+                locationState: await this.getStateNameById(locationData[0].stateId),
+              };
+            }
+          });
+    
+          const locationInfo = await Promise.all(locationInfoPromises);
+    
+          if (getPatientData.length > 0) {
+            const patient = getPatientData[0];
+            return {
+              patientId: patient.id,
+              patientName: patient.name,
+              patientPhoto: `${patient.userphoto}`,
+              scheduleId: schedule.id,
+              scheduleDate: util.convertDateToCustomFormat(schedule.date),
+              scheduleStartTime: schedule.start_time,
+              scheduleIsOnline: getUserScheduleData[0].isOnline,
+              scheduleMeetUrl: schedule.meetUrl,
+              locationInfo: locationInfo.filter((info) => info !== undefined),
+            };
           }
-
-          return res.status(200).json(patientData);
+        });
+    
+        const patientData = await Promise.all(patientDataPromises);
+    
+        return res.status(200).json(patientData);
       } catch (error) {
-          return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
       }
-  }
+    }
 
   async listSchedulesConfirmed(req, res) {
       const { attendantId } = req.body;
       const databaseFramework = new dbUtils(this.connection);
       try {
-          const getSchedules = await databaseFramework.select("appointments", ["patient_id", "date", "start_time", "id", "meetUrl"], "isConfirmed = 1 and professional_id = ? and isDeleted = 0", [attendantId]);
-          if (getSchedules.length <= 0) { return res.status(200).json([]); }
+    
+        const getSchedules = await databaseFramework.select(
+          "appointments",
+          ["patient_id", "date", "start_time", "id", "meetUrl"],
+          "isConfirmed = 1 and professional_id = ?",
+          [attendantId]
+        );
+    
+        if (getSchedules.length === 0) {
+          return res.status(200).json([]);
+        }
+    
+        const patientDataPromises = getSchedules.map(async (schedule) => {
 
-          const patientData = [];
-
-          for (const schedule of getSchedules) {
-              const getPatientData = await databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]);
-              const getUserScheduleData = await databaseFramework.select("users_appointments", ["isOnline"], "schedule_id = ?", [schedule.id]);
-              if (getPatientData.length > 0) {
-                  const patient = getPatientData[0];
-                  patientData.push({
-                      patientId: patient.id,
-                      patientName: patient.name,
-                      scheduleMeetUrl: schedule.meetUrl, 
-                      patientPhoto: `${patient.userphoto}`,
-                      scheduleId: schedule.id,
-                      scheduleDate: util.convertDateToCustomFormat(schedule.date),
-                      scheduleStartTime: schedule.start_time,
-                      scheduleIsOnline: getUserScheduleData[0].isOnline,
-                  });
-              }
+          const [getPatientData, getUserScheduleData, userAppointments] = await Promise.all([
+            databaseFramework.select("users", ["id", "name", "userphoto", "role"], "id = ?", [schedule.patient_id]),
+            databaseFramework.select("users_appointments", ["isOnline"], "schedule_id = ?", [schedule.id]),
+            databaseFramework.select("users_appointments", "*", "schedule_id = ? AND isInPerson = 1", [schedule.id])
+          ]);
+    
+          const locationInfoPromises = userAppointments.map(async (userAppointment) => {
+            const locationId = userAppointment.location_id;
+            const locationData = await databaseFramework.select("appointments_location", "*", "id = ?", [locationId]);
+    
+            if (locationData.length > 0) {
+              return {
+                locationId: locationData[0].id,
+                locationName: locationData[0].name,
+                locationAddress: locationData[0].address,
+                locationNumber: locationData[0].number,
+                locationComplement: locationData[0].complement,
+                locationNeighborhood: locationData[0].neighborhood,
+                locationPostalCode: locationData[0].postalCode,
+                locationCity: await this.getCityNameById(locationData[0].cityId),
+                locationState: await this.getStateNameById(locationData[0].stateId),
+              };
+            }
+          });
+    
+          const locationInfo = await Promise.all(locationInfoPromises);
+    
+          if (getPatientData.length > 0) {
+            const patient = getPatientData[0];
+            return {
+              patientId: patient.id,
+              patientName: patient.name,
+              patientPhoto: `${patient.userphoto}`,
+              scheduleId: schedule.id,
+              scheduleDate: util.convertDateToCustomFormat(schedule.date),
+              scheduleStartTime: schedule.start_time,
+              scheduleIsOnline: getUserScheduleData[0].isOnline,
+              scheduleMeetUrl: schedule.meetUrl,
+              locationInfo: locationInfo.filter((info) => info !== undefined),
+            };
           }
-
-          return res.status(200).json(patientData);
+        });
+    
+        const patientData = await Promise.all(patientDataPromises);
+    
+        return res.status(200).json(patientData);
       } catch (error) {
-          return res.status(500).json({ message: error.message });
+        return res.status(500).json({ message: error.message });
       }
   }
   

@@ -372,7 +372,7 @@ class SocketConnection {
     this.checkChatsWithNoMessages();
     this.checkQttOfAttendantSchedules();
     this.getAttendantQueue();
-    this.getCategoriesWithAttendantsAvailable();
+    //this.getCategoriesWithAttendantsAvailable();
   }
 
   async getCategoriesWithAttendantsAvailable() {
@@ -496,7 +496,7 @@ class SocketConnection {
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
-    }, 10000);
+    }, 60000);
   }
 
   async checkQttOfAttendantSchedules() {
