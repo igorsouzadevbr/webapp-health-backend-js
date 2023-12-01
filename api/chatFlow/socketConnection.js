@@ -473,7 +473,7 @@ class SocketConnection {
         const databaseFramework = new dbUtils(this.connection);
         moment.tz.setDefault('America/Sao_Paulo');
         const currentDate = moment();
-        const tenMinutesAgo = currentDate.clone().subtract(30, 'seconds');
+        const tenMinutesAgo = currentDate.clone().subtract(20, 'minutes');
 
         const chatSessions = await databaseFramework.select('chat_sessions', '*', 'finished = 0');
         if (chatSessions.length >= 1) {
@@ -490,7 +490,7 @@ class SocketConnection {
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
-    }, 5000);
+    }, 60000);
   }
 
   async checkQttOfAttendantSchedules() {
