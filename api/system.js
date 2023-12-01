@@ -172,18 +172,15 @@ class System {
   }
 
   async getAllMessagesFromConversation(req, res) {
-    const { chatId } = req.body;
+    const { userId, chatId } = req.body;
     const databaseFramework = new dbUtils(this.connection);
     try {
       const getChatId = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
 
-      if (!getChatId || getChatId.length === 0) {
-        return res.status(404).send({ message: 'Chat não encontrado.' });
-      }
-
-      if (getChatId[0].finished === 1) {
-        return res.status(409).send({ message: 'Este chat está finalizado.' });
-      }
+      if (!getChatId || getChatId.length === 0) { return res.status(404).send({ message: 'Chat não encontrado.' }); }
+      if (!util.isOnlyNumbers(userId) && getChatId[0].userData !== userId) { return res.status(400).send({ message: 'Este chat não está vinculado para este usuário.' });}
+      if (getChatId[0].user_id !== userId || getChatId[0].attendant_id !== userId) { return res.status(400).send({ message: 'Este chat não está vinculado para este usuário.' }); }
+      if (getChatId[0].finished === 1) { return res.status(409).send({ message: 'Este chat está finalizado.' }); }
 
       const chat_queue = getChatId[0].chat_queue_id;
       const newChatId = getChatId[0].id;
