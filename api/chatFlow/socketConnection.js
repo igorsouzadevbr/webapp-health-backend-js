@@ -431,9 +431,8 @@ class SocketConnection {
         const getAllAttendants = await databaseFramework.select(
           "chat_queue",
           "DISTINCT attendant_id",
-          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >=?", [thirtySecondsAgo.format('YYYY-MM-DD HH:mm:ss')]
+          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date <=?", [thirtySecondsAgo.format('YYYY-MM-DD HH:mm:ss')]
         );
-        
         const attendantQueue = [];
         
         for (const attendant of getAllAttendants) {
@@ -441,10 +440,9 @@ class SocketConnection {
           const getAttendantQueue = await databaseFramework.select(
             "chat_queue",
             "*",
-            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >=?",
+            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date <=?",
             [attendantId, thirtySecondsAgo.format('YYYY-MM-DD HH:mm:ss')]
           );
-            
           if (getAttendantQueue.length > 0) {
             const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
             const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
