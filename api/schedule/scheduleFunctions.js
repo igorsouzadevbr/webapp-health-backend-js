@@ -227,7 +227,7 @@ class ScheduleFunctions {
     
         const convertedDate = new Date(year, month, day);
         try {
-          const getChatAttendants = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
+          const getChatAttendants = await databaseFramework.select("chat_attendants", "*");
           if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
     
           const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
