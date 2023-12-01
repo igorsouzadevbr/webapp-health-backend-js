@@ -129,6 +129,7 @@ class ScheduleFunctions {
             locationInfo: locationInfo,
           });
         }
+      }
   
         return res.status(200).json(combinedSchedule);
       } else {
