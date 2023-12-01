@@ -426,12 +426,12 @@ class SocketConnection {
       
       setInterval(async () => {
         const currentTime = new Date();
-        
+        const MinuteAgo = new Date(currentTime - 30000);
         const getAllAttendants = await databaseFramework.select(
           "chat_queue",
           "DISTINCT attendant_id",
-          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= DATE_SUB(?, INTERVAL 5 MINUTE)",
-          [currentTime]
+          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= ?",
+          [MinuteAgo]
         );
         
         const attendantQueue = [];
@@ -441,8 +441,8 @@ class SocketConnection {
           const getAttendantQueue = await databaseFramework.select(
             "chat_queue",
             "*",
-            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= DATE_SUB(?, INTERVAL 5 MINUTE)",
-            [attendantId, currentTime]
+            "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0 and date >= ?",
+            [attendantId, MinuteAgo]
           );
   
           if (getAttendantQueue.length > 0) {
