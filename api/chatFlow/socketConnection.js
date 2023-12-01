@@ -447,7 +447,7 @@ class SocketConnection {
             if (authenticatedUsers.length > 0) {
               const getUserData = await databaseFramework.select("users", "id, userphoto", "id IN (?)", [authenticatedUsers]);
               users = users.concat(getUserData.map(user => {
-                return { userId: user.id, userphoto: `${user.userphoto}` };
+                return { attendantId: attendantId, userId: user.id, userphoto: `${user.userphoto}` };
               }));
             }
   
@@ -473,7 +473,7 @@ class SocketConnection {
         const databaseFramework = new dbUtils(this.connection);
         moment.tz.setDefault('America/Sao_Paulo');
         const currentDate = moment();
-        const tenMinutesAgo = currentDate.clone().subtract(10, 'minutes');
+        const tenMinutesAgo = currentDate.clone().subtract(30, 'seconds');
 
         const chatSessions = await databaseFramework.select('chat_sessions', '*', 'finished = 0');
         if (chatSessions.length >= 1) {
@@ -490,7 +490,7 @@ class SocketConnection {
       } catch (error) {
         console.error('Erro na verificação e exclusão da fila:', error);
       }
-    }, 60000);
+    }, 5000);
   }
 
   async checkQttOfAttendantSchedules() {
