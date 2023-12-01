@@ -401,7 +401,7 @@ WHERE
     `;
 
       const categoriesWithAttendants = await databaseFramework.rawQuery(sql);
-
+      console.log(categoriesWithAttendants);
       return res.status(200).send(categoriesWithAttendants);
 
     } catch (error) {
