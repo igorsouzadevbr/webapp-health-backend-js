@@ -409,8 +409,7 @@ class SocketConnection {
         `;
         
         const categoriesWithAttendants = await databaseFramework.rawQuery(sql);
-        console.log(categoriesWithAttendants);
-        this.io.emit('categoriesWithAttendantsAvailable', { categoriesWithAttendants });
+        this.io.emit('categoriesWithAttendantsAvailable', categoriesWithAttendants);
       }, 3000);
     } catch (error) {
       console.error('Erro ao obter a fila de atendentes:', error);
