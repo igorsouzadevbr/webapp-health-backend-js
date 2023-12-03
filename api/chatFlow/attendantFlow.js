@@ -402,6 +402,27 @@ class chatAttendantFlow {
         }
     }
 
+    async deleteAttendantLocation(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId, locationId } = req.body;
+        try {
+            const getLocationById = await databaseFramework.select("appointments_location", "*", "id =?", [locationId]);
+            if (getLocationById.length <= 0) { return res.status(404).json({ message: 'O endereço informado não existe.' }); }
+
+            const getAttendantData = await databaseFramework.select("users", "*", "id =? and usertype >= 2", [attendantId]);
+            if (getAttendantData.length <= 0) { return res.status(404).json({ message: 'Atendente inexistente.' }); }
+
+            const verifyIfLocationHasAlreadyOnAttendantList = await databaseFramework.select("attendant_schedule_locations", "*", "attendant_id =? and location_id =?", [attendantId, locationId]);
+            if (verifyIfLocationHasAlreadyOnAttendantList.length <= 0) { return res.status(409).json({ message: 'Atendente não possui esse endereço na lista de endereços de atendimento.' }); }
+
+            await databaseFramework.delete("attendant_schedule_locations", `attendant_id = ${attendantId} and location_id = ${locationId}`);
+            return res.status(200).json({ message: 'Endereço removido com sucesso.' });
+
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
     async getAttendantLocations(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId } = req.body;
