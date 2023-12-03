@@ -469,34 +469,49 @@ class chatAttendantFlow {
     
         const convertedDate = new Date(year, month, day);
         try {
-            const existingHours = [];
+            // Obtenha todos os horários existentes para a data especificada e o atendente
+            const existingHours = await databaseFramework.select(
+                "attendant_schedule_availability",
+                "time",
+                "attendant_id = ? AND date = ? AND isInPerson = 0",
+                [attendantId, convertedDate]
+            );
     
-            for (const time of hours) {
-                const existingHour = await databaseFramework.select(
-                    "attendant_schedule_availability",
-                    "*",
-                    "attendant_id = ? AND date = ? AND time = ?",
-                    [attendantId, convertedDate, time]
-                );
+            const existingTimeSet = new Set(existingHours.map((row) => row.time));
     
-                if (existingHour.length === 0) {
-                    existingHours.push(time);
-                }
+            // Determine os horários a serem excluídos
+            const hoursToDelete = [...existingTimeSet]
+                .filter((existingTime) => !hours.includes(existingTime));
+    
+            // Exclua os horários que não estão na matriz "hours"
+            if (hoursToDelete.length > 0) {
+                const placeholders = hoursToDelete.map(() => "?").join(", ");
+                const deleteQuery = `
+                    DELETE FROM attendant_schedule_availability
+                    WHERE attendant_id = ?
+                    AND date = ?
+                    AND time IN (${placeholders})
+                    AND isInPerson = 0
+                `;
+    
+                const deleteParams = [attendantId, convertedDate, ...hoursToDelete];
+    
+                await databaseFramework.rawQuery(deleteQuery, deleteParams);
             }
     
-            if (existingHours.length === 0) {
-                return res.status(409).json({
-                    message: `O atendente já possui todos os horários listados.`
-                });
+            // Filtrar apenas os horários que não existem na tabela
+            const newHours = hours.filter((time) => !existingTimeSet.has(time));
+    
+            if (newHours.length > 0) {
+                const insertData = newHours.map((time) => ({
+                    attendant_id: attendantId,
+                    date: convertedDate,
+                    time: time,
+                }));
+    
+                await databaseFramework.insertMultiple("attendant_schedule_availability", insertData);
             }
     
-            const insertData = existingHours.map((time) => ({
-                attendant_id: attendantId,
-                date: convertedDate,
-                time: time,
-            }));
-    
-            await databaseFramework.insertMultiple("attendant_schedule_availability", insertData);
             return res.status(200).json({ message: 'Horário(s) adicionado(s) com sucesso.' });
         } catch (error) {
             return res.status(500).json({ message: error.message });
@@ -506,56 +521,70 @@ class chatAttendantFlow {
     async insertAvailabilityInPerson(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId, date, hours, locationId } = req.body;
-        
+    
         const dateParts = date.split("/");
         const year = parseInt(dateParts[2], 10);
         const month = parseInt(dateParts[1], 10) - 1;
         const day = parseInt(dateParts[0], 10);
         const convertedDate = new Date(year, month, day);
-
+    
         try {
-            const verifyIfLocationExists = await databaseFramework.select("appointments_location", "*", "id =?", [locationId]);
-        if (verifyIfLocationExists.length <= 0) { return res.status(404).json({ message: 'O endereço informado não existe.' }); }
-
-        const verifyIfAttendantHasThatLocation = await databaseFramework.select("attendant_schedule_locations", "*", "attendant_id =? AND location_id =?", [attendantId, locationId]);
-        if (verifyIfAttendantHasThatLocation.length <= 0) { return res.status(404).json({ message: 'Atendente não possui esse endereço na lista de locais de atendimento.' }); }
-        
-        const existingHours = [];
-
-        for (const time of hours) {
-            const existingHour = await databaseFramework.select(
+            const verifyIfLocationExists = await databaseFramework.select("appointments_location", "*", "id = ?", [locationId]);
+            if (verifyIfLocationExists.length <= 0) { return res.status(404).json({ message: 'O endereço informado não existe.' }); }
+    
+            const verifyIfAttendantHasThatLocation = await databaseFramework.select("attendant_schedule_locations", "*", "attendant_id = ? AND location_id = ?", [attendantId, locationId]);
+            if (verifyIfAttendantHasThatLocation.length <= 0) { return res.status(404).json({ message: 'Atendente não possui esse endereço na lista de locais de atendimento.' }); }
+    
+            const existingHours = await databaseFramework.select(
                 "attendant_schedule_availability",
-                "*",
-                "attendant_id = ? AND date = ? AND time = ? AND schedule_location_id =? AND isInPerson = 1",
-                [attendantId, convertedDate, time, locationId]
+                "time",
+                "attendant_id = ? AND date = ? AND isInPerson = 1 AND schedule_location_id = ?",
+                [attendantId, convertedDate, locationId]
             );
-
-            if (existingHour.length === 0) {
-                existingHours.push(time);
+    
+            const existingTimeSet = new Set(existingHours.map((row) => row.time));
+    
+            // Filtrar apenas os horários que não existem na tabela
+            const newHours = hours.filter((time) => !existingTimeSet.has(time));
+    
+            if (newHours.length > 0) {
+                const insertData = newHours.map((time) => ({
+                    attendant_id: attendantId,
+                    date: convertedDate,
+                    time: time,
+                    schedule_location_id: locationId,
+                    isInPerson: 1
+                }));
+    
+                await databaseFramework.insertMultiple("attendant_schedule_availability", insertData);
             }
+    
+            // Exclua os horários que não estão na matriz "hours"
+            const hoursToDelete = [...existingTimeSet]
+                .filter((existingTime) => !hours.includes(existingTime));
+    
+            if (hoursToDelete.length > 0) {
+                const placeholders = hoursToDelete.map(() => "?").join(", ");
+                const deleteQuery = `
+                    DELETE FROM attendant_schedule_availability
+                    WHERE attendant_id = ?
+                    AND date = ?
+                    AND isInPerson = 1
+                    AND schedule_location_id = ?
+                    AND time IN (${placeholders})
+                `;
+    
+                const deleteParams = [attendantId, convertedDate, locationId, ...hoursToDelete];
+    
+                await databaseFramework.rawQuery(deleteQuery, deleteParams);
+            }
+    
+            return res.status(200).json({ message: 'Horário(s) adicionado(s) com sucesso.' });
+    
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
         }
-
-        if (existingHours.length === 0) {
-            return res.status(409).json({
-                message: `O atendente já possui todos os horários listados.`
-            });
-        }
-
-        const insertData = existingHours.map((time) => ({
-            attendant_id: attendantId,
-            date: convertedDate,
-            time: time,
-            schedule_location_id: locationId,
-            isInPerson: 1
-        }));
-        console.log(insertData);
-        await databaseFramework.insertMultiple("attendant_schedule_availability", insertData);
-        return res.status(200).json({ message: 'Horário(s) adicionado(s) com sucesso.' });
-
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
     }
-}
 
     async getAttendantAvailability(req, res) {
         const databaseFramework = new dbUtils(this.connection);
