@@ -49,6 +49,25 @@ class DatabaseUtils {
         }
     }
 
+    async insertMultiple(tableName, data) {
+        const connection = await this.pool.getConnection();
+        try {
+            const columns = Object.keys(data[0]).join(', ');
+            const values = data.map((rowData) => {
+                const rowValues = Object.values(rowData).map((value) => mysql.escape(value)).join(', ');
+                return `(${rowValues})`;
+            }).join(', ');
+
+            const sql = `INSERT INTO ${tableName} (${columns}) VALUES ${values}`;
+            const [result] = await connection.query(sql);
+            return result.insertId;
+        } catch (err) {
+            throw err;
+        } finally {
+            connection.release();
+        }
+    }
+
     async update(tableName, data, conditions) {
         const connection = await this.pool.getConnection();
         try {

@@ -130,4 +130,13 @@ module.exports = (connection, app, users, adminFunctions, alterDataWithTokens, a
   app.post('/api/attendant/schedules/location/remove', authenticateClient, (req, res) => {
     attendantFlow.deleteAttendantLocation(req, res);
   });
+
+  app.put('/api/attendant/schedules/availability/insert', authenticateClient, (req, res) => {
+    attendantFlow.insertAvailability(req, res);
+  });
+
+  app.post('/api/attendant/schedules/availability/get', authenticateClient, (req, res) => {
+    attendantFlow.getAttendantAvailability(req, res);
+  });
+
 };

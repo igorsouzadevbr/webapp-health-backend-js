@@ -459,5 +459,86 @@ class chatAttendantFlow {
         }
     }
 
+    async insertAvailability(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId, date, hours } = req.body;
+
+        const dateParts = date.split("/");
+        const year = parseInt(dateParts[2], 10);
+        const month = parseInt(dateParts[1], 10) - 1;
+        const day = parseInt(dateParts[0], 10);
+    
+        const convertedDate = new Date(year, month, day);
+        try {
+        const existingHours = [];
+        
+        for (const time of hours) {
+            const existingHour = await databaseFramework.select(
+                "attendant_schedule_availability",
+                "*",
+                "attendant_id = ? AND date = ? AND time = ?",
+                [attendantId, convertedDate, time]
+            );
+            
+            if (existingHour.length > 0) {
+                existingHours.push(time);
+            }
+        }
+        
+        if (existingHours.length > 0) {
+            return res.status(409).json({
+                message: `Atendente já possui o(s) seguinte(s) horário(s) de atendimento: ${existingHours.join(', ')}.`
+            });
+        }
+
+            const insertData = hours.map((time) => ({
+                attendant_id: attendantId,
+                date: convertedDate,
+                time: time,
+            }));
+
+            await databaseFramework.insertMultiple("attendant_schedule_availability", insertData);
+            return res.status(200).json({ message: 'Horário(s) adicionado com sucesso.' });
+        } catch(error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
+    async getAttendantAvailability(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId, date, isOnline } = req.body;
+
+        const dateParts = date.split("/");
+        const year = parseInt(dateParts[2], 10);
+        const month = parseInt(dateParts[1], 10) - 1;
+        const day = parseInt(dateParts[0], 10);
+    
+        const convertedDate = new Date(year, month, day);
+        console.log(convertedDate);
+        try {
+
+          if (isOnline === 1) {
+          const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =?", [attendantId, convertedDate]);
+          if (getAttendantAvailability.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
+          
+          const attendantHours = getAttendantAvailability.map(time => time.time);
+
+          return res.status(200).send(attendantHours);
+          
+        } else {
+            const getAttendantAvailabilityIsInPerson = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = 1", [attendantId, convertedDate]);
+            if (getAttendantAvailabilityIsInPerson.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento presenciais.' }); }
+          
+          const attendantHours = getAttendantAvailabilityIsInPerson.map(time => time.time);
+
+          return res.status(200).send(attendantHours);
+        }
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
+
+
 }
 module.exports = chatAttendantFlow;
