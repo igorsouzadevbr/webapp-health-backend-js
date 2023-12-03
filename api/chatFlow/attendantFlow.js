@@ -607,7 +607,7 @@ class chatAttendantFlow {
           const attendantHours = getAttendantAvailability.map(time => time.time);
           const attendantHoursOnline = getAttendantAvailabilityOnline.map(time => time.time);
           
-          if (attendantHoursOnline.length > 0 && attendantHours.length > 0) {return res.status(200).send(attendantHours.concat(attendantHoursOnline));}
+          if (attendantHoursOnline.length > 0 && attendantHours.length > 0) {return res.status(200).send([attendantHours,attendantHoursOnline]);}
           if (attendantHours.length > 0) {return res.status(200).send(attendantHours);}
           if (attendantHoursOnline.length > 0) {return res.status(200).send(attendantHoursOnline);}
           } 
@@ -619,7 +619,7 @@ class chatAttendantFlow {
           const attendantHours = getAttendantAvailability.map(time => time.time);
           const attendantHoursInPerson = getAttendantAvailabilityInPerson.map(time => time.time);
           
-          if (attendantHoursInPerson.length > 0 && attendantHours.length > 0) {return res.status(200).send(attendantHours.concat(attendantHoursInPerson));}
+          if (attendantHoursInPerson.length > 0 && attendantHours.length > 0) {return res.status(200).send([attendantHours, attendantHoursInPerson]);}
           if (attendantHours.length > 0) {return res.status(200).send(attendantHours);}
           if (attendantHoursInPerson.length > 0) {return res.status(200).send(attendantHoursInPerson);}
           
