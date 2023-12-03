@@ -600,19 +600,28 @@ class chatAttendantFlow {
         try {
         
           if (locationId !== null && isInPerson === 1) {
-            const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ? AND schedule_location_id = ?", [attendantId, convertedDate, isInPerson, locationId]);
-          if (getAttendantAvailability.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
+         const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ? AND schedule_location_id = ?", [attendantId, convertedDate, isInPerson, locationId]);
           
+         const getAttendantAvailabilityOnline = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = 0", [attendantId, convertedDate]);
+         if (getAttendantAvailability.length <= 0 && getAttendantAvailabilityOnline.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
           const attendantHours = getAttendantAvailability.map(time => time.time);
-
-          return res.status(200).send(attendantHours);
+          const attendantHoursOnline = getAttendantAvailabilityOnline.map(time => time.time);
+          
+          if (attendantHoursOnline.length > 0 && attendantHours.length > 0) {return res.status(200).send(attendantHours.concat(attendantHoursOnline));}
+          if (attendantHours.length > 0) {return res.status(200).send(attendantHours);}
+          if (attendantHoursOnline.length > 0) {return res.status(200).send(attendantHoursOnline);}
           } 
-          const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ?", [attendantId, convertedDate, isInPerson]);
-          if (getAttendantAvailability.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
-          
-          const attendantHours = getAttendantAvailability.map(time => time.time);
 
-          return res.status(200).send(attendantHours);
+
+          const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ?", [attendantId, convertedDate, isInPerson]);
+          const getAttendantAvailabilityInPerson = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = 1", [attendantId, convertedDate]);
+         if (getAttendantAvailability.length <= 0 && getAttendantAvailabilityInPerson.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
+          const attendantHours = getAttendantAvailability.map(time => time.time);
+          const attendantHoursInPerson = getAttendantAvailabilityInPerson.map(time => time.time);
+          
+          if (attendantHoursInPerson.length > 0 && attendantHours.length > 0) {return res.status(200).send(attendantHours.concat(attendantHoursInPerson));}
+          if (attendantHours.length > 0) {return res.status(200).send(attendantHours);}
+          if (attendantHoursInPerson.length > 0) {return res.status(200).send(attendantHoursInPerson);}
           
         } catch (error) {
             return res.status(500).json({ message: error.message });
