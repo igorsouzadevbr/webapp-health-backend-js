@@ -94,6 +94,18 @@ function isCNPJ(cnpj) {
   return isValidLength && !hasRepeatedDigits;
 }
 
+async function getCityNameById(cityId) {
+  const databaseFramework = new dbUtils(this.connection);
+  const cityData = await databaseFramework.select("city", "name", "id = ?", [cityId]);
+  return cityData.length > 0 ? cityData[0].name : null;
+}
+
+async function getStateNameById(stateId) {
+  const databaseFramework = new dbUtils(this.connection);
+  const stateData = await databaseFramework.select("states", "nome", "id = ?", [stateId]);
+  return stateData.length > 0 ? stateData[0].nome : null;
+}
+
 function validaURL(str) {
   const pattern = new RegExp('^(https?:\\/\\/)?' +
     '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
@@ -254,5 +266,5 @@ function formatDate(dateInput) {
 
 
 module.exports = {
-  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID, isOnlyNumbers, convertDateToCustomFormat, addHoursToTime, formatDate
+  isPhoneNumber, formatPhoneNumber, convertToSHA256, isInteger, isEmail, formatCPF, isUnformattedCPF, isCNPJ, validaURL, validaCEP, validaHora, getWeekDay, logToDatabase, formatToDate, validateCityById, validateStateById, generateToken, isBlob, decryptSHA256, isValidUUID, isOnlyNumbers, convertDateToCustomFormat, addHoursToTime, formatDate, getCityNameById, getStateNameById
 };

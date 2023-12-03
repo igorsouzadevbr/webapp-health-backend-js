@@ -380,6 +380,74 @@ class chatAttendantFlow {
         }
     }
 
+    async attendantAddLocations(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId, locationId } = req.body;
+
+        try {
+            
+            const getLocationById = await databaseFramework.select("appointments_location", "*", "id =?", [locationId]);
+            if (getLocationById.length <= 0) { return res.status(404).json({ message: 'O endereço informado não existe.' }); }
+
+            const getAttendantData = await databaseFramework.select("users", "*", "id =? and usertype >= 2", [attendantId]);
+            if (getAttendantData.length <= 0) { return res.status(404).json({ message: 'Atendente inexistente.' }); }
+
+            const verifyIfLocationHasAlreadyOnAttendantList = await databaseFramework.select("attendant_schedule_locations", "*", "attendant_id =? and location_id =?", [attendantId, locationId]);
+            if (verifyIfLocationHasAlreadyOnAttendantList.length > 0) { return res.status(409).json({ message: 'Atendente já possui esse endereço na lista de endereços de atendimento.' }); }
+
+            await databaseFramework.insert("attendant_schedule_locations", { location_id: locationId, attendant_id: attendantId });
+            return res.status(200).json({ message: 'Endereço adicionado com sucesso.' });
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
+    async getAttendantLocations(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { attendantId } = req.body;
+
+        try {
+            
+            const getAttendantLocationByAttendantId = await databaseFramework.select("attendant_schedule_locations", "*", "attendant_id =?", [attendantId]);
+            if (getAttendantLocationByAttendantId.length <= 0) { return res.status(404).json({ message: 'Atendente não possui endereços de atendimento.' }); }
+            
+            const locationIds = getAttendantLocationByAttendantId.map(location => location.location_id);
+            const getLocationById = await databaseFramework.select("appointments_location", "*", "id IN (?)", [locationIds]);
+            if (getLocationById.length <= 0) { return res.status(404).json({ message: 'O endereço informado não existe.' }); }
+            if (getLocationById) {
+                const locationFinalData = await Promise.all(getLocationById.map( async location => ({
+                    locationName: location.name, 
+                    locationAddress: location.address, 
+                    locationComplement: location.complement, 
+                    locationNeighborhood: location.neighborhood, 
+                    locationNumber: location.number, 
+                    locationPostalCode: location.postalCode, 
+                    locationImage: `${location.image}`, 
+                    locationCityName: await this.getCityNameById(location.cityId), 
+                    locationStateName: await this.getStateNameById(location.stateId)
+                })));
+                return res.status(200).send(locationFinalData);
+            }
+            
+        
+    
+            
+        } catch (error) {
+            return res.status(500).json({ message: error.message });
+        }
+    }
+
+    async getCityNameById(cityId) {
+        const databaseFramework = new dbUtils(this.connection);
+        const cityData = await databaseFramework.select("city", "name", "id = ?", [cityId]);
+        return cityData.length > 0 ? cityData[0].name : null;
+      }
+    
+      async getStateNameById(stateId) {
+        const databaseFramework = new dbUtils(this.connection);
+        const stateData = await databaseFramework.select("states", "nome", "id = ?", [stateId]);
+        return stateData.length > 0 ? stateData[0].nome : null;
+      }
 
 }
 module.exports = chatAttendantFlow;

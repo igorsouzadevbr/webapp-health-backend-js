@@ -118,4 +118,12 @@ module.exports = (connection, app, users, adminFunctions, alterDataWithTokens, a
   app.post('/api/attendant/status/get', authenticateClient, (req, res) => {
     system.getAttendantStatus(req, res);
   });
+
+  app.put('/api/attendant/schedules/location/add', authenticateClient, (req, res) => {
+    attendantFlow.attendantAddLocations(req, res);
+  });
+  
+  app.post('/api/attendant/schedules/location/get', authenticateClient, (req, res) => {
+    attendantFlow.getAttendantLocations(req, res);
+  });
 };

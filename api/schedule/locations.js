@@ -28,7 +28,7 @@ class ScheduleLocations {
         const { postalCode } = req.body;
         const sanitizedPostalCode = postalCode.replace(/\s/g, '');
 
-        const exactLocation = await databaseFramework.select("appointments_location", "*", "postalCode = ? and isDeleted = 0", [sanitizedPostalCode]);
+        const exactLocation = await databaseFramework.select("appointments_location", "*", "postalCode LIKE ? and isDeleted = 0", [`${sanitizedPostalCode.slice(0, 3)}%`]);
         let allLocations = [];
 
         if (exactLocation.length > 0) {
