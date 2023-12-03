@@ -94,14 +94,14 @@ function isCNPJ(cnpj) {
   return isValidLength && !hasRepeatedDigits;
 }
 
-async function getCityNameById(cityId) {
-  const databaseFramework = new dbUtils(this.connection);
+async function getCityNameById(cityId, connection) {
+  const databaseFramework = new dbUtils(connection);
   const cityData = await databaseFramework.select("city", "name", "id = ?", [cityId]);
   return cityData.length > 0 ? cityData[0].name : null;
 }
 
-async function getStateNameById(stateId) {
-  const databaseFramework = new dbUtils(this.connection);
+async function getStateNameById(stateId, connection) {
+  const databaseFramework = new dbUtils(connection);
   const stateData = await databaseFramework.select("states", "nome", "id = ?", [stateId]);
   return stateData.length > 0 ? stateData[0].nome : null;
 }

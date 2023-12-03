@@ -56,25 +56,27 @@ class ScheduleLocations {
         const databaseFramework = new dbUtils(this.connection);
         const { locationName } = req.body;
 
-        const exactLocation = await databaseFramework.select("appointments_location", "*", "name LIKE ? and isDeleted = 0 LIMIT 10", [locationName]);
+        const exactLocation = await databaseFramework.select("appointments_location", "*", `name LIKE '%${locationName}%' and isDeleted = 0 LIMIT 10`);
         let allLocations = [];
 
         if (exactLocation.length > 0) {
             allLocations = exactLocation;
-
-        } else {
-            const similarLocations = await databaseFramework.select("appointments_location", "*", "name LIKE ? and isDeleted = 0 LIMIT 10", [locationName]);
-
-            if (similarLocations.length > 0) {
-                allLocations = similarLocations;
-            }
         }
 
-        if (allLocations.length > 0) {
-            allLocations.forEach(location => {
-                location.image = `${location.image}`;
-            });
-            return res.status(200).send(allLocations);
+        if (allLocations) {
+            const locationFinalData = await Promise.all(allLocations.map( async location => ({
+                locationId: location.id,
+                locationName: location.name, 
+                locationAddress: location.address, 
+                locationComplement: location.complement, 
+                locationNeighborhood: location.neighborhood, 
+                locationNumber: location.number, 
+                locationPostalCode: location.postalCode, 
+                locationCityName: await util.getCityNameById(location.cityId, this.connection),  
+                locationStateName: await util.getStateNameById(location.stateId, this.connection)
+            })));
+
+            return res.status(200).send(locationFinalData);
         } else {
             return res.status(404).send({ message: 'Localização não encontrada.' });
         }
