@@ -192,7 +192,7 @@ class ScheduleFunctions {
       // Consulta a tabela attendant_schedule_availability para obter horários disponíveis
       const availableHoursQuery = await databaseFramework.select(
         "attendant_schedule_availability",
-        "time, attendant_id",
+        "time",
         "DATE(date) = ?",
         [convertedDate]
       );
@@ -208,16 +208,17 @@ class ScheduleFunctions {
       // Crie um conjunto de horários disponíveis
       const availableHoursSet = new Set(availableHoursQuery.map((availability) => availability.time));
     
-      // Crie um array de IDs de atendentes disponíveis
-      const availableAttendantsArray = Array.from(new Set(availableHoursQuery.map((availability) => availability.attendant_id)));
+      // Crie um conjunto de todos os horários das 00:00 às 23:00
+      const allHoursSet = new Set(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'));
     
-      // Verifique se todos os atendentes disponíveis têm registros na tabela appointments para um determinado horário
-      const unavailableTimes = Array.from(availableHoursSet).filter((startTime) => {
-        return availableAttendantsArray.every((attendantId) => {
-          return appointmentsQuery.some((appointment) => {
-            return appointment.professional_id === attendantId && appointment.start_time === startTime;
-          });
+      // Determine os horários indisponíveis com base nos horários disponíveis na tabela attendant_schedule_availability
+      const unavailableTimes = Array.from(allHoursSet).filter((startTime) => {
+        const isTimeUnavailable = !availableHoursSet.has(startTime);
+        const isTimeBooked = appointmentsQuery.some((appointment) => {
+          return appointment.start_time === startTime;
         });
+    
+        return isTimeUnavailable || isTimeBooked;
       });
     
       if (unavailableTimes.length > 0) {
@@ -226,6 +227,8 @@ class ScheduleFunctions {
         return res.status(200).send([]);
       }
     }
+    
+    
     
     
     
