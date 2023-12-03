@@ -8,6 +8,10 @@ module.exports = (connection, app, system, scheduleLocationFunctions, scheduleFu
     scheduleLocationFunctions.getLocation(req, res);
   });
   
+  app.post('/api/schedules/location/name/get', authenticateClient, (req, res) => {
+    scheduleLocationFunctions.getLocationByName(req, res);
+  });
+
   app.post('/api/schedules/professional/get', authenticateClient, (req, res) => {
     scheduleFunctions.getHoursByAttendants(req, res);
   });

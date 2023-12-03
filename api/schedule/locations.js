@@ -52,6 +52,34 @@ class ScheduleLocations {
         }
     }
 
+    async getLocationByName(req, res) {
+        const databaseFramework = new dbUtils(this.connection);
+        const { locationName } = req.body;
+
+        const exactLocation = await databaseFramework.select("appointments_location", "*", "name LIKE ? and isDeleted = 0 LIMIT 10", [locationName]);
+        let allLocations = [];
+
+        if (exactLocation.length > 0) {
+            allLocations = exactLocation;
+
+        } else {
+            const similarLocations = await databaseFramework.select("appointments_location", "*", "name LIKE ? and isDeleted = 0 LIMIT 10", [locationName]);
+
+            if (similarLocations.length > 0) {
+                allLocations = similarLocations;
+            }
+        }
+
+        if (allLocations.length > 0) {
+            allLocations.forEach(location => {
+                location.image = `${location.image}`;
+            });
+            return res.status(200).send(allLocations);
+        } else {
+            return res.status(404).send({ message: 'Localização não encontrada.' });
+        }
+    }
+
 
 
 
