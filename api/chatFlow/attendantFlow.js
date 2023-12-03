@@ -425,7 +425,7 @@ class chatAttendantFlow {
                     locationPostalCode: location.postalCode, 
                     locationImage: `${location.image}`, 
                     locationCityName: await this.getCityNameById(location.cityId), 
-                    locationStateName: await this.getStateNameById(location.stateId)
+                    locationStateName: await this.getStateNameById(location.tag)
                 })));
                 return res.status(200).send(locationFinalData);
             }
@@ -446,8 +446,8 @@ class chatAttendantFlow {
     
       async getStateNameById(stateId) {
         const databaseFramework = new dbUtils(this.connection);
-        const stateData = await databaseFramework.select("states", "nome", "id = ?", [stateId]);
-        return stateData.length > 0 ? stateData[0].nome : null;
+        const stateData = await databaseFramework.select("states", "tag", "id = ?", [stateId]);
+        return stateData.length > 0 ? stateData[0].tag : null;
       }
 
 }
