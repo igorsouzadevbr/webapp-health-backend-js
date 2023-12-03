@@ -31,6 +31,11 @@ module.exports = (connection, app, system, scheduleLocationFunctions, scheduleFu
   app.post('/api/schedules/date/get', authenticateClient, (req, res) => {
     scheduleFunctions.listUnavailableHours(req, res);
   });
+
+  app.post('/api/schedules/date/location/get', authenticateClient, (req, res) => {
+    scheduleFunctions.listUnavailableHoursByLocation(req, res);
+  });
+
   
   app.post('/api/schedules/patient/verify', authenticateClient, (req, res) => {
     scheduleFunctions.verifySchedule(req, res);
