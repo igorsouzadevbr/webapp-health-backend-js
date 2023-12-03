@@ -425,7 +425,7 @@ class chatAttendantFlow {
                     locationPostalCode: location.postalCode, 
                     locationImage: `${location.image}`, 
                     locationCityName: await this.getCityNameById(location.cityId), 
-                    locationStateName: await this.getStateNameById(location.tag)
+                    locationStateName: await this.getStateNameById(location.stateId)
                 })));
                 return res.status(200).send(locationFinalData);
             }
