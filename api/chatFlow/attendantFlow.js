@@ -567,17 +567,18 @@ class chatAttendantFlow {
         const day = parseInt(dateParts[0], 10);
     
         const convertedDate = new Date(year, month, day);
+        const isInPerson = isOnline ? 0 : 1;
         try {
         
-          if (locationId.length > 0) {
-            const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ? AND schedule_location_id = ?", [attendantId, convertedDate, isOnline, locationId]);
+          if (locationId !== null) {
+            const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ? AND schedule_location_id = ?", [attendantId, convertedDate, isInPerson, locationId]);
           if (getAttendantAvailability.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
           
           const attendantHours = getAttendantAvailability.map(time => time.time);
 
           return res.status(200).send(attendantHours);
           } 
-          const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ?", [attendantId, convertedDate, isOnline]);
+          const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ?", [attendantId, convertedDate, isInPerson]);
           if (getAttendantAvailability.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
           
           const attendantHours = getAttendantAvailability.map(time => time.time);
