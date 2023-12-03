@@ -135,8 +135,14 @@ module.exports = (connection, app, users, adminFunctions, alterDataWithTokens, a
     attendantFlow.insertAvailability(req, res);
   });
 
+  app.put('/api/attendant/schedules/availability/inPerson/insert', authenticateClient, (req, res) => {
+    attendantFlow.insertAvailabilityInPerson(req, res);
+  });
+
   app.post('/api/attendant/schedules/availability/get', authenticateClient, (req, res) => {
     attendantFlow.getAttendantAvailability(req, res);
   });
+
+
 
 };
