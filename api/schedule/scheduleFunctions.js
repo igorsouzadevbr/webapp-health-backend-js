@@ -31,6 +31,22 @@ class ScheduleFunctions {
         if (verifyProfessionalAppointments.length === 1) {
           return res.status(409).send({ message: 'Este profissional já possui um agendamento para esta data e horário. Escolha outra.' });
         }
+
+        //validações de agenda
+        if (isOnline === 1) {
+          const checkAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id = ? AND date = ? AND time = ? AND isInPerson = 0", [professionalId, convertedDate, startTime]);
+          if (checkAvailability.length === 0) {
+            return res.status(409).send({ message: 'Este profissional não está disponível para atendimento online nesta data e horário.' });
+          }
+
+        }
+        if (isOnline === 0) {
+          const checkAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id = ? AND date = ? AND time = ? AND isInPerson = 1 AND schedule_location_id = ?", [professionalId, convertedDate, startTime, locationId]);
+          if (checkAvailability.length === 0) {
+            return res.status(409).send({ message: 'Este profissional não está disponível para atendimento presencial nesta data e horário.' });
+          }
+        }
+
         let createSchedule;
         if (isOnline === 1) {
           createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0 });
@@ -164,55 +180,61 @@ class ScheduleFunctions {
     }
 
     async listUnavailableHours(req, res) {
-        const databaseFramework = new dbUtils(this.connection);
-        const { date } = req.body;
+      const databaseFramework = new dbUtils(this.connection);
+      const { date } = req.body;
     
-        const dateParts = date.split("/");
-        const year = parseInt(dateParts[2], 10);
-        const month = parseInt(dateParts[1], 10) - 1;
-        const day = parseInt(dateParts[0], 10);
-        const convertedDate = new Date(year, month, day);
+      const dateParts = date.split("/");
+      const year = parseInt(dateParts[2], 10);
+      const month = parseInt(dateParts[1], 10) - 1;
+      const day = parseInt(dateParts[0], 10);
+      const convertedDate = new Date(year, month, day);
     
-        const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id", "isAvailable = 1");
-        if (attendantsQuery.length === 0) {
-          return res.status(400).send({ message: 'Não há atendentes registrados.' });
-        }
-        const attendantQuantity = attendantsQuery.length;
-        const unavailableAttendantsByHour = await databaseFramework.select("appointments", "*", "date = ?", [convertedDate]);
+      // Consulta a tabela attendant_schedule_availability para obter horários disponíveis
+      const availableHoursQuery = await databaseFramework.select(
+        "attendant_schedule_availability",
+        "time, attendant_id",
+        "DATE(date) = ?",
+        [convertedDate]
+      );
     
-        const unavailableAttendantsData = unavailableAttendantsByHour.map(professional => {
-          return {
-            professionalId: professional.professional_id,
-            startTime: professional.start_time
-          }
-        }
-        ).reduce((acc, attendant) => {
-          const existingEntry = acc.find(
-            (entry) => entry.startTime === attendant.startTime
-          );
+      // Consulta a tabela appointments para verificar se os horários estão lá
+      const appointmentsQuery = await databaseFramework.select(
+        "appointments",
+        "professional_id, start_time, DATE(date) AS date",
+        "DATE(date) = ? AND isConfirmed = 1",
+        [convertedDate]
+      );
     
-          if (existingEntry) existingEntry.count++;
-          else acc.push({ startTime: attendant.startTime, count: 1 });
+      // Crie um conjunto de horários disponíveis
+      const availableHoursSet = new Set(availableHoursQuery.map((availability) => availability.time));
     
-          return acc;
-        }, [])
-          .filter((entry) => entry.count === attendantQuantity)
-          .map((result) => {
-            if (result.count === attendantQuantity) return result.startTime;
+      // Crie um array de IDs de atendentes disponíveis
+      const availableAttendantsArray = Array.from(new Set(availableHoursQuery.map((availability) => availability.attendant_id)));
+    
+      // Verifique se todos os atendentes disponíveis têm registros na tabela appointments para um determinado horário
+      const unavailableTimes = Array.from(availableHoursSet).filter((startTime) => {
+        return availableAttendantsArray.every((attendantId) => {
+          return appointmentsQuery.some((appointment) => {
+            return appointment.professional_id === attendantId && appointment.start_time === startTime;
           });
+        });
+      });
     
-        if (unavailableAttendantsData.length > 0) {
-          return res.status(200).send(unavailableAttendantsData);
-        } else {
-          return res.status(200).send([]);
-        }
-    
-    
+      if (unavailableTimes.length > 0) {
+        return res.status(200).send(unavailableTimes);
+      } else {
+        return res.status(200).send([]);
       }
+    }
+    
+    
+    
+    
 
       async getHoursByAttendants(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { date, startTime } = req.body;
+
         const dateParts = date.split("/");
         const year = parseInt(dateParts[2], 10);
         const month = parseInt(dateParts[1], 10) - 1;

@@ -346,53 +346,6 @@ class Users {
 
   }
 
-  async listUnavailableHours(req, res) {
-    const databaseFramework = new dbUtils(this.connection);
-    const { date } = req.body;
-
-    const dateParts = date.split("/");
-    const year = parseInt(dateParts[2], 10);
-    const month = parseInt(dateParts[1], 10) - 1;
-    const day = parseInt(dateParts[0], 10);
-    const convertedDate = new Date(year, month, day);
-
-    const attendantsQuery = await databaseFramework.select("chat_attendants", "attendant_id", "isAvailable = 1");
-    if (attendantsQuery.length === 0) {
-      return res.status(400).send({ message: 'Não há atendentes registrados.' });
-    }
-    const attendantQuantity = attendantsQuery.length;
-    const unavailableAttendantsByHour = await databaseFramework.select("appointments", "*", "date = ?", [convertedDate]);
-
-    const unavailableAttendantsData = unavailableAttendantsByHour.map(professional => {
-      return {
-        professionalId: professional.professional_id,
-        startTime: professional.start_time
-      }
-    }
-    ).reduce((acc, attendant) => {
-      const existingEntry = acc.find(
-        (entry) => entry.startTime === attendant.startTime
-      );
-
-      if (existingEntry) existingEntry.count++;
-      else acc.push({ startTime: attendant.startTime, count: 1 });
-
-      return acc;
-    }, [])
-      .filter((entry) => entry.count === attendantQuantity)
-      .map((result) => {
-        if (result.count === attendantQuantity) return result.startTime;
-      });
-
-    if (unavailableAttendantsData.length > 0) {
-      return res.status(200).send(unavailableAttendantsData);
-    } else {
-      return res.status(200).send([]);
-    }
-
-
-  }
-
 }
 
 module.exports = Users;
