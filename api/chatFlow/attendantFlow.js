@@ -621,8 +621,8 @@ class chatAttendantFlow {
           const attendantHoursInPerson = getAttendantAvailabilityInPerson.map(time => time.time);
           
           if (attendantHoursInPerson.length > 0 && attendantHours.length > 0) {return res.status(200).send([attendantHours, attendantHoursInPerson]);}
-          if (attendantHours.length > 0) {return res.status(200).send(attendantHours);}
-          if (attendantHoursInPerson.length > 0) {return res.status(200).send(attendantHoursInPerson);}
+          if (attendantHours.length > 0) {return res.status(200).send([attendantHours, []]);}
+          if (attendantHoursInPerson.length > 0) {return res.status(200).send([[], attendantHoursInPerson]);}
           return res.status(200).send([]);
         } catch (error) {
             return res.status(500).json({ message: error.message });
