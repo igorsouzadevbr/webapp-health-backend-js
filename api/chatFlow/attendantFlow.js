@@ -416,6 +416,7 @@ class chatAttendantFlow {
             if (getLocationById.length <= 0) { return res.status(404).json({ message: 'O endereço informado não existe.' }); }
             if (getLocationById) {
                 const locationFinalData = await Promise.all(getLocationById.map( async location => ({
+                    locationId: location.id,
                     locationName: location.name, 
                     locationAddress: location.address, 
                     locationComplement: location.complement, 
