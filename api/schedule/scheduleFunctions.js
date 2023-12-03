@@ -271,7 +271,7 @@ class ScheduleFunctions {
       const availableHoursQuery = await databaseFramework.select(
         "attendant_schedule_availability",
         "time",
-        "DATE(date) = ?",
+        "DATE(date) = ? and isInPerson = 0",
         [convertedDate]
       );
     
