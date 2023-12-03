@@ -197,6 +197,17 @@ class ScheduleFunctions {
         [convertedDate, locationId]
       );
     
+      // Crie um conjunto de horários disponíveis
+      const availableHoursSet = new Set(availableHoursQuery.map((availability) => availability.time));
+    
+      // Crie um conjunto de todos os horários das 00:00 às 23:00
+      const allHoursSet = new Set(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'));
+    
+      // Verifique se há registros em availableHoursQuery
+      if (availableHoursQuery.length === 0) {
+        return res.status(200).send(Array.from(allHoursSet));
+      }
+    
       // Consulta a tabela user_appointments para verificar se os horários estão lá com isInPerson = 1 e location_id correspondente
       const userAppointmentsQuery = await databaseFramework.select(
         "users_appointments",
@@ -208,6 +219,11 @@ class ScheduleFunctions {
       // Extraia o schedule_id do resultado
       const scheduleIds = userAppointmentsQuery.map((userAppointment) => userAppointment.schedule_id);
     
+      // Verifique se há registros em scheduleIds
+      if (scheduleIds.length === 0) {
+        return res.status(200).send(Array.from(allHoursSet));
+      }
+    
       // Consulta a tabela appointments para verificar os horários indisponíveis com base nos schedule_ids
       const appointmentsQuery = await databaseFramework.select(
         "appointments",
@@ -215,12 +231,6 @@ class ScheduleFunctions {
         "DATE(date) = ? AND isConfirmed = 1 AND id IN (?)",
         [convertedDate, scheduleIds]
       );
-    
-      // Crie um conjunto de horários disponíveis
-      const availableHoursSet = new Set(availableHoursQuery.map((availability) => availability.time));
-    
-      // Crie um conjunto de todos os horários das 00:00 às 23:00
-      const allHoursSet = new Set(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'));
     
       // Determine os horários indisponíveis com base nos horários disponíveis na tabela attendant_schedule_availability
       const unavailableTimes = Array.from(allHoursSet).filter((startTime) => {
@@ -238,6 +248,7 @@ class ScheduleFunctions {
         return res.status(200).send([]);
       }
     }
+    
     
     
     
