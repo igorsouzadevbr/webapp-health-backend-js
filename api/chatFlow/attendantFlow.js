@@ -445,8 +445,8 @@ class chatAttendantFlow {
                     locationNumber: location.number, 
                     locationPostalCode: location.postalCode, 
                     locationImage: `${location.image}`, 
-                    locationCityName: await this.getCityNameById(location.cityId), 
-                    locationStateName: await this.getStateNameById(location.stateId)
+                    locationCityName: await util.getCityNameById(location.cityId, this.connection),  
+                    locationStateName: await util.getStateNameById(location.stateId, this.connection)
                 })));
                 return res.status(200).send(locationFinalData);
             }
@@ -458,18 +458,6 @@ class chatAttendantFlow {
             return res.status(500).json({ message: error.message });
         }
     }
-
-    async getCityNameById(cityId) {
-        const databaseFramework = new dbUtils(this.connection);
-        const cityData = await databaseFramework.select("city", "name", "id = ?", [cityId]);
-        return cityData.length > 0 ? cityData[0].name : null;
-      }
-    
-      async getStateNameById(stateId) {
-        const databaseFramework = new dbUtils(this.connection);
-        const stateData = await databaseFramework.select("states", "tag", "id = ?", [stateId]);
-        return stateData.length > 0 ? stateData[0].tag : null;
-      }
 
 }
 module.exports = chatAttendantFlow;

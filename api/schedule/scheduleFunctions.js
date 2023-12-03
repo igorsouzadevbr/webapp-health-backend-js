@@ -110,8 +110,8 @@ class ScheduleFunctions {
                 locationComplement: locationData[0].complement,
                 locationNeighborhood: locationData[0].neighborhood,
                 locationPostalCode: locationData[0].postalCode,
-                locationCity: await this.getCityNameById(locationData[0].cityId),
-                locationState: await this.getStateNameById(locationData[0].stateId),
+                locationCity: await util.getCityNameById(locationData[0].cityId, this.connection),
+                locationState: await util.getStateNameById(locationData[0].stateId, this.connection),
               });
             }
           }
@@ -135,18 +135,6 @@ class ScheduleFunctions {
       } else {
         return res.status(400).send();
       }
-    }
-    
-    async getCityNameById(cityId) {
-      const databaseFramework = new dbUtils(this.connection);
-      const cityData = await databaseFramework.select("city", "name", "id = ?", [cityId]);
-      return cityData.length > 0 ? cityData[0].name : null;
-    }
-  
-    async getStateNameById(stateId) {
-      const databaseFramework = new dbUtils(this.connection);
-      const stateData = await databaseFramework.select("states", "nome", "id = ?", [stateId]);
-      return stateData.length > 0 ? stateData[0].nome : null;
     }
 
     async verifySchedule(req, res) {
@@ -345,8 +333,8 @@ class ScheduleFunctions {
                 locationComplement: locationData[0].complement,
                 locationNeighborhood: locationData[0].neighborhood,
                 locationPostalCode: locationData[0].postalCode,
-                locationCity: await this.getCityNameById(locationData[0].cityId),
-                locationState: await this.getStateNameById(locationData[0].stateId),
+                locationCity: await util.getCityNameById(locationData[0].cityId, this.connection),
+                locationState: await util.getStateNameById(locationData[0].stateId, this.connection),
               };
             }
           });
@@ -414,8 +402,8 @@ class ScheduleFunctions {
                 locationComplement: locationData[0].complement,
                 locationNeighborhood: locationData[0].neighborhood,
                 locationPostalCode: locationData[0].postalCode,
-                locationCity: await this.getCityNameById(locationData[0].cityId),
-                locationState: await this.getStateNameById(locationData[0].stateId),
+                locationCity: await util.getCityNameById(locationData[0].cityId, this.connection),
+                locationState: await util.getStateNameById(locationData[0].stateId, this.connection),
               };
             }
           });

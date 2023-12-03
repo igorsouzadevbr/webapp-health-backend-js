@@ -393,18 +393,6 @@ class Users {
 
   }
 
-  async getCityNameById(cityId) {
-    const databaseFramework = new dbUtils(this.connection);
-    const cityData = await databaseFramework.select("city", "name", "id = ?", [cityId]);
-    return cityData.length > 0 ? cityData[0].name : null;
-  }
-
-  async getStateNameById(stateId) {
-    const databaseFramework = new dbUtils(this.connection);
-    const stateData = await databaseFramework.select("states", "nome", "id = ?", [stateId]);
-    return stateData.length > 0 ? stateData[0].nome : null;
-  }
-
 }
 
 module.exports = Users;
