@@ -600,7 +600,7 @@ class chatAttendantFlow {
         try {
         
           if (locationId !== null && isInPerson === 1) {
-         const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ? AND schedule_location_id = ?", [attendantId, convertedDate, isInPerson, locationId]);
+         const getAttendantAvailability = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = ?", [attendantId, convertedDate, isInPerson]);
           
          const getAttendantAvailabilityOnline = await databaseFramework.select("attendant_schedule_availability", "*", "attendant_id =? AND date =? AND isInPerson = 0", [attendantId, convertedDate]);
          if (getAttendantAvailability.length <= 0 && getAttendantAvailabilityOnline.length <= 0) { return res.status(404).json({ message: 'Atendente não possui horário(s) de atendimento.' }); }
