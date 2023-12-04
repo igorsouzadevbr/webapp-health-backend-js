@@ -19,11 +19,7 @@ class ScheduleFunctions {
       const month = parseInt(dateParts[1], 10) - 1;
       const day = parseInt(dateParts[0], 10);
     
-      const currentDate = new Date();
-      const hours = currentDate.getHours();
-      const minutes = currentDate.getMinutes();
-    
-      const convertedDate = new Date(year, month, day, hours, minutes);
+      const convertedDate = new Date(year, month, day);
     
       try {
     
