@@ -400,7 +400,7 @@ class ScheduleFunctions {
         const getSchedules = await databaseFramework.select(
           "appointments",
           ["patient_id", "date", "start_time", "id", "meetUrl"],
-          "isConfirmed = 0 and professional_id = ?",
+          "isConfirmed = 0 and professional_id = ? AND isDeleted = 0",
           [attendantId]
         );
     
@@ -469,7 +469,7 @@ class ScheduleFunctions {
         const getSchedules = await databaseFramework.select(
           "appointments",
           ["patient_id", "date", "start_time", "id", "meetUrl"],
-          "isConfirmed = 1 and professional_id = ?",
+          "isConfirmed = 1 and professional_id = ? AND isDeleted = 0",
           [attendantId]
         );
     
