@@ -193,7 +193,7 @@ class ScheduleFunctions {
       const availableHoursQuery = await databaseFramework.select(
         "attendant_schedule_availability",
         "time",
-        "DATE(date) = ? AND schedule_location_id = ?",
+        "DATE(date) = ? AND schedule_location_id = ? AND isInPerson = 1",
         [convertedDate, locationId]
       );
     
@@ -228,7 +228,7 @@ class ScheduleFunctions {
       const appointmentsQuery = await databaseFramework.select(
         "appointments",
         "start_time, id",
-        "DATE(date) = ? AND isConfirmed = 1 AND id IN (?)",
+        "DATE(date) = ? AND isConfirmed = 1 AND id IN (?) AND isInPerson = 1",
         [convertedDate, scheduleIds]
       );
     
@@ -271,15 +271,7 @@ class ScheduleFunctions {
       const availableHoursQuery = await databaseFramework.select(
         "attendant_schedule_availability",
         "time",
-        "DATE(date) = ? and isInPerson = 0",
-        [convertedDate]
-      );
-    
-      // Consulta a tabela appointments para verificar se os horários estão lá
-      const appointmentsQuery = await databaseFramework.select(
-        "appointments",
-        "professional_id, start_time, DATE(date) AS date",
-        "DATE(date) = ? AND isConfirmed = 1",
+        "DATE(date) = ? AND isInPerson = 0",
         [convertedDate]
       );
     
@@ -289,11 +281,24 @@ class ScheduleFunctions {
       // Crie um conjunto de todos os horários das 00:00 às 23:00
       const allHoursSet = new Set(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'));
     
+      // Verifique se há registros em availableHoursQuery
+      if (availableHoursQuery.length === 0) {
+        return res.status(200).send(Array.from(allHoursSet));
+      }
+    
+      // Consulta a tabela appointments para verificar os horários indisponíveis com base nos schedule_ids
+      const appointmentsQuery = await databaseFramework.select(
+        "appointments",
+        "start_time, id",
+        "DATE(date) = ? AND isConfirmed = 1 AND isInPerson = 0",
+        [convertedDate]
+      );
+    
       // Determine os horários indisponíveis com base nos horários disponíveis na tabela attendant_schedule_availability
       const unavailableTimes = Array.from(allHoursSet).filter((startTime) => {
         const isTimeUnavailable = !availableHoursSet.has(startTime);
         const isTimeBooked = appointmentsQuery.some((appointment) => {
-          return appointment.start_time === startTime;
+          return appointment.start_time === startTime && scheduleIds.includes(appointment.id);
         });
     
         return isTimeUnavailable || isTimeBooked;
