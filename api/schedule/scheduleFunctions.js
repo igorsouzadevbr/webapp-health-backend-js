@@ -203,7 +203,7 @@ class ScheduleFunctions {
       const appointmentsQuery = await databaseFramework.select(
         "appointments",
         "id, start_time",
-        "DATE(date) = ? AND isConfirmed = 1 AND isInPerson = 1",
+        "DATE(date) = ? AND isConfirmed = 1 AND isInPerson = 1 AND isDeleted = 0",
         [convertedDate]
       );
     
@@ -260,7 +260,7 @@ class ScheduleFunctions {
       const appointmentsQuery = await databaseFramework.select(
         "appointments",
         "start_time, id",
-        "DATE(date) = ? AND isConfirmed = 1 AND isInPerson = 0",
+        "DATE(date) = ? AND isConfirmed = 1 AND isInPerson = 0 AND isDeleted = 0",
         [convertedDate]
       );
     
