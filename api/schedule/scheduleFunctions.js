@@ -372,7 +372,10 @@ class ScheduleFunctions {
       const { scheduleId, meetUrl } = req.body;
       const databaseFramework = new dbUtils(this.connection);
 
-      if (!util.validaURL(meetUrl) || !meetUrl.includes('meet')) { return res.status(400).json({ message: 'Link inválido.' }); }
+      let urlMeet = meetUrl;
+      if (!urlMeet.startsWith('http://') && !urlMeet.startsWith('https://')) {
+        urlMeet = 'https://' + urlMeet;
+    }
       try {
         const getScheduleData = await databaseFramework.select("appointments", "*", "id = ? and isDeleted = 0", [scheduleId]);
         if (getScheduleData.length <= 0) { return res.status(404).json({ message: 'Agendamento não encontrado.' }); }
@@ -384,7 +387,7 @@ class ScheduleFunctions {
         if (scheduleData.isConfirmed === 0) { return res.status(409).json({ message: 'Agendamento não foi confirmado' }); }
         if (scheduleData.isFinished === 1) { return res.status(409).json({ message: 'Agendamento já foi concluído' }); }
 
-        await databaseFramework.update("appointments", { meetUrl: meetUrl }, `id = ${scheduleId}`);
+        await databaseFramework.update("appointments", { meetUrl: urlMeet }, `id = ${scheduleId}`);
         return res.status(200).json({ message: 'Agendamento atualizado com sucesso' });
       } catch (error) {
         return res.status(500).json({ message: error.message });
