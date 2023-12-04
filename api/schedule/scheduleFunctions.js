@@ -279,16 +279,10 @@ class ScheduleFunctions {
         return res.status(200).send([]);
       }
     }
-    
-    
-    
-    
-    
-    
 
       async getHoursByAttendants(req, res) {
         const databaseFramework = new dbUtils(this.connection);
-        const { date, startTime } = req.body;
+        const { date, startTime/*, locationId*/ } = req.body;
 
         const dateParts = date.split("/");
         const year = parseInt(dateParts[2], 10);
@@ -299,8 +293,33 @@ class ScheduleFunctions {
         try {
           const getChatAttendants = await databaseFramework.select("chat_attendants", "*");
           if (getChatAttendants.length <= 0) { return res.status(404).json({ message: 'Não há atendentes disponíveis.' }); }
-    
+          
           const attendantIds = getChatAttendants.map(attendant => attendant.attendant_id);
+
+          // const attendantLocationQuery = await databaseFramework.select(
+          //   "attendant_schedule_locations",
+          //   "attendant_id",
+          //   "attendant_id IN (?) AND location_id = ?",
+          //   [attendantIds, locationId]
+          // );
+      
+          // if (attendantLocationQuery.length <= 0) {
+          //   return res.status(404).json({ message: 'Nenhum atendente atende a esta unidade.' });
+          // }
+
+          const availableAttendantsQuery = await databaseFramework.select(
+            "attendant_schedule_availability",
+            "attendant_id",
+            "DATE(date) = ? AND time = ? AND attendant_id IN (?)",
+            [convertedDate, startTime, attendantIds]
+          );
+      
+          if (availableAttendantsQuery.length <= 0) {
+            return res.status(404).json({ message: 'Nenhum atendente está disponível neste horário.' });
+          }
+
+
+
           const getProfessionalData = await databaseFramework.select("appointments", "*", "professional_id IN (?) and date = ? and start_time = ? and isConfirmed = 1 and isFinished = 0", [attendantIds, convertedDate, startTime]);
     
           if (getProfessionalData.length <= 0) {
