@@ -90,58 +90,54 @@ class ScheduleFunctions {
       const combinedSchedule = [];
 
       for (const appointment of getAllUserSchedules) {
-        const appointmentEndTime = moment(util.addHoursToTime(appointment.start_time, 1), 'HH:mm');
+        const locationInfo = [];
+        const professional = professionalMap[appointment.professional_id];
+        const userAppointments = await databaseFramework.select(
+          "users_appointments",
+          "*",
+          "schedule_id = ? AND isInPerson = 1",
+          [appointment.id]
+        );
 
-        if (currentDate.isSameOrBefore(appointmentEndTime.subtract(1, 'minutes'))) {
 
-          const locationInfo = [];
-          const professional = professionalMap[appointment.professional_id];
-          const userAppointments = await databaseFramework.select(
-            "users_appointments",
+        for (const userAppointment of userAppointments) {
+
+          const locationId = userAppointment.location_id;
+
+          const locationData = await databaseFramework.select(
+            "appointments_location",
             "*",
-            "schedule_id = ? AND isInPerson = 1",
-            [appointment.id]
+            "id = ?",
+            [locationId]
           );
-
-
-          for (const userAppointment of userAppointments) {
-
-            const locationId = userAppointment.location_id;
-
-            const locationData = await databaseFramework.select(
-              "appointments_location",
-              "*",
-              "id = ?",
-              [locationId]
-            );
-            if (locationData.length > 0) {
-              locationInfo.push({
-                locationId: locationData[0].id,
-                locationName: locationData[0].name,
-                locationAddress: locationData[0].address,
-                locationNumber: locationData[0].number,
-                locationComplement: locationData[0].complement,
-                locationNeighborhood: locationData[0].neighborhood,
-                locationPostalCode: locationData[0].postalCode,
-                locationCity: await util.getCityNameById(locationData[0].cityId, this.connection),
-                locationState: await util.getStateNameById(locationData[0].stateId, this.connection),
-              });
-            }
+          if (locationData.length > 0) {
+            locationInfo.push({
+              locationId: locationData[0].id,
+              locationName: locationData[0].name,
+              locationAddress: locationData[0].address,
+              locationNumber: locationData[0].number,
+              locationComplement: locationData[0].complement,
+              locationNeighborhood: locationData[0].neighborhood,
+              locationPostalCode: locationData[0].postalCode,
+              locationCity: await util.getCityNameById(locationData[0].cityId, this.connection),
+              locationState: await util.getStateNameById(locationData[0].stateId, this.connection),
+            });
           }
-
-          combinedSchedule.push({
-            scheduleId: appointment.id,
-            scheduleDate: util.formatDate(appointment.date),
-            scheduleStartTime: appointment.start_time,
-            scheduleEndTime: util.addHoursToTime(appointment.start_time, 1),
-            scheduleMeetUrl: appointment.meetUrl,
-            professionalId: professional.id,
-            professionalName: professional.name,
-            professionalRole: professional.role,
-            professionalPhoto: `${professional.userPhoto}`,
-            locationInfo: locationInfo,
-          });
         }
+
+        combinedSchedule.push({
+          scheduleId: appointment.id,
+          scheduleDate: util.formatDate(appointment.date),
+          scheduleStartTime: appointment.start_time,
+          scheduleEndTime: util.addHoursToTime(appointment.start_time, 1),
+          scheduleMeetUrl: appointment.meetUrl,
+          professionalId: professional.id,
+          professionalName: professional.name,
+          professionalRole: professional.role,
+          professionalPhoto: `${professional.userPhoto}`,
+          locationInfo: locationInfo,
+        });
+
       }
 
       return res.status(200).json(combinedSchedule);
