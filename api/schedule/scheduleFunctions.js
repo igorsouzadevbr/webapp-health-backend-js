@@ -45,9 +45,9 @@ class ScheduleFunctions {
 
       let createSchedule;
       if (isOnline === 1) {
-        createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0, isInPerson: 0 });
+        createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, end_time: util.addHoursToTime(startTime, 1), isConfirmed: 0, isInPerson: 0 });
       } else {
-        createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, isConfirmed: 0, isInPerson: 1 });
+        createSchedule = await databaseFramework.insert("appointments", { patient_id: patientId, professional_id: professionalId, date: convertedDate, start_time: startTime, end_time: util.addHoursToTime(startTime, 1), isConfirmed: 0, isInPerson: 1 });
       }
 
       if (isOnline === 1) {
@@ -75,6 +75,7 @@ class ScheduleFunctions {
       "patient_id = ? AND isConfirmed = 1 AND isFinished = 0 AND isDeleted = 0 AND date >=? ORDER BY date ASC",
       [patientId, currentDate.format('YYYY-MM-DD')]
     );
+
 
     if (getAllUserSchedules.length > 0) {
       const attendantIds = getAllUserSchedules.map((appointment) => appointment.professional_id);
