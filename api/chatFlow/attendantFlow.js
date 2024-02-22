@@ -589,7 +589,10 @@ class chatAttendantFlow {
     async getAttendantAvailability(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId, date, isOnline, locationId } = req.body;
-
+        console.log(attendantId);
+        console.log(date);
+        console.log(isOnline);
+        console.log(locationId);
         const dateParts = date.split("/");
         const year = parseInt(dateParts[2], 10);
         const month = parseInt(dateParts[1], 10) - 1;
