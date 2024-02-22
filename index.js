@@ -1,5 +1,6 @@
 const express = require('express');
 const https = require('https');
+const http = require('http');
 const jwt = require('jsonwebtoken');
 const mysql = require('mysql2');
 const fs = require('fs');
@@ -7,7 +8,8 @@ const config = require('././config.json');
 const dotenv = require('dotenv');
 const app = express();
 
-const socketServer = https.createServer(app);
+
+const socketServer = http.createServer(app);
 
 const bodyParser = require('body-parser');
 
@@ -152,7 +154,7 @@ const portSocket = process.env.PORT_SOCKET || 3001;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor ouvindo na porta:${PORT}`);
 });
-app.listen(portSocket, '0.0.0.0', () => {
+socketServer.listen(portSocket, '0.0.0.0', () => {
   console.log(`Servidor Socket.IO ouvindo na porta: ${portSocket}`);
 });
 
