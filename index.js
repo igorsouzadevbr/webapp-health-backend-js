@@ -12,7 +12,6 @@ const options = {
   cert: fs.readFileSync('./cert/cert.pem')
 };
 
-const httpsServer = https.createServer(options, app);
 const socketServer = https.createServer(options, app);
 
 const bodyParser = require('body-parser');
@@ -155,10 +154,10 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 3000;
 const portSocket = process.env.PORT_SOCKET || 3001;
 
-httpsServer.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor ouvindo na porta:${PORT}`);
 });
-socketServer.listen(portSocket, '0.0.0.0', () => {
+app.listen(portSocket, '0.0.0.0', () => {
   console.log(`Servidor Socket.IO ouvindo na porta: ${portSocket}`);
 });
 
