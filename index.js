@@ -7,12 +7,7 @@ const config = require('././config.json');
 const dotenv = require('dotenv');
 const app = express();
 
-const options = {
-  key: fs.readFileSync('./cert/key.pem'),
-  cert: fs.readFileSync('./cert/cert.pem')
-};
-
-const socketServer = https.createServer(options, app);
+const socketServer = https.createServer(app);
 
 const bodyParser = require('body-parser');
 
