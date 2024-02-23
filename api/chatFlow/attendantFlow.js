@@ -461,7 +461,11 @@ class chatAttendantFlow {
     async insertAvailability(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId, date, hours } = req.body;
-    
+        
+        if (date == null) {
+            return res.status(409).json({ message: 'É necessário informar uma data.' });
+         }
+
         const dateParts = date.split("/");
         const year = parseInt(dateParts[2], 10);
         const month = parseInt(dateParts[1], 10) - 1;
@@ -521,7 +525,11 @@ class chatAttendantFlow {
     async insertAvailabilityInPerson(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId, date, hours, locationId } = req.body;
-    
+        
+        if (date == null) {
+            return res.status(409).json({ message: 'É necessário informar uma data.' });
+         }
+
         const dateParts = date.split("/");
         const year = parseInt(dateParts[2], 10);
         const month = parseInt(dateParts[1], 10) - 1;
@@ -589,9 +597,11 @@ class chatAttendantFlow {
     async getAttendantAvailability(req, res) {
         const databaseFramework = new dbUtils(this.connection);
         const { attendantId, date, isOnline, locationId } = req.body;
+        
         if (date == null) {
             return res.status(409).json({ message: 'É necessário informar uma data.' });
          }
+
         const dateParts = date.split("/");
         const year = parseInt(dateParts[2], 10);
         const month = parseInt(dateParts[1], 10) - 1;

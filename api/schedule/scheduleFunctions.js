@@ -14,6 +14,10 @@ class ScheduleFunctions {
     const databaseFramework = new dbUtils(this.connection);
     const { patientId, professionalId, startTime, isOnline, date, locationId } = req.body;
 
+    if (date == null) {
+      return res.status(409).json({ message: 'É necessário informar uma data.' });
+   }
+
     const dateParts = date.split("/");
     const year = parseInt(dateParts[2], 10);
     const month = parseInt(dateParts[1], 10) - 1;
@@ -150,6 +154,10 @@ class ScheduleFunctions {
     const databaseFramework = new dbUtils(this.connection);
     const { date, patientId } = req.body;
 
+    if (date == null) {
+      return res.status(409).json({ message: 'É necessário informar uma data.' });
+   }
+
     const dateParts = date.split("/");
     const year = parseInt(dateParts[2], 10);
     const month = parseInt(dateParts[1], 10) - 1;
@@ -175,6 +183,10 @@ class ScheduleFunctions {
   async listUnavailableHoursByLocation(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     const { date, locationId } = req.body;
+
+    if (date == null) {
+      return res.status(409).json({ message: 'É necessário informar uma data.' });
+   }
 
     const dateParts = date.split("/");
     const year = parseInt(dateParts[2], 10);
@@ -233,6 +245,10 @@ class ScheduleFunctions {
     const databaseFramework = new dbUtils(this.connection);
     const { date } = req.body;
 
+    if (date == null) {
+      return res.status(409).json({ message: 'É necessário informar uma data.' });
+   }
+
     const dateParts = date.split("/");
     const year = parseInt(dateParts[2], 10);
     const month = parseInt(dateParts[1], 10) - 1;
@@ -280,6 +296,10 @@ class ScheduleFunctions {
   async getHoursByAttendants(req, res) {
     const databaseFramework = new dbUtils(this.connection);
     const { date, startTime/*, locationId*/ } = req.body;
+
+    if (date == null) {
+      return res.status(409).json({ message: 'É necessário informar uma data.' });
+   }
 
     const dateParts = date.split("/");
     const year = parseInt(dateParts[2], 10);

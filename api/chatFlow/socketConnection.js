@@ -12,7 +12,7 @@ class SocketConnection {
         origin: "*",
         methods: ["GET", "POST"]
       }
-    });
+    });s
 
     this.connection = connection;
 
@@ -574,6 +574,7 @@ class SocketConnection {
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
               this.io.emit('chatReadyAttendant', { chatId: chat.id, patientId: chat.userSessionId, attendantId: chat.attendant_id });
+              return;
             } else {
 
               await databaseFramework.update("chat_queue", { sessionCreated: 1 }, `patient_id = ${chat.patient_id}`);
@@ -582,13 +583,14 @@ class SocketConnection {
 
               this.io.emit('chatReady', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
               this.io.emit('chatReadyAttendant', { chatId: chat.id, patientId: chat.patient_id, attendantId: chat.attendant_id });
+              return;
             }
           }
         });
       } catch (error) {
         console.error('Erro na verificação da fila:', error);
       }
-    }, 4000);
+    }, 4500);
   }
 
   async getPendingChats() {
