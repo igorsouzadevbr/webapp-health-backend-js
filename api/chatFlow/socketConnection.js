@@ -12,7 +12,7 @@ class SocketConnection {
         origin: "*",
         methods: ["GET", "POST"]
       }
-    });s
+    });
 
     this.connection = connection;
 
