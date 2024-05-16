@@ -314,15 +314,48 @@ class System {
     const databaseFramework = new dbUtils(this.connection);
     const { patientId } = req.body;
     try {
+
+      //Fluxo com o user logado
       if (util.isInteger(patientId)) {
         const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "user_id = ? and finished = 0", [patientId]);
         const userChatSessionData = verifyIfUserHaveAChatSession[0];
 
-        if (verifyIfUserHaveAChatSession.length >= 1) {
-          return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
+        if (verifyIfUserHaveAChatSession.length == 1) {
+          return res.status(400).send({ message: 'Usuário já está em uma sessão.', 
+          chatData: 
+          { 
+            attendantId: userChatSessionData.attendant_id, 
+            chatId: userChatSessionData.chat_queue_id 
+          } 
+        });
         }
+
+        const userAlreadyIsOnQueue = await databaseFramework.select("chat_queue", "*", "patient_id = ? and finished = 0", [patientId]);
+        if (userAlreadyIsOnQueue.length == 1) {
+          return res.status(400).send({ message: 'Usuário já está na fila.'});
+        }
+
+        const userAlreadyIsOnUrgentQueue = await databaseFramework.select("urgent_queue", "*", "user_id = ?", [patientId]);
+        if (userAlreadyIsOnUrgentQueue.length == 1) {
+          return res.status(400).send({ message: 'Usuário já está na fila de urgência.' });
+        }
+
+        const placeUserOnUrgentQueue = await databaseFramework.insert("urgent_queue", 
+        { 
+          isLogged: 1, 
+          userData: 'LoggedOn', 
+          user_id: patientId, 
+          attendantAccepted: 0 
+        });
+
+        if (!placeUserOnUrgentQueue) {
+          return res.status(500).send({ message: 'Erro ao colocar usuário na fila de urgência.' });
+        }
+
+        return res.status(200).send({ message: 'Usuário colocado na fila de urgência.' });
       }
 
+      //Fluxo sem o user logado
       const verifyIfUserHaveAChatSession = await databaseFramework.select("chat_sessions", "*", "userData = ? and finished = 0", [patientId]);
       const userChatSessionData = verifyIfUserHaveAChatSession[0];
 
@@ -330,14 +363,28 @@ class System {
         return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
       }
 
-      let sql = `SELECT attendant_id FROM chat_attendants WHERE isAvailable = 1 LIMIT 1`;
-      const availableAttendant = await databaseFramework.rawQuery(sql);
-
-      if (availableAttendant.length > 0) {
-        return res.status(200).send({ attendantId: availableAttendant[0].attendant_id });
-      } else {
-        return res.status(404).send({ message: 'Nenhum atendente disponível encontrado.' });
+      const userAlreadyIsOnQueue = await databaseFramework.select("chat_queue", "*", "userData = ? and finished = 0", [patientId]);
+      if (userAlreadyIsOnQueue.length >= 1) {
+        return res.status(400).send({ message: 'Usuário já está na fila.' });
       }
+
+      const userAlreadyIsOnUrgentQueue = await databaseFramework.select("urgent_queue", "*", "userData = ?", [patientId]);
+      if (userAlreadyIsOnUrgentQueue.length >= 1) {
+        return res.status(400).send({ message: 'Usuário já está na fila de urgência.' });
+      }
+
+      const placeUserOnUrgentQueue = await databaseFramework.insert("urgent_queue", 
+      {
+        isLogged: 0,
+        userData: patientId,
+        attendantAccepted: 0
+      });
+
+      if (!placeUserOnUrgentQueue) {
+        return res.status(500).send({ message: 'Erro ao colocar usuário na fila de urgência.' });
+      }
+
+      return res.status(200).send({ message: 'Usuário colocado na fila de urgência.' });
     } catch (error) {
       const { v4: uuidv4 } = require('uuid');
       const uniqueid = uuidv4();

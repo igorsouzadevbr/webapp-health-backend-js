@@ -437,10 +437,19 @@ class SocketConnection {
             "attendant_id = ? and attendantHasAccepted = 0 and finished = 0 and isScheduled = 0",
             [attendantId]
           );
-     
+
+          const getAttendantUrgentQueue = await databaseFramework.select(
+            "urgent_queue",
+            "*",
+            "attendantHasAccepted = 0",
+            [attendantId]
+          );
+          
+          const combinedQueue = [...getAttendantQueue, ...getAttendantUrgentQueue];
+
           if (getAttendantQueue.length > 0) {
-            const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
-            const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
+            const authenticatedUsers = combinedQueue.filter(user => user.isLogged === 1).map(user => user.patient_id || user.user_id);
+            const unauthenticatedUsers = combinedQueue.filter(user => user.isLogged === 0).map(user => user.userData || user.userSessionId);
   
             let users = [];
   
