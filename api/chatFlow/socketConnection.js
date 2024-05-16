@@ -446,8 +446,8 @@ class SocketConnection {
           );
           
           const combinedQueue = [...getAttendantQueue, ...getAttendantUrgentQueue];
-
-          if (getAttendantQueue.length > 0) {
+          
+          if (combinedQueue.length > 0) {
             const authenticatedUsers = combinedQueue.filter(user => user.isLogged === 1).map(user => user.patient_id || user.user_id);
             const unauthenticatedUsers = combinedQueue.filter(user => user.isLogged === 0).map(user => user.userData || user.userSessionId);
   
