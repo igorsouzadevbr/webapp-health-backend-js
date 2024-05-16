@@ -201,7 +201,7 @@ class chatAttendantFlow {
         }
 
         const combinedQueue = [...getAttendantQueue, ...getUrgentQueue];
-        console.log(combinedQueue);
+        
         const authenticatedUsers = combinedQueue.filter(user => user.isLogged === 1).map(user => user.patient_id || user.user_id);
         const unauthenticatedUsers = combinedQueue.filter(user => user.isLogged === 0).map(user => user.userData || user.userSessionId);
 
@@ -255,12 +255,13 @@ class chatAttendantFlow {
 
         try {
             //fluxo de usuário deslogado
-            if (typeof patientId === "string") {
+            if (!util.isInteger(patientId)) {
                 //fluxo de fila urgente
                 const userIsOnUrgentQueueWithNoAttendant = await databaseFramework.select("urgent_queue", "*", `userData = "${patientId}" and attendantAccepted = 0`);
                 if (userIsOnUrgentQueueWithNoAttendant.length > 0) {
+                    console.log("caiu aqui");
                     await databaseFramework.update("urgent_queue", { attendantAccepted: 1, attendant_id: attendantId }, `userData = "${patientId}" and attendantAccepted = 0`);
-                    await databaseFramework.insert("chat_queue", { position: 1, userSessionId: patientId, attendant_id: attendantId, isLogged:0, attendantHasAccepted: 1, sessionCreated: 0, finished: 0, isScheduled: 0, date: new Date() });
+                    await databaseFramework.insert("chat_queue", { patient_id: null, position: 1, userSessionId: patientId, attendant_id: attendantId, isLogged:0, attendantHasAccepted: 1, sessionCreated: 0, finished: 0, isScheduled: 0, date: new Date() });
                     return res.status(200).send({ message: 'Chat aceito, iniciando sessão.' });
                 }
 
@@ -278,6 +279,7 @@ class chatAttendantFlow {
             //fluxo de fila urgente usuario logado
             const userIsOnUrgentQueueWithAttendant = await databaseFramework.select("urgent_queue", "*", `user_id = ? and attendantAccepted = 0`, [patientId]);
             if (userIsOnUrgentQueueWithAttendant.length > 0) {
+                console.log("caiu aqui2");
                 await databaseFramework.update("urgent_queue", { attendantAccepted: 1, attendant_id: attendantId }, `user_id = ${patientId} and attendantAccepted = 0`);
                 await databaseFramework.insert("chat_queue", { position: 1, patient_id: patientId, attendant_id: attendantId, isLogged:1, attendantHasAccepted: 1, sessionCreated: 0, finished: 0, isScheduled: 0, date: new Date() });
                 return res.status(200).send({ message: 'Chat aceito, iniciando sessão.' });

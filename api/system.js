@@ -176,11 +176,11 @@ class System {
     const databaseFramework = new dbUtils(this.connection);
     try {
       const getChatId = await databaseFramework.select("chat_sessions", "*", "chat_queue_id = ?", [chatId]);
-  
+      
       if (!getChatId || getChatId.length === 0) {
         return res.status(404).send({ message: 'Chat não encontrado.' });
       }
-  
+      
       const chatData = getChatId[0];
       const isUserInChat = chatData.user_id === userId;
       const isUserUnloggedInChat = chatData.userData === userId;
@@ -335,8 +335,8 @@ class System {
           return res.status(400).send({ message: 'Usuário já está na fila.'});
         }
 
-        const userAlreadyIsOnUrgentQueue = await databaseFramework.select("urgent_queue", "*", "user_id = ?", [patientId]);
-        if (userAlreadyIsOnUrgentQueue.length == 1) {
+        const userAlreadyIsOnUrgentQueue = await databaseFramework.select("urgent_queue", "*", "user_id = ? and attendantAccepted = 0", [patientId]);
+        if (userAlreadyIsOnUrgentQueue.length >= 1) {
           return res.status(400).send({ message: 'Usuário já está na fila de urgência.' });
         }
 
@@ -363,12 +363,12 @@ class System {
         return res.status(400).send({ message: 'Usuário já está em uma sessão.', chatData: { attendantId: userChatSessionData.attendant_id, chatId: userChatSessionData.chat_queue_id } });
       }
 
-      const userAlreadyIsOnQueue = await databaseFramework.select("chat_queue", "*", "userData = ? and finished = 0", [patientId]);
+      const userAlreadyIsOnQueue = await databaseFramework.select("chat_queue", "*", "userSessionId = ? and finished = 0", [patientId]);
       if (userAlreadyIsOnQueue.length >= 1) {
         return res.status(400).send({ message: 'Usuário já está na fila.' });
       }
 
-      const userAlreadyIsOnUrgentQueue = await databaseFramework.select("urgent_queue", "*", "userData = ?", [patientId]);
+      const userAlreadyIsOnUrgentQueue = await databaseFramework.select("urgent_queue", "*", "userData = ? and attendantAccepted = 0", [patientId]);
       if (userAlreadyIsOnUrgentQueue.length >= 1) {
         return res.status(400).send({ message: 'Usuário já está na fila de urgência.' });
       }

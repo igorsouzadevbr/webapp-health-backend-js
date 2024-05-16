@@ -422,9 +422,9 @@ class SocketConnection {
       
       setInterval(async () => {
         const getAllAttendants = await databaseFramework.select(
-          "chat_attendants",
+          "chat_queue",
           "DISTINCT attendant_id",
-          "isAvailable = 1 and isOnChat = 0",
+          "attendantHasAccepted = 0 and finished = 0 and isScheduled = 0"
         );
 
         const attendantQueue = [];
@@ -438,18 +438,9 @@ class SocketConnection {
             [attendantId]
           );
      
-          const getAttendantUrgentQueue = await databaseFramework.select(
-            "urgent_queue",
-            "*",
-            "attendantAccepted = 0"
-        );
-
-          if (getAttendantQueue.length > 0 || getAttendantUrgentQueue.length > 0) {
-            
-            const combinedQueue = [...getAttendantQueue, ...getAttendantUrgentQueue];
-            
-            const authenticatedUsers = combinedQueue.filter(user => user.isLogged === 1).map(user => user.patient_id || user.user_id);
-            const unauthenticatedUsers = combinedQueue.filter(user => user.isLogged === 0).map(user => user.userData || user.userSessionId);
+          if (getAttendantQueue.length > 0) {
+            const authenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 1).map(user => user.patient_id);
+            const unauthenticatedUsers = getAttendantQueue.filter(user => user.isLogged === 0).map(user => user.userSessionId);
   
             let users = [];
   
@@ -468,7 +459,6 @@ class SocketConnection {
             
           }
         }
-        
         this.io.emit('attendantQueue', attendantQueue);
         
       }, 3000);
