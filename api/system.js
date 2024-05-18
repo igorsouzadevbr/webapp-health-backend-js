@@ -342,7 +342,7 @@ class System {
 
         const verifyIfHasAttendantsAvailable = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
         if (verifyIfHasAttendantsAvailable.length <= 0) {
-          return res.status(400).send({ message: 'Não há atendentes disponíveis.' });
+          return res.status(404).send({ message: 'Não há atendentes disponíveis.' });
         }
 
         const placeUserOnUrgentQueue = await databaseFramework.insert("urgent_queue", 
@@ -380,7 +380,7 @@ class System {
 
       const verifyIfHasAttendantsAvailable = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
       if (verifyIfHasAttendantsAvailable.length <= 0) {
-        return res.status(400).send({ message: 'Não há atendentes disponíveis.' });
+        return res.status(404).send({ message: 'Não há atendentes disponíveis.' });
       }
 
       const placeUserOnUrgentQueue = await databaseFramework.insert("urgent_queue", 
