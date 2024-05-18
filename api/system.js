@@ -340,6 +340,11 @@ class System {
           return res.status(400).send({ message: 'Usuário já está na fila de urgência.' });
         }
 
+        const verifyIfHasAttendantsAvailable = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
+        if (verifyIfHasAttendantsAvailable.length <= 0) {
+          return res.status(400).send({ message: 'Não há atendentes disponíveis.' });
+        }
+
         const placeUserOnUrgentQueue = await databaseFramework.insert("urgent_queue", 
         { 
           isLogged: 1, 
@@ -371,6 +376,11 @@ class System {
       const userAlreadyIsOnUrgentQueue = await databaseFramework.select("urgent_queue", "*", "userData = ? and attendantAccepted = 0", [patientId]);
       if (userAlreadyIsOnUrgentQueue.length >= 1) {
         return res.status(400).send({ message: 'Usuário já está na fila de urgência.' });
+      }
+
+      const verifyIfHasAttendantsAvailable = await databaseFramework.select("chat_attendants", "*", "isAvailable = 1");
+      if (verifyIfHasAttendantsAvailable.length <= 0) {
+        return res.status(400).send({ message: 'Não há atendentes disponíveis.' });
       }
 
       const placeUserOnUrgentQueue = await databaseFramework.insert("urgent_queue", 
